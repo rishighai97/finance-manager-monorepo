@@ -1,0 +1,16 @@
+from dotenv import find_dotenv, load_dotenv
+import argparse
+
+
+def setup_environment_variables():
+    argument_parser = argparse.ArgumentParser()
+    argument_parser.add_argument(
+        '--app-profile',
+        required=True,
+        choices=['local', 'dev', 'qa', 'prod'],
+        help='Mention application profile required to configure environment variables',
+        type=str
+    )
+    app_profile = argument_parser.parse_args().app_profile
+    if not load_dotenv(find_dotenv(f'./resources/env_variables/.env.{app_profile}', usecwd=True), override=False):
+        raise Exception(f"Unable to load environment variable file for app profile - {app_profile}")

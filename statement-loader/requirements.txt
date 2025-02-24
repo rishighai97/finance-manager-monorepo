@@ -4,3 +4,5 @@ xlrd
 pandas
 # postgres
 psycopg2-binary
+# environment variables
+dotenv

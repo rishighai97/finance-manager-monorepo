@@ -1,12 +1,15 @@
+from utils.env_utils import setup_environment_variables
+setup_environment_variables()
 import pandas as pd
 import xlrd
-
 from model.account import Account
 from service.transaction_service import TransactionService
 from statement_reader.statement_reader_factory import StatementReaderFactory
 
 
+
 if __name__ == '__main__':
+
     transaction_service = TransactionService()
     # df = pd.read_excel(xlrd.open_workbook(filename=filename))
     # df = pd.read_excel(filename)
