@@ -1,0 +1,6 @@
+# excel and csv
+numpy
+xlrd
+pandas
+# postgres
+psycopg2-binary
