@@ -1,8 +1,12 @@
 # excel and csv
 numpy
-xlrd
-pandas
+xlrd~=2.0.1
+pandas~=2.2.3
 # postgres
-psycopg2-binary
+psycopg2-binary~=2.9.10
 # environment variables
-dotenv
+dotenv~=0.9.9
+# flask framework
+Flask~=3.1.0
+Flask-SQLAlchemy
+Werkzeug
