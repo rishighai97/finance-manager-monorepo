@@ -2,9 +2,9 @@ from utils.env_utils import setup_environment_variables
 setup_environment_variables()
 import pandas as pd
 import xlrd
-from model.account import Account
+from model.account_details_factory import Account
 from service.transaction_service import TransactionService
-from statement_reader.statement_reader_factory import StatementReaderFactory
+from service.statement_reader.statement_reader_factory import StatementReaderFactory
 
 
 

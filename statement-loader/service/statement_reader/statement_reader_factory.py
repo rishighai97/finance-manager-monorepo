@@ -1,9 +1,9 @@
-from model.account import Account
-from statement_reader.canara_statement_reader import CanaraStatementReader
-from statement_reader.groww_statement_reader import GrowwStatementReader
-from statement_reader.hdfc_statement_reader import HdfcStatementReader
-from statement_reader.icici_statement_reader import IciciStatementReader
-from statement_reader.statement_reader import *
+from model.account_details_factory import Account
+from service.statement_reader.canara_statement_reader import CanaraStatementReader
+from service.statement_reader.groww_statement_reader import GrowwStatementReader
+from service.statement_reader.hdfc_statement_reader import HdfcStatementReader
+from service.statement_reader.icici_statement_reader import IciciStatementReader
+from service.statement_reader.statement_reader import *
 
 
 class StatementReaderFactory:

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from model.transaction import Transaction
-from statement_reader.statement_reader import StatementReader
+from service.statement_reader.statement_reader import StatementReader
 import pandas as pd
 from typing import List
 

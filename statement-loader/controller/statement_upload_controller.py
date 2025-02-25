@@ -1,16 +1,10 @@
-import json
-
-import flask
-from flask import Blueprint, request, jsonify, Request
-import pandas as pd
-from werkzeug.exceptions import BadRequest, HTTPException, abort
+from flask import Blueprint, request
 
 from service.hdfc_statement_uploader import HdfcStatementUploader
-from service.statement_upload_service import StatementUploadService
-from statement_reader.hdfc_statement_reader import HdfcStatementReader
+from service.statement_uploader import StatementUploader
 
 blueprint = Blueprint('statement_upload_controller', __name__,url_prefix='/statement/upload/v1')
-service = StatementUploadService()
+service = StatementUploader()
 
 @blueprint.route(rule="/healthcheck", methods=['GET'])
 def healthcheck():
@@ -20,8 +14,8 @@ def healthcheck():
 @blueprint.route(rule="/hdfc", methods=['POST'])
 def hdfc():
     print("Received request to upload hdfc statement")
-    HdfcStatementUploader().upload_statement(api_request=request)
-    return "<p>Statement API is up and running!</p>"
+    count : int = HdfcStatementUploader().upload_statement(api_request=request)
+    return f'Saved {count} hdfc transactions'
 
 
 # @blueprint.errorhandler(HTTPException)
