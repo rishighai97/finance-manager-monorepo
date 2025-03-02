@@ -1,6 +1,5 @@
-
+from sqlite3 import Cursor
 from typing import List
-
 class Postgres:
 
     def __init__(self, pool):
@@ -21,3 +20,8 @@ class Postgres:
             # Ensure the connection is closed
             if conn is not None:
                 conn.close()
+
+    @staticmethod
+    def execute_select_statement(cur, sql: str):
+        cur.execute(sql)
+        return cur.fetchall()

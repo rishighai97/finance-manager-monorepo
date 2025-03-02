@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to Byte Array and POST</title>
+</head>
+<body>
+
+<!-- File Input -->
+<input type="file" id="fileInput"/>
+<button onclick="sendFile()">Upload</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+
+<script>
+    // This function is triggered when the user selects a file
+    function sendFile() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];  // Get the selected file
+
+      if (file) {
+        // Convert the Excel file to a byte array
+        convertExcelToByteArray(file)
+          .then(byteArray => {
+            // Send the byte array to the API via POST request
+            postByteArrayToApi(byteArray);
+          })
+          .catch(error => {
+            console.error('Error converting Excel to byte array:', error);
+          });
+      }
+    }
+
+    // Function to convert Excel file to a byte array
+    function convertExcelToByteArray(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          // The file is loaded as an ArrayBuffer, which we convert to a byte array
+          const arrayBuffer = event.target.result;
+          const byteArray = new Uint8Array(arrayBuffer);
+          resolve(byteArray);
+        };
+        reader.onerror = function(error) {
+          reject(error);
+        };
+        reader.readAsArrayBuffer(file);  // Read file as an ArrayBuffer
+      });
+    }
+
+    // Function to send byte array in the POST request
+    function postByteArrayToApi(byteArray) {
+      const apiUrl = 'http://localhost:5002/statement/upload/v1/';  // Replace with your API URL
+
+      let binaryString = String.fromCharCode(...byteArray);
+
+      // Convert the string to a Base64-encoded string
+      let base64String = btoa(binaryString);
+
+      // Create the JSON payload
+      const payload = [
+        {
+      "request_id": "1",
+        "account_id": 1,
+        "user_id": 1,
+        "file_extension": "xls",
+        "file": base64String  // Convert byte array to a regular array to send in JSON
+      }
+      ];
+
+      // Send POST request with byte array in the request body
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)  // Convert the JSON object to a string
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('API response:', data);
+        alert('File uploaded successfully!');
+      })
+      .catch(error => {
+        console.error('Error uploading file:', error);
+        alert('Error uploading file');
+      });
+    }
+</script>
+
+</body>
+</html>

@@ -13,4 +13,5 @@ def setup_app():
     app.register_blueprint(api_exception_handlers.blueprint)
     app.register_blueprint(statement_upload_controller.blueprint)
 
+def run_app():
     app.run(host=os.getenv("SERVER_HOST"), port=os.getenv("SERVER_PORT"))

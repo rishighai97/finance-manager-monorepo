@@ -1,16 +1,22 @@
 from datetime import datetime
+
+import xlrd
+from werkzeug.datastructures import FileStorage
+
+from model.account_statement import AccountStatementExtension
+from model.account_statement_upload_request import AccountStatementUploadRequest
 from model.transaction import Transaction
 from service.statement_reader.statement_reader import StatementReader
 import pandas as pd
-from typing import List
+from typing import List, override
 
 
 class IciciStatementReader(StatementReader):
 
-    def read_pdf_statement(self, account_id: str) -> List[Transaction]:
-        pass
-
-    def read_statement(self, account_id: str, df: pd.DataFrame) -> List[Transaction]:
+    @override
+    def read_statement(self, request: AccountStatementUploadRequest, file: bytes) -> List[Transaction]:
+        account_id = request.account_id
+        df = pd.read_excel(xlrd.open_workbook(file_contents=file))
         transactions = []
         start = False
         for idx, row in df.iterrows():
@@ -27,9 +33,10 @@ class IciciStatementReader(StatementReader):
                 closing_balance = float(row.iloc[8]) if row.iloc[8] != None else float(0)
                 transactions.append(
                     Transaction(
-                        transaction_id=account_id + "|" + date_string + "|" + title,
+                        transaction_id=str(account_id) + "|" + date_string + "|" + title,
                         date=date,
                         account_id=account_id,
+                        user_id=request.user_id,
                         title=title,
                         debit_or_credit_amount=amount,
                         is_credit_amount=is_credit_amount,
@@ -41,3 +48,14 @@ class IciciStatementReader(StatementReader):
         return transactions
 
 
+    @override
+    def account_id(self) -> int:
+        return 2
+
+    @override
+    def version(self) -> int:
+        return 1
+
+    @override
+    def extension(self) -> str:
+        return AccountStatementExtension.xls
