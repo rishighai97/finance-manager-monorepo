@@ -24,7 +24,7 @@ def test_statement_reader_factory():
 def test_statement_uploader():
     from service.statement_uploader import StatementUploader
     service = StatementUploader()
-    records = get_excel_byte_array(file_path='resources/statements/HDFC.xls')
+    records = get_excel_byte_array(file_path='../statements/HDFC.xls')
     base64_encoded = base64.b64encode(records).decode('utf-8')
     data = service.upload_statement(account_statement_requests=[
         AccountStatementUploadRequest(

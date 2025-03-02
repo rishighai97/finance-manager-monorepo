@@ -13,6 +13,7 @@ from model.account_statement import AccountStatementExtension
 
 class GrowwStatementReader(StatementReader):
 
+    # fixme - handle multiple transactions with same key
     @override
     def read_statement(self, request: AccountStatementUploadRequest, file: bytes) -> List[Transaction]:
         account_id = request.account_id
@@ -23,7 +24,7 @@ class GrowwStatementReader(StatementReader):
             if start and type(row[0]) == str:
                 transactions.append(
                     Transaction(
-                        transaction_id=str(account_id) + "|" + str(row[0]) + "|" + row[1],
+                        # transaction_id=str(account_id) + "|" + str(row[5]) + "|" + row[0],
                         date=datetime.strptime(row[5], "%d %b %Y"),
                         account_id=account_id,
                         user_id=request.user_id,

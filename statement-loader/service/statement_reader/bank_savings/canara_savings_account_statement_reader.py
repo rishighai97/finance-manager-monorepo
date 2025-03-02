@@ -33,7 +33,7 @@ class CanaraStatementReader(StatementReader):
                 closing_balance = float(row.iloc[7]) if row.iloc[7] != None else float(0)
                 transactions.append(
                     Transaction(
-                        transaction_id=account_id + "|" + date_string + "|" + title,
+                        # transaction_id=account_id + "|" + date_string + "|" + title,
                         date=date,
                         account_id=account_id,
                         user_id=request.user_id,

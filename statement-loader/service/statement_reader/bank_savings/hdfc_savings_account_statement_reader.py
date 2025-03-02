@@ -25,7 +25,7 @@ class HdfcSavingsAccountXlsStatementReader(StatementReader):
             if asterix_row_count == 2 and type(row.iloc[0]) == str and row.iloc[0][0] != '*':
                 transactions.append(
                     Transaction(
-                        transaction_id=str(account_id) + "|" + str(row.iloc[0]) + "|" + row.iloc[1],
+                        # transaction_id=str(account_id) + "|" + str(row.iloc[0]) + "|" + row.iloc[1],
                         date=datetime.strptime(row.iloc[0], "%d/%m/%y"),
                         account_id=account_id,
                         user_id=request.user_id,

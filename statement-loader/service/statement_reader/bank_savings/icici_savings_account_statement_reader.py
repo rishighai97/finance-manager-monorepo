@@ -33,7 +33,7 @@ class IciciStatementReader(StatementReader):
                 closing_balance = float(row.iloc[8]) if row.iloc[8] != None else float(0)
                 transactions.append(
                     Transaction(
-                        transaction_id=str(account_id) + "|" + date_string + "|" + title,
+                        # transaction_id=str(account_id) + "|" + date_string + "|" + title,
                         date=date,
                         account_id=account_id,
                         user_id=request.user_id,
