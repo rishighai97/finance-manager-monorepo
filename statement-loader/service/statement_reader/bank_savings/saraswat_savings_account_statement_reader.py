@@ -34,8 +34,7 @@ class SaraswatXlsSavingsAccountStatementReader(StatementReader):
                     Transaction(
                         # transaction_id=str(account_id) + "|" + date_string + "|" + title,
                         date=date,
-                        account_id=account_id,
-                        user_id=request.user_id,
+                        user_account_id=request.user_account_id,
                         title=title,
                         debit_or_credit_amount=amount,
                         is_credit_amount=is_credit_amount,

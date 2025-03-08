@@ -26,8 +26,7 @@ class GrowwStatementReader(StatementReader):
                     Transaction(
                         # transaction_id=str(account_id) + "|" + str(row[5]) + "|" + row[0],
                         date=datetime.strptime(row[5], "%d %b %Y"),
-                        account_id=account_id,
-                        user_id=request.user_id,
+                        user_account_id=request.user_account_id,
                         title=row[0],
                         debit_or_credit_amount=float(row[4].replace(',','').replace(' ','')),
                         is_credit_amount=str(row[1]).strip() == "PURCHASE",

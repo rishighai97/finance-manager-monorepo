@@ -41,12 +41,7 @@
 <h2>API Response:</h2>
 <table id="responseTable" style="display:none;">
     <thead>
-        <tr>
-            <th>Request ID</th>
-            <th>File Extension</th>
-            <th>Account ID</th>
-            <th>Status</th>
-        </tr>
+        <tr id="tableHeaders"></tr>
     </thead>
     <tbody></tbody>
 </table>
@@ -81,6 +76,12 @@
             </select>
             <br>
 
+            <label for="userAccountId">User Account ID:</label>
+            <select id="userAccountId">
+                ${[...Array(20).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+            </select>
+            <br>
+
             <label for="fileUpload">File:</label>
             <input type="file" id="fileUpload">
             <br><br>
@@ -104,6 +105,7 @@
             const fileExtension = container.querySelector('#fileExtension').value;
             const accountId = container.querySelector('#accountId').value;
             const userId = container.querySelector('#userId').value;
+            const userAccountId = container.querySelector('#userAccountId').value;
             const requestId = container.querySelector('#requestId').value;
             const fileInput = container.querySelector('#fileUpload');
 
@@ -118,6 +120,7 @@
                             request_id: requestId,
                             account_id: accountId,
                             user_id: userId,
+                            user_account_id: userAccountId,
                             file_extension: fileExtension,
                             file: base64String
                         };
@@ -134,6 +137,7 @@
                         request_id: requestId,
                         account_id: accountId,
                         user_id: userId,
+                        user_account_id: userAccountId,
                         file_extension: fileExtension,
                         file: ''
                     });
@@ -169,33 +173,36 @@
     function displayApiResponse(data) {
         const responseTable = document.getElementById('responseTable');
         const tbody = responseTable.querySelector('tbody');
+        const tableHeaders = document.getElementById('tableHeaders');
+
         tbody.innerHTML = ''; // Clear any previous data
+        tableHeaders.innerHTML = ''; // Clear previous headers
 
-        // Populate the table with the response data
-        data.forEach(item => {
-            const row = document.createElement('tr');
+        // Generate the table headers dynamically based on the first item in the response
+        if (data.length > 0) {
+            const headers = Object.keys(data[0]);
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header.replace(/_/g, ' ').toUpperCase(); // Format headers
+                tableHeaders.appendChild(th);
+            });
 
-            const requestIdCell = document.createElement('td');
-            requestIdCell.textContent = item.request_id;
-            row.appendChild(requestIdCell);
+            // Populate the table with the response data
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = item[header] || 'N/A';  // Show 'N/A' if value is missing
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
 
-            const fileExtensionCell = document.createElement('td');
-            fileExtensionCell.textContent = item.file_extension;
-            row.appendChild(fileExtensionCell);
-
-            const accountIdCell = document.createElement('td');
-            accountIdCell.textContent = item.account_id;
-            row.appendChild(accountIdCell);
-
-            const statusCell = document.createElement('td');
-            statusCell.textContent = item.status || 'Unknown';  // Assuming `status` is part of the response
-            row.appendChild(statusCell);
-
-            tbody.appendChild(row);
-        });
-
-        // Show the table after populating it with data
-        responseTable.style.display = 'table';
+            // Show the table after populating it with data
+            responseTable.style.display = 'table';
+        } else {
+            alert("No data available in the response.");
+        }
     }
 </script>
 

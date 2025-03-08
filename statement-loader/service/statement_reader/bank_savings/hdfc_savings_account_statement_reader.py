@@ -27,8 +27,7 @@ class HdfcSavingsAccountXlsStatementReader(StatementReader):
                     Transaction(
                         # transaction_id=str(account_id) + "|" + str(row.iloc[0]) + "|" + row.iloc[1],
                         date=datetime.strptime(row.iloc[0], "%d/%m/%y"),
-                        account_id=account_id,
-                        user_id=request.user_id,
+                        user_account_id=request.user_account_id,
                         title=row.iloc[1],
                         debit_or_credit_amount=row.iloc[4] if type(row.iloc[4]) == str else row.iloc[5],
                         is_credit_amount=type(row.iloc[4]) != str,
