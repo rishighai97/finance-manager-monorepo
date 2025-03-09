@@ -3,6 +3,7 @@ import pkgutil
 
 from dotenv import find_dotenv, load_dotenv
 import argparse
+import os
 
 
 def setup_environment_variables():
@@ -15,7 +16,7 @@ def setup_environment_variables():
         type=str
     )
     app_profile = argument_parser.parse_args().app_profile
-    if not load_dotenv(find_dotenv(f'./resources/env_variables/.env.{app_profile}', usecwd=True), override=False):
+    if not load_dotenv(find_dotenv(f'./transaction-service/resources/env_variables/.env.{app_profile}', usecwd=True), override=False):
         raise Exception(f"Unable to load environment variable file for app profile - {app_profile}")
 
 
