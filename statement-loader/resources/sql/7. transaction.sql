@@ -1,5 +1,6 @@
+
 CREATE TABLE transaction  (
-  id varchar (200) unique primary key,
+  id text PRIMARY KEY NOT NULL UNIQUE,
   date date not null,
   user_account_id serial not null references user_account,
   title varchar (100) not null,
@@ -10,3 +11,5 @@ CREATE TABLE transaction  (
   units numeric,
   price_per_unit numeric
 );
+
+select * from transaction;
