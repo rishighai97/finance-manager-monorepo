@@ -14,4 +14,4 @@ def setup_app():
     app.register_blueprint(statement_upload_controller.blueprint)
 
 def run_app():
-    app.run(host=os.getenv("SERVER_HOST"), port=os.getenv("SERVER_PORT"))
+    app.run(host=os.getenv("ACCOUNT_SERVICE_SERVER_HOST"), port=os.getenv("ACCOUNT_SERVICE_SERVER_PORT"))
