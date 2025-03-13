@@ -11,12 +11,11 @@ from service.statement_reader.statement_reader import StatementReader
 from typing import List, override
 from io import StringIO, BytesIO
 
-class AxisXlsStatementReader(StatementReader):
+class AxisXlsSavingsAccountStatementReader(StatementReader):
     regex_pattern = r',(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)'
 
     @override
     def read_statement(self, request: AccountStatementUploadRequest, file: bytes) -> List[Transaction]:
-        account_id = request.account_id
         df = pd.read_excel(xlrd.open_workbook(file_contents=file))
         start = False
         transactions = []
@@ -28,8 +27,7 @@ class AxisXlsStatementReader(StatementReader):
                     Transaction(
                         # transaction_id=str(account_id) + "|" + str(row.iloc[0]) + "|" + row.iloc[1],
                         date=datetime.strptime(row.iloc[1], "%d-%m-%Y"),
-                        account_id=account_id,
-                        user_id=request.user_id,
+                        user_account_id=request.user_account_id,
                         title=row.iloc[3],
                         debit_or_credit_amount=float(row.iloc[4].strip()) if type(row.iloc[4]) == str and row.iloc[4].strip() != '' else float(row.iloc[5].strip()),
                         is_credit_amount=type(row.iloc[5]) == str and row.iloc[5].strip() != '',
@@ -53,7 +51,7 @@ class AxisXlsStatementReader(StatementReader):
         return AccountStatementExtension.xls
 
 
-class AxisCsvStatementReader(StatementReader):
+class AxisCsvSavingsAccountStatementReader(StatementReader):
     regex_pattern = r',(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)'
 
     @override

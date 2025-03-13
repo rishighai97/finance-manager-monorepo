@@ -6,7 +6,6 @@ from flask_cors import CORS, cross_origin
 from werkzeug.exceptions import BadRequest
 
 from model.account_statement_upload_request import AccountStatementUploadRequest
-from model.account_statement_upload_response import AccountStatementUploadResponse
 from service.statement_uploader import StatementUploader
 
 blueprint = Blueprint('statement_upload_controller', __name__,url_prefix='/statement/upload/v1')
