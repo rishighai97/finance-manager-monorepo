@@ -14,7 +14,7 @@ service = StatementUploader()
 
 @blueprint.route(rule="/healthcheck", methods=['GET'])
 def healthcheck():
-    return "<p>Statement API is up and running!</p>"
+    return "Statement API is up and running!"
 
 
 @blueprint.route(rule="/", methods=['POST'])
