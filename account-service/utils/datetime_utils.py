@@ -1,8 +1,13 @@
 from datetime import datetime
 
-def validate_datetime(datetime_string: str, format: str):
+def get_datetime_or_none(datetime_string: str, format: str) -> datetime:
     try:
-        datetime.strptime(datetime_string, format)
-        return True
+        return datetime.strptime(datetime_string, format)
     except ValueError:
-        return False
+        return None
+
+def get_datetime_string_or_none(_datetime: datetime, format: str) -> str:
+    try:
+        return _datetime.strftime(format)
+    except ValueError:
+        return None

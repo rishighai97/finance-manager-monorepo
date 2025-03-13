@@ -14,6 +14,13 @@ service = AccountService()
 def healthcheck():
     return "Account API is up and running!"
 
+@blueprint.route(rule="/fetch_all", methods=['GET'])
+@cross_origin()
+def fetch_all_accounts_by_user_ids() -> str:
+    user_ids: List[int] = validate_and_get_user_ids()
+    print(f"Received request to fetch accounts for user ids {user_ids}")
+    result = [record.__dict__ for record in service.get_all_accounts(user_ids=user_ids)]
+    return json.dumps(result)
 
 def validate_and_get_user_ids() -> List[int]:
     if 'user_ids' not in request.args.keys():
@@ -26,11 +33,3 @@ def validate_and_get_user_ids() -> List[int]:
         raise BadRequest(
             f"Invalid user_ids passed in request - {user_id_list}. Please pass valid integer ids")
     return user_ids
-
-@blueprint.route(rule="/fetch_all", methods=['GET'])
-@cross_origin()
-def fetch_all_accounts_by_user_ids() -> str:
-    user_ids: List[int] = validate_and_get_user_ids()
-    print(f"Received request to fetch accounts for user ids {user_ids}")
-    result = [record.__dict__ for record in service.get_all_accounts(user_ids=user_ids)]
-    return json.dumps(result)
