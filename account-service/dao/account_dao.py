@@ -2,7 +2,7 @@ from typing import List, override
 
 from config.config_manager import ConfigManager
 from config.postgres import Postgres
-from dto.user_account import UserAccount
+from model.user_account import UserAccount
 
 
 class AccountDao:
