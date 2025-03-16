@@ -11,3 +11,6 @@ class UserAccount:
         self.account_type_3: str = account_type_3
         self.latest_balance: float = balance
         self.latest_balance_date: str = balance_date
+
+    def to_dict(self):
+        return self.__dict__
