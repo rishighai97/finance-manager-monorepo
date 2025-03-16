@@ -1,16 +1,107 @@
+// Import font
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Color classes
 .danger {
-    color: red;
-  }
+  color: #ff4961;
+}
+
+.success {
+  color: #2dd36f;
+  background: none;
+}
+
+.warning {
+  color: #ffc409;
+}
+
+// Amount container styling for consistent alignment
+.amount-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 100px;
+  background: none;
   
-  .success {
-    color: green;
+  ion-chip {
+    margin-right: 0;
+    margin-left: auto;
     background: none;
   }
+}
+
+// Level 1 items styling
+.level1-item {
+  margin: 16px auto 8px;
+  --border-radius: 12px;
+  --background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   
-  .warning {
-    color: orange;
+  .level1-label {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    padding-left: 8px;
   }
   
-  .item{
-    margin:10px auto;
+  ion-chip {
+    font-weight: 600;
   }
+}
+
+// Level 2 items styling
+.level2-item {
+  margin: 4px auto 0 16px;
+  --background: transparent;
+  --border-radius: 8px;
+  
+  .level2-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+    padding-left: 8px;
+  }
+  
+  ion-chip {
+    font-weight: 500;
+  }
+}
+
+// Individual account items styling
+.account-item {
+  margin: 4px auto 4px 40px;
+  --background: #ffffff;
+  --border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  
+  h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  
+  p {
+    font-size: 12px;
+    color: #777;
+  }
+  
+  ion-chip {
+    font-size: 13px;
+    font-weight: 500;
+    height: 24px;
+    padding: 0 8px;
+  }
+}
+
+ion-list {
+  background: transparent;
+}
+
+ion-content {
+  --background: #f5f7fa;
+}

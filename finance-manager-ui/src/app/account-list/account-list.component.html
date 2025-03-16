@@ -4,63 +4,80 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Accounts</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" color="light">
+  <ion-list [inset]="true" lines="none">
+    @if (getGroupedAccounts().length > 0) {
+    <!-- Level 1 Groups -->
+    @for (level1Group of getLevel1Groups(); track level1Group.title) {
+    <ion-item class="level1-item">
+      <ion-label class="level1-label">
+        {{ level1Group.title }}
+      </ion-label>
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: level1Group.amount < 0,
+            success: level1Group.amount > 0
+          }"
+        >
+          <ion-label>{{ level1Group.amount | currency : "INR" }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
 
-  <ion-content color="light">
-    <!-- Check if there are accounts available -->
-    <ion-list [inset]="true" lines="none">
-      @if (getUserAccounts().length > 0) { @for (account of
-      getUserAccounts();track account) {
-      <ion-item class="item">
-        <!-- <ion-grid> -->
+    <!-- Level 2 accounts (always visible now) -->
+    @for (groupedAccount of getGroupedAccountsForLevel1(level1Group.title);
+    track groupedAccount) {
+    <ion-item class="level2-item">
+      <ion-label class="level2-title">
+        {{ groupedAccount.level_2_title }}
+      </ion-label>
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: groupedAccount.level_2_amount < 0,
+            success: groupedAccount.level_2_amount > 0
+          }"
+        >
+          <ion-label>{{
+            groupedAccount.level_2_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
 
-        <!-- <ion-col size="2"> -->
-        <ion-avatar slot="start">
-          <img alt="Account Icon" [src]="account.icon" />
-        </ion-avatar>
-        <!-- </ion-col> -->
-        <ion-grid>
-          <ion-row>
-            <ion-col class="ion-text-start">
-              <!-- Account Icon and Name -->
-
-              <ion-label>
-                <h2>{{ account.account_name }}</h2>
-                <p>
-                  {{ account.latest_balance_date | date : "mediumDate" }}
-                </p>
-              </ion-label>
-            </ion-col>
-
-            <ion-col class="ion-text-end">
-              @if (account.latest_balance != null && account.latest_balance !=
-              0) {
-              <ion-chip
-                [ngClass]="{
-                  danger: account.latest_balance < 0,
-                  success: account.latest_balance > 0
-                }"
-              >
-                <ion-label>
-                  {{ account.latest_balance | currency : "INR" }}
-                </ion-label>
-              </ion-chip>
-              }
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-        <!-- </ion-grid> -->
-      </ion-item>
-      } } @else {
-      <ion-item>
-        <ion-label>No accounts available</ion-label>
-      </ion-item>
-      }
-    </ion-list>
-  </ion-content>
+    <!-- Individual accounts within Level 2 -->
+    @for (account of groupedAccount.user_accounts; track account) {
+    <ion-item class="account-item">
+      <ion-avatar slot="start">
+        <img alt="Account Icon" [src]="account.icon" />
+      </ion-avatar>
+      <ion-label>
+        <h4>{{ account.account_name }}</h4>
+        <p>{{ account.latest_balance_date | date : "mediumDate" }}</p>
+      </ion-label>
+      <div slot="end" class="amount-container">
+        @if (account.latest_balance != null && account.latest_balance != 0) {
+        <ion-chip
+          [ngClass]="{
+            danger: account.latest_balance < 0,
+            success: account.latest_balance > 0
+          }"
+        >
+          <ion-label>{{ account.latest_balance | currency : "INR" }}</ion-label>
+        </ion-chip>
+        }
+      </div>
+    </ion-item>
+    } } } } @else if (isLoading) {
+    <ion-item>
+      <ion-label>Loading accounts...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else {
+    <ion-item>
+      <ion-label>No accounts available</ion-label>
+    </ion-item>
+    }
+  </ion-list>
 </ion-content>
