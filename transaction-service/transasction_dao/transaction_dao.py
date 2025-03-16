@@ -1,7 +1,4 @@
-from contextlib import closing
 from typing import List, override
-from datetime import datetime
-
 from config.config_manager import ConfigManager
 from config.postgres import Postgres
 from model.transaction import Transaction
