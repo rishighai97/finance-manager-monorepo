@@ -29,8 +29,8 @@ class HdfcSavingsAccountXlsStatementReader(StatementReader):
                         date=datetime.strptime(row.iloc[0], "%d/%m/%y"),
                         user_account_id=request.user_account_id,
                         title=row.iloc[1],
-                        debit_or_credit_amount=row.iloc[4] if type(row.iloc[4]) == str else row.iloc[5],
-                        is_credit_amount=type(row.iloc[4]) != str,
+                        debit_or_credit_amount=float(row.iloc[4]) if pd.isna(row[5]) else float(row.iloc[5]),
+                        is_credit_amount=pd.isna(row[5]),
                         closing_balance=row.iloc[6]
                     )
                 )
