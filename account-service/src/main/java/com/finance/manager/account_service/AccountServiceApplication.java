@@ -1,13 +1,13 @@
-package com.personal_finance_manager;
+package com.finance.manager.account_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PersonalFinanceManagerApplication {
+public class AccountServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(PersonalFinanceManagerApplication.class, args);
+		SpringApplication.run(AccountServiceApplication.class, args);
 	}
 
 }

@@ -1,16 +1,16 @@
 plugins {
 	java
 	war
-	id("org.springframework.boot") version "3.4.2"
+	id("org.springframework.boot") version "3.5.0-SNAPSHOT"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "com"
+group = "com.finance.manager"
 version = "0.0.1-SNAPSHOT"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -22,20 +22,19 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url = uri("https://repo.spring.io/milestone") }
+	maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-//	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.apache.pdfbox:pdfbox:2.0.33")
-	compileOnly("org.projectlombok:lombok")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	runtimeOnly("org.postgresql:postgresql")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	compileOnly("org.projectlombok:lombok")
+
 	annotationProcessor("org.projectlombok:lombok")
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.apache.pdfbox:pdfbox:2.0.33")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

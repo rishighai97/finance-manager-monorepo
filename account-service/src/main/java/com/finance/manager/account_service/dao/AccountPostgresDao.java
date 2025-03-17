@@ -1,0 +1,102 @@
+package com.finance.manager.account_service.dao;
+
+import com.finance.manager.account_service.dto.UserAccount;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Repository
+public class AccountPostgresDao implements AccountDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(AccountPostgresDao.class);
+
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    public AccountPostgresDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    @Override
+    public List<UserAccount> getAllAccounts(List<Integer> userIds) {
+        logger.info("Getting user accounts for user_ids: {} from postgres", userIds);
+
+        String sql = """
+                select  user_account_id,
+                        account_id,
+                        user_id,
+                        account_type_id,
+                        icon,
+                        account_name,
+                        account_type_1,
+                        account_type_2,
+                        account_type_3,
+                        closing_balance,
+                        closing_balance_date
+                        from
+                            (
+                            select
+                                ua.id as user_account_id,
+                                ua.account_id as account_id,
+                                ua.user_id as user_id,
+                                type_id as account_type_id,
+                                ai.icon as icon,
+                                name as account_name,
+                                type_1 as account_type_1,
+                                type_2 as account_type_2,
+                                type_3 as account_type_3,
+                                t.closing_balance as closing_balance,
+                                t.date as closing_balance_date,
+                                row_number() over(partition by t.user_account_id order by date desc) as user_account_id_rank,
+                                (case when t.user_account_id is not null then true else false end) as has_transactions
+                            from
+                                user_account ua
+                            join account a on
+                                ua.account_id = a.id
+                            join account_type at2 on
+                                at2.id = a.type_id
+                            join account_icon ai on
+                                a.icon_id = ai.id
+                            left join transaction t on
+                                ua.id = t.user_account_id
+                            where
+                                user_id in (:userIds)
+                        ) where has_transactions = false or user_account_id_rank = 1
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userIds", userIds);
+
+        List<UserAccount> userAccounts = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            BigDecimal balance = rs.getObject("closing_balance") != null ?
+                    rs.getBigDecimal("closing_balance") : BigDecimal.ZERO;
+
+            String balanceDate = rs.getObject("closing_balance_date") != null ?
+                    rs.getDate("closing_balance_date").toString() : null;
+
+            return UserAccount.builder()
+                    .userAccountId(rs.getInt("user_account_id"))
+                    .accountId(rs.getInt("account_id"))
+                    .userId(rs.getInt("user_id"))
+                    .accountTypeId(rs.getInt("account_type_id"))
+                    .accountName(rs.getString("account_name"))
+                    .icon(rs.getString("icon"))
+                    .accountType1(rs.getString("account_type_1"))
+                    .accountType2(rs.getString("account_type_2"))
+                    .accountType3(rs.getString("account_type_3"))
+                    .latestBalance(balance)
+                    .latestBalanceDate(balanceDate)
+                    .build();
+        });
+
+        logger.info("Retrieved {} user accounts for user_ids: {} from postgres", userAccounts.size(), userIds);
+        return userAccounts;
+    }
+}
