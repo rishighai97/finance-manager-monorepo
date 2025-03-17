@@ -1,5 +1,5 @@
 // Import font
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
 
 // Set font family for all elements
 * {
@@ -27,7 +27,7 @@
   justify-content: flex-end;
   min-width: 100px;
   background: none;
-  
+
   ion-chip {
     margin-right: 0;
     margin-left: auto;
@@ -39,16 +39,16 @@
 .level1-item {
   margin: 16px auto 8px;
   --border-radius: 12px;
-  --background: #f8f9fa;
+  // --background: #f8f9fa;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  
+
   .level1-label {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: -0.3px;
     padding-left: 8px;
   }
-  
+
   ion-chip {
     font-weight: 600;
   }
@@ -59,14 +59,14 @@
   margin: 4px auto 0 16px;
   --background: transparent;
   --border-radius: 8px;
-  
+
   .level2-title {
     font-size: 16px;
     font-weight: 600;
     color: #555;
     padding-left: 8px;
   }
-  
+
   ion-chip {
     font-weight: 500;
   }
@@ -78,18 +78,18 @@
   --background: #ffffff;
   --border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  
+
   h4 {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 2px;
   }
-  
+
   p {
     font-size: 12px;
     color: #777;
   }
-  
+
   ion-chip {
     font-size: 13px;
     font-weight: 500;
