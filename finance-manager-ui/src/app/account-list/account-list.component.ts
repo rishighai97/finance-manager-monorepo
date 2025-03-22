@@ -19,19 +19,21 @@ import {
   IonCardContent,
   IonChip,
   IonSpinner,
+  IonBackButton,
+  IonButtons,
+  IonButton,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
-  triangle,
-  ellipse,
-  square,
   walletOutline,
   chevronDownOutline,
   chevronUpOutline,
+  arrowBackOutline,
 } from "ionicons/icons";
 import { UserAccount } from "src/model/user-account";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { AccountService } from "src/service/account.service";
+import { TransactionListComponent } from "../transaction-list/transaction-list.component";
 
 interface Level1Group {
   title: string;
@@ -63,7 +65,11 @@ interface Level1Group {
     IonCardContent,
     IonChip,
     IonSpinner,
+    IonBackButton,
+    IonButtons,
+    IonButton,
     CommonModule,
+    TransactionListComponent,
   ],
 })
 export class AccountListComponent implements OnInit {
@@ -71,6 +77,13 @@ export class AccountListComponent implements OnInit {
   private groupedAccounts: GroupedUserAccount[] = [];
   private level1Groups: Level1Group[] = [];
   isLoading: boolean = true;
+  showTransactions: boolean = false;
+  selectedAccountId: number | null = null;
+  selectedAccountName: string = "";
+
+  // Financial year dates
+  startDate: string = "";
+  endDate: string = "";
 
   constructor(private accountService: AccountService) {
     console.log("account list component constructor called");
@@ -78,7 +91,11 @@ export class AccountListComponent implements OnInit {
       walletOutline,
       chevronDownOutline,
       chevronUpOutline,
+      arrowBackOutline,
     });
+
+    // Set financial year dates
+    this.setFinancialYearDates();
   }
 
   ngOnInit() {
@@ -111,6 +128,27 @@ export class AccountListComponent implements OnInit {
         this.fetchRegularAccounts();
       }
     );
+  }
+
+  // Set Indian financial year dates based on current date
+  private setFinancialYearDates() {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const previousYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
+
+    // Indian financial year is from April 1 to March 31
+    if (currentMonth >= 4) {
+      // April or later
+      this.startDate = `${currentYear}-04-01`;
+      this.endDate = `${currentYear + 1}-03-31`;
+    } else {
+      // January to March
+      this.startDate = `${currentYear - 1}-04-01`;
+      this.endDate = `${currentYear}-03-31`;
+    }
+
+    console.log(`Financial year set to: ${this.startDate} to ${this.endDate}`);
   }
 
   // Fallback method to fetch regular accounts
@@ -184,5 +222,18 @@ export class AccountListComponent implements OnInit {
   // Get all grouped accounts
   getGroupedAccounts(): GroupedUserAccount[] {
     return this.groupedAccounts;
+  }
+
+  // Show transactions for a specific account
+  showTransactionsForAccount(account: UserAccount) {
+    this.selectedAccountId = account.account_id;
+    this.selectedAccountName = account.account_name;
+    this.showTransactions = true;
+  }
+
+  backFromTransactions() {
+    this.showTransactions = false;
+    this.selectedAccountId = null;
+    this.selectedAccountName = "";
   }
 }

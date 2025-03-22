@@ -1,0 +1,123 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backToAccounts()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Transactions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light" class="ion-no-padding">
+  <!-- Date Filter Row -->
+  <div class="date-filter-container">
+    <ion-item lines="none" class="date-picker-item">
+      <ion-label position="stacked">From</ion-label>
+      <ion-input
+        type="date"
+        [(ngModel)]="startDateInput"
+        [value]="startDate"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item lines="none" class="date-picker-item">
+      <ion-label position="stacked">To</ion-label>
+      <ion-input
+        type="date"
+        [(ngModel)]="endDateInput"
+        [value]="endDate"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button class="refresh-button" (click)="refreshTransactions()">
+      <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Summary Row -->
+  <div class="summary-container">
+    <div class="summary-item">
+      <div class="summary-label">Opening</div>
+      <div class="summary-amount neutral">
+        {{ openingBalance | currency:'INR':'symbol':'1.0-0' }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Debit</div>
+      <div class="summary-amount danger">
+        {{ totalDebit | currency:'INR':'symbol':'1.0-0' }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Credit</div>
+      <div class="summary-amount success">
+        {{ totalCredit | currency:'INR':'symbol':'1.0-0' }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Closing</div>
+      <div class="summary-amount" [ngClass]="{
+        'success': closingBalance > 0,
+        'danger': closingBalance < 0,
+        'neutral': closingBalance === 0
+      }">
+        {{ closingBalance | currency:'INR':'symbol':'1.0-0' }}
+      </div>
+    </div>
+  </div>
+
+  <ion-list [inset]="true" lines="none">
+    @if (getTransactions().length > 0) { @for (transaction of getTransactions();
+    track transaction.transaction_id) {
+    <ion-item class="transaction-item">
+      <div class="category-container">
+        @if (transaction.category_id) {
+        <p class="category-id">ID: {{ transaction.category_id }}</p>
+        <p class="category-type">{{ transaction.type || "General" }}</p>
+        } @else {
+        <ion-button
+          fill="clear"
+          size="small"
+          class="add-category-btn"
+          (click)="addCategory(transaction)"
+        >
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Add Category</span>
+        </ion-button>
+        }
+      </div>
+
+      <ion-label>
+        <h4>{{ transaction.title }}</h4>
+        <p>{{ transaction.date | date : "mediumDate" }}</p>
+      </ion-label>
+
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: isDebit(transaction),
+            success: !isDebit(transaction)
+          }"
+        >
+          <ion-label>{{
+            transaction.debit_or_credit_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+    }
+    <!-- Add bottom spacer -->
+    <div class="bottom-spacer"></div>
+    } @else if (isLoading) {
+    <ion-item>
+      <ion-label>Loading transactions...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else {
+    <ion-item>
+      <ion-label>No transactions available</ion-label>
+    </ion-item>
+    }
+  </ion-list>
+</ion-content>
