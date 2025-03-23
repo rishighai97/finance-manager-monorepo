@@ -8,6 +8,7 @@ import {
   SimpleChanges,
   Output,
   EventEmitter,
+  ViewChild,
 } from "@angular/core";
 import {
   IonHeader,
@@ -17,39 +18,41 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonGrid,
-  IonRow,
-  IonCol,
   IonIcon,
-  IonTabButton,
-  IonCard,
-  IonCardHeader,
-  IonAvatar,
-  IonCardContent,
   IonChip,
   IonSpinner,
-  IonBackButton,
   IonButtons,
   IonButton,
-  IonInput
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonAvatar,
+  IonItemDivider,
+  IonModal,
+  IonCheckbox,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
-  walletOutline,
-  chevronDownOutline,
-  chevronUpOutline,
   refreshOutline,
   addCircleOutline,
-  arrowBackOutline
+  arrowBackOutline,
+  walletOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
+import { GroupedUserAccount } from 'src/model/grouped-user-account';
+import { UserAccount } from 'src/model/user-account';
+import { ActivatedRoute } from '@angular/router';
+import { AccountService } from "src/service/account.service";
 
 @Component({
   selector: "app-transaction-list",
   templateUrl: "./transaction-list.component.html",
   styleUrls: ["./transaction-list.component.scss"],
+  standalone: true,
   imports: [
+    CommonModule,
+    FormsModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -57,31 +60,31 @@ import { TransactionService } from "src/service/transaction.service";
     IonItem,
     IonLabel,
     IonList,
-    IonGrid,
-    IonRow,
-    IonCol,
     IonIcon,
-    IonTabButton,
-    IonLabel,
-    IonCard,
-    IonCardHeader,
-    IonAvatar,
-    IonCardContent,
     IonChip,
     IonSpinner,
-    CommonModule,
-    FormsModule,
-    IonBackButton,
     IonButtons,
     IonButton,
-    IonInput
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonAvatar,
+    IonItemDivider,
+    IonModal,
+    IonCheckbox,
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
   @Input() accountId: number | null = null;
+  @Input() groupedAccounts: GroupedUserAccount[] = [];
   @Input() startDate: string = "";
   @Input() endDate: string = "";
   @Output() backClicked = new EventEmitter<void>();
+  @ViewChild('accountModal') accountModal!: IonModal;
+
+  selectedAccountIds: number[] = [];
+  isAccountModalOpen: boolean = false;
+  accountMap: Map<number, UserAccount> = new Map();
 
   // New properties for date inputs
   startDateInput: string = "";
@@ -95,26 +98,66 @@ export class TransactionListComponent implements OnInit, OnChanges {
   totalCredit: number = 1;
   closingBalance: number = 0;
 
-  constructor(private transactionService: TransactionService) {
-    console.log("transaction list component constructor called");
+  private accountSelectionChanged = false;  // Add this flag
+
+  constructor(
+    private transactionService: TransactionService,
+    private route: ActivatedRoute,
+    private accountState: AccountService
+  ) {
     addIcons({
-      walletOutline,
-      chevronDownOutline,
-      chevronUpOutline,
       refreshOutline,
       addCircleOutline,
-      arrowBackOutline
+      arrowBackOutline,
+      walletOutline,
     });
   }
 
   ngOnInit() {
     console.log("transaction list component ngOnInit called");
-    this.startDateInput = this.startDate;
-    this.endDateInput = this.endDate;
-    this.loadTransactions();
+
+    // Set default financial year dates
+    this.setFinancialYearDates();
+
+    // Subscribe to accounts
+    this.accountState.groupedAccounts$.subscribe((accounts: GroupedUserAccount[]) => {
+      this.groupedAccounts = accounts;
+      this.processAccountIcons();
+      this.createAccountMap();
+    });
+
+    // Subscribe to query params
+    this.route.queryParams.subscribe(params => {
+      let accountId = Number(params['accountId']);
+      
+      // If no account ID in params, use first available account
+      if (!accountId || isNaN(accountId)) {
+        accountId = this.accountState.getFirstAccountId() || 0;
+      }
+
+      if (accountId) {
+        this.accountId = accountId;
+        this.selectedAccountIds = [accountId];
+        this.loadTransactions();
+      }
+
+      // Only override default dates if provided in params
+      if (params['startDate']) {
+        this.startDate = params['startDate'];
+        this.startDateInput = params['startDate'];
+      }
+      if (params['endDate']) {
+        this.endDate = params['endDate'];
+        this.endDateInput = params['endDate'];
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes["groupedAccounts"]) {
+      this.processAccountIcons();
+      this.createAccountMap();
+    }
     // Update local date inputs when parent inputs change
     if (changes["startDate"]) {
       this.startDateInput = this.startDate;
@@ -123,17 +166,52 @@ export class TransactionListComponent implements OnInit, OnChanges {
       this.endDateInput = this.endDate;
     }
     
-    // Reload transactions when inputs change
-    if (changes["accountId"] || changes["startDate"] || changes["endDate"]) {
+    // Only reload on accountId change for initial load
+    if (changes["accountId"]) {
       this.loadTransactions();
     }
   }
 
-  // New refresh method to update transactions with new date range
+  openAccountSelector() {
+    this.isAccountModalOpen = true;
+  }
+
+  closeAccountSelector() {
+    if (this.accountSelectionChanged) {  // Only clear if selection changed
+      this.clearTransactions();
+      this.accountSelectionChanged = false;  // Reset the flag
+    }
+    this.isAccountModalOpen = false;
+  }
+
+  toggleAccountSelection(accountId: number) {
+    const index = this.selectedAccountIds.indexOf(accountId);
+    if (index > -1) {
+      this.selectedAccountIds.splice(index, 1);
+    } else {
+      this.selectedAccountIds.push(accountId);
+    }
+    this.accountSelectionChanged = true;  // Set flag when selection changes
+  }
+
+  isAccountSelected(accountId: number): boolean {
+    return this.selectedAccountIds.includes(accountId);
+  }
+
+  getSelectedAccountsText(): string {
+    if (this.selectedAccountIds.length === 0) return 'Select accounts';
+    if (this.selectedAccountIds.length === 1) {
+      const account = this.accountMap.get(this.selectedAccountIds[0]);
+      return account ? account.account_name : 'One account selected';
+    }
+    return `${this.selectedAccountIds.length} accounts selected`;
+  }
+
   refreshTransactions() {
     if (this.startDateInput && this.endDateInput) {
       this.startDate = this.startDateInput;
       this.endDate = this.endDateInput;
+      // Only load transactions when refresh button is clicked
       this.loadTransactions();
     }
   }
@@ -145,21 +223,18 @@ export class TransactionListComponent implements OnInit, OnChanges {
   }
 
   private loadTransactions() {
-    // Only load if accountId is provided
-    if (this.accountId && this.startDate && this.endDate) {
+    if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
       this.isLoading = true;
 
-      const accountIds = [this.accountId];
-
       this.transactionService
-        .fetchAllTransactions(accountIds, this.startDate, this.endDate)
+        .fetchAllTransactions(this.selectedAccountIds, this.startDate, this.endDate)
         .subscribe(
           (transactions) => {
             this.transactions = transactions;
             this.calculateTotals();
             console.log(
               `Fetched ${this.transactions.length} transactions for account ${
-                this.accountId
+                this.selectedAccountIds.join(', ')
               }. Sample amount: ${
                 this.transactions.length > 0
                   ? transactions[0].debit_or_credit_amount
@@ -176,7 +251,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
     }
   }
 
-  // Add this new method to calculate totals
+  // Calculate totals
   private calculateTotals() {
     this.totalDebit = Math.round(this.transactions
       .filter(t => t.is_debit_or_credit === 'DR')
@@ -201,6 +276,61 @@ export class TransactionListComponent implements OnInit, OnChanges {
 
   // Go back to accounts
   backToAccounts(): void {
-    this.backClicked.emit();
+    // This can be removed or modified based on your needs
+  }
+
+  // Add this new method to process icons
+  private processAccountIcons() {
+    this.groupedAccounts.forEach(group => {
+      group.user_accounts.forEach(account => {
+        if (account.icon && !account.icon.startsWith('data:')) {
+          account.icon = `data:image/png;base64,${account.icon}`;
+        }
+      });
+    });
+  }
+
+  // Create a map of account IDs to account objects for easier lookup
+  private createAccountMap() {
+    this.accountMap.clear();
+    this.groupedAccounts.forEach(group => {
+      group.user_accounts.forEach(account => {
+        this.accountMap.set(account.account_id, account);
+      });
+    });
+  }
+
+  // Add method to clear transactions
+  private clearTransactions() {
+    this.transactions = [];
+    this.totalDebit = 0;
+    this.totalCredit = 0;
+    this.closingBalance = 0;
+  }
+
+  // Update date change handlers
+  onStartDateChange() {
+    this.clearTransactions();
+  }
+
+  onEndDateChange() {
+    this.clearTransactions();
+  }
+
+  // Add method to set financial year dates
+  private setFinancialYearDates() {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // If current month is Jan-Mar, financial year is previous year to current year
+    // If current month is Apr-Dec, financial year is current year to next year
+    const isJanToMar = currentMonth < 3;
+    const fyStartYear = isJanToMar ? currentYear - 1 : currentYear;
+    
+    this.startDate = `${fyStartYear}-04-01`;
+    this.endDate = `${fyStartYear + 1}-03-31`;
+    this.startDateInput = this.startDate;
+    this.endDateInput = this.endDate;
   }
 }

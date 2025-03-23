@@ -14,6 +14,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: "transactions",
+        loadComponent: () =>
+          import("../transaction-list/transaction-list.component").then(
+            (m) => m.TransactionListComponent
+          ),
+      },
+      {
         path: "tab2",
         loadComponent: () =>
           import("../tab2/tab2.page").then((m) => m.Tab2Page),

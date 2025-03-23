@@ -12,11 +12,12 @@
   align-items: flex-end;
   padding: 10px 16px;
   background-color: #ffffff;
-  margin-top: 16px; // Added margin-top to create space between header and date picker
+  margin-top: 16px;
   margin-bottom: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
-  .date-picker-item {
+  .date-picker-item,
+  .account-selector-item {
     flex: 1;
     --background: transparent;
     --padding-start: 0;
@@ -37,6 +38,14 @@
       --border-radius: 8px;
       --placeholder-color: #999;
       font-size: 14px;
+    }
+  }
+
+  .account-selector-item {
+    flex: 1.2; // Give a bit more space for account names
+
+    ion-input {
+      cursor: pointer;
     }
   }
 
@@ -217,4 +226,75 @@ ion-content {
 .bottom-spacer {
   height: 80px; // Adjust this value as needed
   width: 100%;
+}
+
+// Account modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+
+  ion-header {
+    padding-top: 8px;
+  }
+
+  ion-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+
+  ion-item {
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    --min-height: 56px;
+
+    ion-avatar {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+    }
+
+    ion-label {
+      font-size: 14px;
+      margin-left: 8px;
+    }
+  }
+}
+
+// Add this to your existing styles
+.refresh-prompt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  margin-top: 16px;
+
+  .refresh-message {
+    color: var(--ion-color-primary);
+    font-size: 16px;
+    font-weight: 700;
+    margin-left: 16px;
+  }
+
+  .arrow-container {
+    position: absolute;
+    right: 32px;
+    display: flex;
+    align-items: center;
+
+    .refresh-arrow {
+      color: var(--ion-color-primary);
+      font-size: 28px;
+      transform: rotate(-15deg);
+    }
+  }
 }

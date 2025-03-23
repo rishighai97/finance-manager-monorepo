@@ -1,4 +1,4 @@
-import { Component, EnvironmentInjector, inject } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   IonTabs,
   IonTabBar,
@@ -7,18 +7,22 @@ import {
   IonLabel,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
-import { triangle, ellipse, square, walletOutline } from "ionicons/icons";
+import { ellipse, square, walletOutline, cashOutline } from "ionicons/icons";
 
 @Component({
   selector: "app-tabs",
   templateUrl: "tabs.page.html",
   styleUrls: ["tabs.page.scss"],
+  standalone: true,
   imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
 })
 export class TabsPage {
-  public environmentInjector = inject(EnvironmentInjector);
-
   constructor() {
-    addIcons({ triangle, ellipse, square, walletOutline });
+    addIcons({
+      ellipse,
+      square,
+      walletOutline,
+      cashOutline,
+    });
   }
 }

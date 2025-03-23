@@ -2,7 +2,7 @@
 
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { UserAccount } from "../model/user-account"; // Import the UserAccount model
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 
@@ -13,6 +13,34 @@ export class AccountService {
   private accountApiUri = "http://localhost:5003"; // API URL
 
   constructor(private http: HttpClient) {}
+
+  private groupedAccountsSubject = new BehaviorSubject<GroupedUserAccount[]>([]);
+  groupedAccounts$ = this.groupedAccountsSubject.asObservable();
+
+  loadAccounts() {
+    this.fetchGroupedUserAccounts([1]).subscribe(
+      (groupedAccounts) => {
+        // Process icons
+        groupedAccounts.forEach((group) => {
+          group.user_accounts.forEach((acct) => {
+            acct.icon = `data:image/png;base64,${acct.icon}`;
+          });
+        });
+        this.groupedAccountsSubject.next(groupedAccounts);
+      },
+      (error) => {
+        console.error('Error fetching accounts:', error);
+      }
+    );
+  }
+
+  getFirstAccountId(): number | null {
+    const accounts = this.groupedAccountsSubject.value;
+    if (accounts.length > 0 && accounts[0].user_accounts.length > 0) {
+      return accounts[0].user_accounts[0].account_id;
+    }
+    return null;
+  }
 
   /**
    * Fetches user accounts for the given list of user IDs.

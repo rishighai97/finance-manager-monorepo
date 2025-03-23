@@ -34,6 +34,7 @@ import { UserAccount } from "src/model/user-account";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { AccountService } from "src/service/account.service";
 import { TransactionListComponent } from "../transaction-list/transaction-list.component";
+import { Router } from '@angular/router';
 
 interface Level1Group {
   title: string;
@@ -81,11 +82,11 @@ export class AccountListComponent implements OnInit {
   selectedAccountId: number | null = null;
   selectedAccountName: string = "";
 
-  // Financial year dates
-  startDate: string = "";
-  endDate: string = "";
-
-  constructor(private accountService: AccountService) {
+  constructor(
+    private accountService: AccountService,
+    private router: Router,
+    private accountState: AccountService
+  ) {
     console.log("account list component constructor called");
     addIcons({
       walletOutline,
@@ -93,62 +94,16 @@ export class AccountListComponent implements OnInit {
       chevronUpOutline,
       arrowBackOutline,
     });
-
-    // Set financial year dates
-    this.setFinancialYearDates();
   }
 
   ngOnInit() {
     console.log("account list component ngOnInit called");
 
-    // Fetch the grouped user accounts
-    this.accountService.fetchGroupedUserAccounts([1]).subscribe(
-      (groupedAccounts) => {
-        this.groupedAccounts = groupedAccounts;
-        console.log(
-          `Fetched ${this.groupedAccounts.length} grouped user accounts`
-        );
-
-        // Process user accounts within the grouped accounts
-        this.groupedAccounts.forEach((group) => {
-          group.user_accounts.forEach((acct) => {
-            acct.icon = `data:image/png;base64,${acct.icon}`;
-          });
-        });
-
-        // Generate Level 1 groups
-        this.generateLevel1Groups();
-        this.isLoading = false;
-      },
-      (error) => {
-        console.error("Error fetching grouped user accounts:", error);
-        this.isLoading = false;
-
-        // Fallback to regular accounts if grouped accounts fail
-        this.fetchRegularAccounts();
-      }
-    );
-  }
-
-  // Set Indian financial year dates based on current date
-  private setFinancialYearDates() {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const previousYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
-
-    // Indian financial year is from April 1 to March 31
-    if (currentMonth >= 4) {
-      // April or later
-      this.startDate = `${currentYear}-04-01`;
-      this.endDate = `${currentYear + 1}-03-31`;
-    } else {
-      // January to March
-      this.startDate = `${currentYear - 1}-04-01`;
-      this.endDate = `${currentYear}-03-31`;
-    }
-
-    console.log(`Financial year set to: ${this.startDate} to ${this.endDate}`);
+    this.accountState.groupedAccounts$.subscribe(accounts => {
+      this.groupedAccounts = accounts;
+      this.isLoading = false;
+      this.generateLevel1Groups();
+    });
   }
 
   // Fallback method to fetch regular accounts
@@ -235,5 +190,12 @@ export class AccountListComponent implements OnInit {
     this.showTransactions = false;
     this.selectedAccountId = null;
     this.selectedAccountName = "";
+  }
+
+  onAccountClick(accountId: number) {
+    // Navigate to transactions tab with just the account ID
+    this.router.navigate(['/tabs/transactions'], {
+      queryParams: { accountId: accountId }
+    });
   }
 }

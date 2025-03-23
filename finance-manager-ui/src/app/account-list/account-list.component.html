@@ -55,7 +55,7 @@
     @for (account of groupedAccount.user_accounts; track account) {
     <ion-item
       class="account-item"
-      (click)="showTransactionsForAccount(account)"
+      (click)="onAccountClick(account.account_id)"
       button
     >
       <ion-avatar slot="start">
@@ -92,8 +92,7 @@
   } @else {
   <app-transaction-list
     [accountId]="selectedAccountId"
-    [startDate]="startDate"
-    [endDate]="endDate"
+    [groupedAccounts]="getGroupedAccounts()"
     (backClicked)="backFromTransactions()"
   >
   </app-transaction-list>
