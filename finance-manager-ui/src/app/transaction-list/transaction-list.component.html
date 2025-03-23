@@ -86,7 +86,7 @@
             <ion-avatar slot="start">
               <img [src]="accountMap.get(transaction.user_account_id)?.icon">
             </ion-avatar>
-            @if (transaction.category_id) {
+            <!-- @if (transaction.category_id) {
             <p class="category-id">ID: {{ transaction.category_id }}</p>
             <p class="category-type">{{ transaction.type || "General" }}</p>
             } @else {
@@ -99,7 +99,7 @@
               <ion-icon name="add-circle-outline"></ion-icon>
               <span>Add Category</span>
             </ion-button>
-            }
+            } -->
           </div>
 
             <ion-label>
