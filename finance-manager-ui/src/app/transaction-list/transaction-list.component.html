@@ -79,9 +79,13 @@
 
   <ion-list [inset]="true" lines="none">
     @if (getTransactions().length > 0) {
-      @for (transaction of getTransactions(); track transaction.transaction_id) {
+      @for (transaction of getTransactions(); track transaction) {
         <ion-item class="transaction-item">
+          
           <div class="category-container">
+            <ion-avatar slot="start">
+              <img [src]="accountMap.get(transaction.user_account_id)?.icon">
+            </ion-avatar>
             @if (transaction.category_id) {
             <p class="category-id">ID: {{ transaction.category_id }}</p>
             <p class="category-type">{{ transaction.type || "General" }}</p>
@@ -98,23 +102,27 @@
             }
           </div>
 
-          <ion-label>
-            <h4>{{ transaction.title }}</h4>
-            <p>{{ transaction.date | date : "mediumDate" }}</p>
-          </ion-label>
+            <ion-label>
+              <p class="transaction-date">{{ transaction.date | date : "mediumDate" }}</p>
+              <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.account_name}}</p> -->
+                <h4>({{ accountMap.get(transaction.user_account_id)?.user_account_id}}) {{ transaction.title }}</h4>
+            </ion-label>
+    
+              <div slot="end" class="amount-container">
+                <ion-chip
+                  [ngClass]="{
+                    danger: isDebit(transaction),
+                    success: !isDebit(transaction)
+                  }"
+                >
+                  <ion-label>{{
+                    transaction.debit_or_credit_amount | currency : "INR"
+                  }}</ion-label>
+                </ion-chip>
+              </div>
 
-          <div slot="end" class="amount-container">
-            <ion-chip
-              [ngClass]="{
-                danger: isDebit(transaction),
-                success: !isDebit(transaction)
-              }"
-            >
-              <ion-label>{{
-                transaction.debit_or_credit_amount | currency : "INR"
-              }}</ion-label>
-            </ion-chip>
-          </div>
+
+          
         </ion-item>
       }
       <div class="bottom-spacer"></div>

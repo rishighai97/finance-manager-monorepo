@@ -30,6 +30,8 @@ import {
   IonItemDivider,
   IonModal,
   IonCheckbox,
+  IonRow,
+  IonCol,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
@@ -72,6 +74,8 @@ import { AccountService } from "src/service/account.service";
     IonItemDivider,
     IonModal,
     IonCheckbox,
+    IonRow,
+    IonCol,
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
