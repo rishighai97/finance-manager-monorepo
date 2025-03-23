@@ -1,7 +1,7 @@
 package com.finance.manager.transaction_service.controller;
 
-import com.finance.manager.transaction_service.dao.TransactionPostgresDao;
 import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
 import com.finance.manager.transaction_service.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public class TransactionController {
     }
 
     @GetMapping("/v1/fetch_all")
-    public ResponseEntity<List<Transaction>> fetchAllTransactionsByUserIdsStartDateAndEndDate(
+    public ResponseEntity<TransactionsDto> fetchAllTransactionsByUserIdsStartDateAndEndDate(
             @RequestParam("user_account_ids") List<String> userAccountIdsList,
             @RequestParam("start_date") String startDate,
             @RequestParam("end_date") String endDate) {
@@ -44,7 +44,7 @@ public class TransactionController {
         logger.info("Received request to fetch transactions for user ids {}, start date {} and end date {}",
                 userAccountIds, startDate, endDate);
 
-        List<Transaction> transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate);
+        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate);
         return ResponseEntity.ok(transactions);
     }
 

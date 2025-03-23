@@ -40,7 +40,8 @@ public class TransactionPostgresDao implements TransactionDao {
             units,
             price_per_unit
         FROM "transaction"
-        WHERE user_account_id IN (:userAccountIds) AND date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE)
+        WHERE user_account_id IN (:userAccountIds) AND date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE) 
+        ORDER BY date desc, user_account_id desc
         """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
