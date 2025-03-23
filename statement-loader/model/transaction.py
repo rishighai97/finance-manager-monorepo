@@ -1,5 +1,6 @@
 from datetime import datetime
 
+# todo add logic to calculate opening and closing balance. Store transaction order per date when upload transactions
 class Transaction:
     def __init__(self, date: datetime, user_account_id: int, title: str, debit_or_credit_amount: float, is_credit_amount: bool, transaction_id: str = None , closing_balance: float = None,
                  category_id: str = None, type: str = None, units: int = None, price_per_unit: float = None):
