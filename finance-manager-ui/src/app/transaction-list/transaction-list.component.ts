@@ -97,10 +97,10 @@ export class TransactionListComponent implements OnInit, OnChanges {
   private transactions: Transaction[] = [];
   isLoading: boolean = true;
 
-  openingBalance: number = 0; // Default opening balance
-  totalDebit: number = -1;
-  totalCredit: number = 1;
-  closingBalance: number = 0;
+  openingBalance?: number; // Default opening balance
+  totalDebit?: number;
+  totalCredit?: number;
+  closingBalance?: number;
 
   private accountSelectionChanged = false;  // Add this flag
 
@@ -234,17 +234,11 @@ export class TransactionListComponent implements OnInit, OnChanges {
         .fetchAllTransactions(this.selectedAccountIds, this.startDate, this.endDate)
         .subscribe(
           (transactions) => {
-            this.transactions = transactions;
-            this.calculateTotals();
-            console.log(
-              `Fetched ${this.transactions.length} transactions for account ${
-                this.selectedAccountIds.join(', ')
-              }. Sample amount: ${
-                this.transactions.length > 0
-                  ? transactions[0].debit_or_credit_amount
-                  : "NA"
-              }`
-            );
+            this.openingBalance = transactions.opening_balance;
+            this.closingBalance = transactions.closing_balance;
+            this.totalDebit = transactions.total_debit;
+            this.totalCredit = transactions.total_credit;
+            this.transactions = transactions.transactions;
             this.isLoading = false;
           },
           (error) => {
@@ -255,18 +249,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
     }
   }
 
-  // Calculate totals
-  private calculateTotals() {
-    this.totalDebit = Math.round(this.transactions
-      .filter(t => t.is_debit_or_credit === 'DR')
-      .reduce((sum, t) => sum + (t.debit_or_credit_amount || 0), 0));
-      
-    this.totalCredit = Math.round(this.transactions
-      .filter(t => t.is_debit_or_credit === 'CR')
-      .reduce((sum, t) => sum + (t.debit_or_credit_amount || 0), 0));
-      
-    this.closingBalance = Math.round(this.openingBalance + this.totalCredit - this.totalDebit);
-  }
+
 
   // Check if a transaction is a debit (expense)
   isDebit(transaction: Transaction): boolean {

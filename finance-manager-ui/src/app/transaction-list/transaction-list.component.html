@@ -68,9 +68,9 @@
     <div class="summary-item">
       <div class="summary-label">Closing</div>
       <div class="summary-amount" [ngClass]="{
-        'success': closingBalance > 0,
-        'danger': closingBalance < 0,
-        'neutral': closingBalance === 0
+        'success': closingBalance && closingBalance > 0,
+        'danger': closingBalance && closingBalance < 0,
+        'neutral': !closingBalance || closingBalance === 0
       }">
         {{ closingBalance | currency:'INR':'symbol':'1.0-0' }}
       </div>
