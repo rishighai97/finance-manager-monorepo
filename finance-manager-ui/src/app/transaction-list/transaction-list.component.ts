@@ -42,10 +42,10 @@ import {
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
-import { GroupedUserAccount } from 'src/model/grouped-user-account';
-import { UserAccount } from 'src/model/user-account';
-import { ActivatedRoute } from '@angular/router';
-import { AccountService } from "src/service/account.service";
+import { GroupedUserAccount } from "src/model/grouped-user-account";
+import { UserAccount } from "src/model/user-account";
+import { ActivatedRoute } from "@angular/router";
+import { UserAccountService } from "src/service/user.account.service";
 
 @Component({
   selector: "app-transaction-list",
@@ -84,7 +84,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
   @Input() startDate: string = "";
   @Input() endDate: string = "";
   @Output() backClicked = new EventEmitter<void>();
-  @ViewChild('accountModal') accountModal!: IonModal;
+  @ViewChild("accountModal") accountModal!: IonModal;
 
   selectedAccountIds: number[] = [];
   isAccountModalOpen: boolean = false;
@@ -102,12 +102,12 @@ export class TransactionListComponent implements OnInit, OnChanges {
   totalCredit?: number;
   closingBalance?: number;
 
-  private accountSelectionChanged = false;  // Add this flag
+  private accountSelectionChanged = false; // Add this flag
 
   constructor(
     private transactionService: TransactionService,
     private route: ActivatedRoute,
-    private accountState: AccountService
+    private userAccountService: UserAccountService
   ) {
     addIcons({
       refreshOutline,
@@ -124,19 +124,21 @@ export class TransactionListComponent implements OnInit, OnChanges {
     this.setFinancialYearDates();
 
     // Subscribe to accounts
-    this.accountState.groupedAccounts$.subscribe((accounts: GroupedUserAccount[]) => {
-      this.groupedAccounts = accounts;
-      this.processAccountIcons();
-      this.createAccountMap();
-    });
+    this.userAccountService.groupedUserAccounts$.subscribe(
+      (accounts: GroupedUserAccount[]) => {
+        this.groupedAccounts = accounts;
+        this.processAccountIcons();
+        this.createAccountMap();
+      }
+    );
 
     // Subscribe to query params
-    this.route.queryParams.subscribe(params => {
-      let accountId = Number(params['accountId']);
-      
+    this.route.queryParams.subscribe((params) => {
+      let accountId = Number(params["accountId"]);
+
       // If no account ID in params, use first available account
       if (!accountId || isNaN(accountId)) {
-        accountId = this.accountState.getFirstAccountId() || 0;
+        accountId = this.userAccountService.getFirstAccountId() || 0;
       }
 
       if (accountId) {
@@ -146,13 +148,13 @@ export class TransactionListComponent implements OnInit, OnChanges {
       }
 
       // Only override default dates if provided in params
-      if (params['startDate']) {
-        this.startDate = params['startDate'];
-        this.startDateInput = params['startDate'];
+      if (params["startDate"]) {
+        this.startDate = params["startDate"];
+        this.startDateInput = params["startDate"];
       }
-      if (params['endDate']) {
-        this.endDate = params['endDate'];
-        this.endDateInput = params['endDate'];
+      if (params["endDate"]) {
+        this.endDate = params["endDate"];
+        this.endDateInput = params["endDate"];
       }
     });
   }
@@ -169,7 +171,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
     if (changes["endDate"]) {
       this.endDateInput = this.endDate;
     }
-    
+
     // Only reload on accountId change for initial load
     if (changes["accountId"]) {
       this.loadTransactions();
@@ -181,9 +183,10 @@ export class TransactionListComponent implements OnInit, OnChanges {
   }
 
   closeAccountSelector() {
-    if (this.accountSelectionChanged) {  // Only clear if selection changed
+    if (this.accountSelectionChanged) {
+      // Only clear if selection changed
       this.clearTransactions();
-      this.accountSelectionChanged = false;  // Reset the flag
+      this.accountSelectionChanged = false; // Reset the flag
     }
     this.isAccountModalOpen = false;
   }
@@ -195,7 +198,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
     } else {
       this.selectedAccountIds.push(accountId);
     }
-    this.accountSelectionChanged = true;  // Set flag when selection changes
+    this.accountSelectionChanged = true; // Set flag when selection changes
   }
 
   isAccountSelected(accountId: number): boolean {
@@ -203,10 +206,10 @@ export class TransactionListComponent implements OnInit, OnChanges {
   }
 
   getSelectedAccountsText(): string {
-    if (this.selectedAccountIds.length === 0) return 'Select accounts';
+    if (this.selectedAccountIds.length === 0) return "Select accounts";
     if (this.selectedAccountIds.length === 1) {
       const account = this.accountMap.get(this.selectedAccountIds[0]);
-      return account ? account.account_name : 'One account selected';
+      return account ? account.account_name : "One account selected";
     }
     return `${this.selectedAccountIds.length} accounts selected`;
   }
@@ -222,7 +225,10 @@ export class TransactionListComponent implements OnInit, OnChanges {
 
   // Add category method (placeholder for now)
   addCategory(transaction: Transaction) {
-    console.log('Add category clicked for transaction:', transaction.transaction_id);
+    console.log(
+      "Add category clicked for transaction:",
+      transaction.transaction_id
+    );
     // This function is a placeholder - will be implemented later
   }
 
@@ -231,7 +237,11 @@ export class TransactionListComponent implements OnInit, OnChanges {
       this.isLoading = true;
 
       this.transactionService
-        .fetchAllTransactions(this.selectedAccountIds, this.startDate, this.endDate)
+        .fetchAllTransactions(
+          this.selectedAccountIds,
+          this.startDate,
+          this.endDate
+        )
         .subscribe(
           (transactions) => {
             this.openingBalance = transactions.opening_balance;
@@ -248,8 +258,6 @@ export class TransactionListComponent implements OnInit, OnChanges {
         );
     }
   }
-
-
 
   // Check if a transaction is a debit (expense)
   isDebit(transaction: Transaction): boolean {
@@ -268,9 +276,9 @@ export class TransactionListComponent implements OnInit, OnChanges {
 
   // Add this new method to process icons
   private processAccountIcons() {
-    this.groupedAccounts.forEach(group => {
-      group.user_accounts.forEach(account => {
-        if (account.icon && !account.icon.startsWith('data:')) {
+    this.groupedAccounts.forEach((group) => {
+      group.user_accounts.forEach((account) => {
+        if (account.icon && !account.icon.startsWith("data:")) {
           account.icon = `data:image/png;base64,${account.icon}`;
         }
       });
@@ -280,8 +288,8 @@ export class TransactionListComponent implements OnInit, OnChanges {
   // Create a map of account IDs to account objects for easier lookup
   private createAccountMap() {
     this.accountMap.clear();
-    this.groupedAccounts.forEach(group => {
-      group.user_accounts.forEach(account => {
+    this.groupedAccounts.forEach((group) => {
+      group.user_accounts.forEach((account) => {
         this.accountMap.set(account.account_id, account);
       });
     });
@@ -309,12 +317,12 @@ export class TransactionListComponent implements OnInit, OnChanges {
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
-    
+
     // If current month is Jan-Mar, financial year is previous year to current year
     // If current month is Apr-Dec, financial year is current year to next year
     const isJanToMar = currentMonth < 3;
     const fyStartYear = isJanToMar ? currentYear - 1 : currentYear;
-    
+
     this.startDate = `${fyStartYear}-04-01`;
     this.endDate = `${fyStartYear + 1}-03-31`;
     this.startDateInput = this.startDate;

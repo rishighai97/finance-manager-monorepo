@@ -18,7 +18,7 @@
   @if (statementsToBeUploaded.length > 0) {
   <ion-list>
     @for (statement of statementsToBeUploaded; track statement) {
-    <ion-item>
+    <ion-item class="statement-item">
       <ion-avatar slot="start">
         <img [src]="getAccountById(statement.accountId)?.icon" />
       </ion-avatar>
@@ -27,7 +27,7 @@
         {{ statement.fileName }}
       </ion-label>
 
-      <div slot="end">
+      <div slot="end" class="statement-actions">
         <ion-button
           fill="clear"
           color="primary"

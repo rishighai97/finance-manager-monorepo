@@ -1,14 +1,14 @@
-import { Component } from '@angular/core';
-import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-import { AccountService } from 'src/service/account.service';
+import { Component } from "@angular/core";
+import { IonApp, IonRouterOutlet } from "@ionic/angular/standalone";
+import { UserAccountService } from "src/service/user.account.service";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: 'app.component.html',
+  selector: "app-root",
+  templateUrl: "app.component.html",
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  constructor(private accountState: AccountService) {
-    this.accountState.loadAccounts();
+  constructor(private userAccountService: UserAccountService) {
+    this.userAccountService.loadGroupedUserAccounts();
   }
 }

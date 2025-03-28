@@ -37,7 +37,7 @@ import {
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
-import { AccountService } from "src/service/account.service";
+import { UserAccountService } from "src/service/user.account.service";
 import { Statement } from "./../../model/statement";
 
 @Component({
@@ -88,7 +88,7 @@ export class StatementUploaderComponent implements OnInit {
   // Account selection
   isAccountModalOpen = false;
 
-  constructor(private accountService: AccountService) {
+  constructor(private userAccountService: UserAccountService) {
     addIcons({
       addOutline,
       documentOutline,
@@ -100,7 +100,7 @@ export class StatementUploaderComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.accountService.groupedAccounts$.subscribe((accounts) => {
+    this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
       this.groupedAccounts = accounts;
     });
   }

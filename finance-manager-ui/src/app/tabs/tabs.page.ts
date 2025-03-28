@@ -7,10 +7,11 @@ import {
   IonLabel,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
-import { 
-  walletOutline, 
-  cashOutline, 
-  documentTextOutline 
+import {
+  walletOutline,
+  cashOutline,
+  documentTextOutline,
+  cloudUploadOutline,
 } from "ionicons/icons";
 
 @Component({
@@ -25,7 +26,8 @@ export class TabsPage {
     addIcons({
       walletOutline,
       cashOutline,
-      documentTextOutline
+      documentTextOutline,
+      cloudUploadOutline,
     });
   }
 }

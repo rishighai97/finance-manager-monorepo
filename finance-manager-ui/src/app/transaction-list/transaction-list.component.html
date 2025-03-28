@@ -1,4 +1,4 @@
-<ion-header [translucent]="true" class="ion-no-border">
+<ion-header [translucent]="true">
   <ion-toolbar>
     <!-- <ion-buttons slot="start">
       <ion-button (click)="backToAccounts()">
@@ -31,9 +31,13 @@
     </ion-item>
 
     <!-- Account Selector (Custom) -->
-    <ion-item lines="none" class="account-selector-item" (click)="openAccountSelector()">
+    <ion-item
+      lines="none"
+      class="account-selector-item"
+      (click)="openAccountSelector()"
+    >
       <ion-label position="stacked">Accounts</ion-label>
-      <ion-input 
+      <ion-input
         readonly
         [value]="getSelectedAccountsText()"
         placeholder="Select accounts"
@@ -50,43 +54,45 @@
     <div class="summary-item">
       <div class="summary-label">Opening</div>
       <div class="summary-amount neutral">
-        {{ openingBalance | currency:'INR':'symbol':'1.0-0' }}
+        {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
       </div>
     </div>
     <div class="summary-item">
       <div class="summary-label">Debit</div>
       <div class="summary-amount danger">
-        {{ totalDebit | currency:'INR':'symbol':'1.0-0' }}
+        {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
       </div>
     </div>
     <div class="summary-item">
       <div class="summary-label">Credit</div>
       <div class="summary-amount success">
-        {{ totalCredit | currency:'INR':'symbol':'1.0-0' }}
+        {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
       </div>
     </div>
     <div class="summary-item">
       <div class="summary-label">Closing</div>
-      <div class="summary-amount" [ngClass]="{
-        'success': closingBalance && closingBalance > 0,
-        'danger': closingBalance && closingBalance < 0,
-        'neutral': !closingBalance || closingBalance === 0
-      }">
-        {{ closingBalance | currency:'INR':'symbol':'1.0-0' }}
+      <div
+        class="summary-amount"
+        [ngClass]="{
+          success: closingBalance && closingBalance > 0,
+          danger: closingBalance && closingBalance < 0,
+          neutral: !closingBalance || closingBalance === 0
+        }"
+      >
+        {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
       </div>
     </div>
   </div>
 
   <ion-list [inset]="true" lines="none">
-    @if (getTransactions().length > 0) {
-      @for (transaction of getTransactions(); track transaction) {
-        <ion-item class="transaction-item">
-          
-          <div class="category-container">
-            <ion-avatar slot="start">
-              <img [src]="accountMap.get(transaction.user_account_id)?.icon">
-            </ion-avatar>
-            <!-- @if (transaction.category_id) {
+    @if (getTransactions().length > 0) { @for (transaction of getTransactions();
+    track transaction) {
+    <ion-item class="transaction-item">
+      <div class="category-container">
+        <ion-avatar slot="start">
+          <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
+        </ion-avatar>
+        <!-- @if (transaction.category_id) {
             <p class="category-id">ID: {{ transaction.category_id }}</p>
             <p class="category-type">{{ transaction.type || "General" }}</p>
             } @else {
@@ -100,50 +106,60 @@
               <span>Add Category</span>
             </ion-button>
             } -->
-          </div>
-
-            <ion-label>
-              <p class="transaction-date">{{ transaction.date | date : "mediumDate" }}</p>
-              <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.account_name}}</p> -->
-                <h4>({{ accountMap.get(transaction.user_account_id)?.user_account_id}}) {{ transaction.title }}</h4>
-            </ion-label>
-    
-              <div slot="end" class="amount-container">
-                <ion-chip
-                  [ngClass]="{
-                    danger: isDebit(transaction),
-                    success: !isDebit(transaction)
-                  }"
-                >
-                  <ion-label>{{
-                    transaction.debit_or_credit_amount | currency : "INR"
-                  }}</ion-label>
-                </ion-chip>
-              </div>
-
-
-          
-        </ion-item>
-      }
-      <div class="bottom-spacer"></div>
-    } @else if (isLoading) {
-      <ion-item>
-        <ion-label>Loading transactions...</ion-label>
-        <ion-spinner></ion-spinner>
-      </ion-item>
-    } @else {
-      <div class="refresh-prompt">
-        <div class="refresh-message">Please click refresh to load transactions</div>
-        <div class="arrow-container">
-          <ion-icon name="arrow-forward" class="refresh-arrow"></ion-icon>
-        </div>
       </div>
+
+      <ion-label>
+        <p class="transaction-date">
+          {{ transaction.date | date : "mediumDate" }}
+        </p>
+        <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.account_name}}</p> -->
+        <h4>
+          ({{ accountMap.get(transaction.user_account_id)?.user_account_id }})
+          {{ transaction.title }}
+        </h4>
+      </ion-label>
+
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: isDebit(transaction),
+            success: !isDebit(transaction)
+          }"
+        >
+          <ion-label>{{
+            transaction.debit_or_credit_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+    }
+    <div class="bottom-spacer"></div>
+    } @else if (isLoading) {
+    <ion-item>
+      <ion-label>Loading transactions...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else {
+    <div class="refresh-prompt">
+      <div class="refresh-message">
+        Please click refresh to load transactions
+      </div>
+      <div class="arrow-container">
+        <ion-icon name="arrow-forward" class="refresh-arrow"></ion-icon>
+      </div>
+    </div>
     }
   </ion-list>
 </ion-content>
 
 <!-- Account Selector Modal -->
-<ion-modal #accountModal [isOpen]="isAccountModalOpen" [initialBreakpoint]="0.75" [breakpoints]="[0, 0.25, 0.5, 0.75]" (didDismiss)="closeAccountSelector()">
+<ion-modal
+  #accountModal
+  [isOpen]="isAccountModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeAccountSelector()"
+>
   <ng-template>
     <ion-header class="ion-no-border">
       <ion-toolbar>
@@ -153,24 +169,26 @@
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    
+
     <ion-content>
       <ion-list>
         @for (group of groupedAccounts; track group) {
-          <ion-item-divider>
-            {{ group.level_1_title }}
-          </ion-item-divider>
-          
-          @for (account of group.user_accounts; track account) {
-            <ion-item (click)="toggleAccountSelection(account.account_id)">
-              <ion-avatar slot="start">
-                <img [src]="account.icon" [alt]="account.account_name">
-              </ion-avatar>
-              <ion-label>{{ account.account_name }}</ion-label>
-              <ion-checkbox slot="end" [checked]="isAccountSelected(account.account_id)"></ion-checkbox>
-            </ion-item>
-          }
-        }
+        <ion-item-divider>
+          {{ group.level_1_title }}
+        </ion-item-divider>
+
+        @for (account of group.user_accounts; track account) {
+        <ion-item (click)="toggleAccountSelection(account.account_id)">
+          <ion-avatar slot="start">
+            <img [src]="account.icon" [alt]="account.account_name" />
+          </ion-avatar>
+          <ion-label>{{ account.account_name }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isAccountSelected(account.account_id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
       </ion-list>
     </ion-content>
   </ng-template>

@@ -9,15 +9,15 @@ import { GroupedUserAccount } from "src/model/grouped-user-account";
 @Injectable({
   providedIn: "root",
 })
-export class AccountService {
+export class UserAccountService {
   private accountApiUri = "http://localhost:5003"; // API URL
 
   constructor(private http: HttpClient) {}
 
-  private groupedAccountsSubject = new BehaviorSubject<GroupedUserAccount[]>([]);
-  groupedAccounts$ = this.groupedAccountsSubject.asObservable();
+  private groupedUserAccountsSubject = new BehaviorSubject<GroupedUserAccount[]>([]);
+  groupedUserAccounts$ = this.groupedUserAccountsSubject.asObservable();
 
-  loadAccounts() {
+  loadGroupedUserAccounts() {
     this.fetchGroupedUserAccounts([1]).subscribe(
       (groupedAccounts) => {
         // Process icons
@@ -26,7 +26,7 @@ export class AccountService {
             acct.icon = `data:image/png;base64,${acct.icon}`;
           });
         });
-        this.groupedAccountsSubject.next(groupedAccounts);
+        this.groupedUserAccountsSubject.next(groupedAccounts);
       },
       (error) => {
         console.error('Error fetching accounts:', error);
@@ -35,7 +35,7 @@ export class AccountService {
   }
 
   getFirstAccountId(): number | null {
-    const accounts = this.groupedAccountsSubject.value;
+    const accounts = this.groupedUserAccountsSubject.value;
     if (accounts.length > 0 && accounts[0].user_accounts.length > 0) {
       return accounts[0].user_accounts[0].account_id;
     }
@@ -67,7 +67,7 @@ export class AccountService {
   ): Observable<GroupedUserAccount[]> {
     // Construct the query string with comma-separated user_ids
     const userIdsQuery = userIds.join(",");
-    const url = `${this.accountApiUri}/account/v1/fetch_all/grouped?user_ids=${userIdsQuery}`;
+    const url = `${this.accountApiUri}/user_account/v1/fetch_all/grouped?user_ids=${userIdsQuery}`;
     console.log(`Fetching grouped accounts for users ${userIdsQuery}`);
     // Send the GET request to the API and return the observable
     return this.http.get<GroupedUserAccount[]>(url);

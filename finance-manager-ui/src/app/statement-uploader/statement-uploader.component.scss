@@ -1,9 +1,17 @@
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: calc(100% - 56px); // Adjust for header height
   text-align: center;
   padding: 20px;
   color: var(--ion-color-medium);
@@ -17,46 +25,114 @@
   h2 {
     font-weight: 600;
     margin-bottom: 10px;
+    color: #333;
   }
 
   p {
     color: var(--ion-color-medium);
+    font-size: 14px;
   }
 }
 
+// Action buttons styling
 .action-buttons {
   padding: 16px;
 
   ion-button {
     margin-top: 10px;
+    --border-radius: 12px;
+    height: 48px;
   }
 }
 
-ion-item {
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
+// Match transaction item styling
+ion-list {
+  background: transparent;
+  padding: 0 16px;
+}
+
+ion-item.statement-item {
+  margin: 4px auto;
+  --background: #ffffff;
+  --border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+
+  &:last-of-type {
+    margin-bottom: 8px;
+  }
+
+  ion-avatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+  }
 
   ion-label {
-    h2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      
-      ion-chip {
-        margin-left: 0;
-        margin-right: 10px;
-      }
+    margin-left: 4px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .statement-actions {
+    display: flex;
+    align-items: center;
+
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 32px;
+      margin: 0;
     }
   }
 }
 
+// Modal styling to match transactions page
 ion-modal {
   --border-radius: 16px 16px 0 0;
 
-  ion-header {
-    ion-toolbar {
-      --padding-start: 0;
-      --padding-end: 0;
+
+  ion-content {
+    --background: #f5f7fa;
+  }
+
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+
+  ion-item {
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    --min-height: 56px;
+
+    ion-avatar {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+    }
+
+    ion-label {
+      font-size: 14px;
+      margin-left: 8px;
     }
   }
+}
+
+// Floating Action Button styling
+ion-fab-button {
+  --border-radius: 50%;
+  --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+// Content background
+ion-content {
+  --background: #f5f7fa;
+  --padding-top: 12px;
+  --padding-bottom: 16px;
 }

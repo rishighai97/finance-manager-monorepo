@@ -32,9 +32,9 @@ import {
 } from "ionicons/icons";
 import { UserAccount } from "src/model/user-account";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
-import { AccountService } from "src/service/account.service";
+import { UserAccountService } from "src/service/user.account.service";
 import { TransactionListComponent } from "../transaction-list/transaction-list.component";
-import { Router } from '@angular/router';
+import { Router } from "@angular/router";
 
 interface Level1Group {
   title: string;
@@ -83,9 +83,8 @@ export class AccountListComponent implements OnInit {
   selectedAccountName: string = "";
 
   constructor(
-    private accountService: AccountService,
-    private router: Router,
-    private accountState: AccountService
+    private userAccountService: UserAccountService,
+    private router: Router
   ) {
     console.log("account list component constructor called");
     addIcons({
@@ -99,7 +98,7 @@ export class AccountListComponent implements OnInit {
   ngOnInit() {
     console.log("account list component ngOnInit called");
 
-    this.accountState.groupedAccounts$.subscribe(accounts => {
+    this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
       this.groupedAccounts = accounts;
       this.isLoading = false;
       this.generateLevel1Groups();
@@ -108,7 +107,7 @@ export class AccountListComponent implements OnInit {
 
   // Fallback method to fetch regular accounts
   private fetchRegularAccounts() {
-    this.accountService.fetchUserAccounts([1]).subscribe(
+    this.userAccountService.fetchUserAccounts([1]).subscribe(
       (accounts) => {
         this.userAccounts = accounts;
         console.log(`Fetched ${this.userAccounts.length} user accounts`);
@@ -194,8 +193,8 @@ export class AccountListComponent implements OnInit {
 
   onAccountClick(accountId: number) {
     // Navigate to transactions tab with just the account ID
-    this.router.navigate(['/tabs/transactions'], {
-      queryParams: { accountId: accountId }
+    this.router.navigate(["/tabs/transactions"], {
+      queryParams: { accountId: accountId },
     });
   }
 }
