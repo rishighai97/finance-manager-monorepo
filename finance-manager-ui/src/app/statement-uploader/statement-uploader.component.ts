@@ -10,8 +10,6 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonSelect,
-  IonSelectOption,
   IonButton,
   IonIcon,
   IonFab,
@@ -34,6 +32,8 @@ import {
   trashOutline,
   createOutline,
   arrowBackOutline,
+  closeCircle,
+  checkmarkCircle
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
@@ -56,8 +56,6 @@ import { Statement } from "./../../model/statement";
     IonRow,
     IonItem,
     IonLabel,
-    IonSelect,
-    IonSelectOption,
     IonButton,
     IonIcon,
     IonFab,
@@ -83,7 +81,7 @@ export class StatementUploaderComponent implements OnInit {
   isUploadModalOpen = false;
   selectedAccount: UserAccount | null = null;
   selectedFile: File | null = null;
-  selectedExtension: "csv" | "xlsx" | "pdf" | null = null;
+  fileTypeError = false;
 
   // Account selection
   isAccountModalOpen = false;
@@ -96,6 +94,8 @@ export class StatementUploaderComponent implements OnInit {
       trashOutline,
       createOutline,
       arrowBackOutline,
+      closeCircle,
+      checkmarkCircle
     });
   }
 
@@ -112,6 +112,9 @@ export class StatementUploaderComponent implements OnInit {
 
   closeAccountSelector() {
     this.isAccountModalOpen = false;
+    if (this.selectedAccount && this.selectedFile) {
+      this.validateFileType();
+    }
   }
 
   selectAccount(account: UserAccount) {
@@ -124,23 +127,44 @@ export class StatementUploaderComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      // Automatically select extension based on file
-      const ext = file.name.split(".").pop()?.toLowerCase();
-      if (ext === "csv" || ext === "xlsx" || ext === "pdf") {
-        this.selectedExtension = ext;
+      // Validate file type if account is already selected
+      if (this.selectedAccount) {
+        this.validateFileType();
+      }
+    }
+  }
+
+  // Validate file type against account's supported extensions
+  validateFileType() {
+    this.fileTypeError = false;
+    
+    if (this.selectedAccount && this.selectedFile) {
+      const fileName = this.selectedFile.name;
+      const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+      
+      // Get supported extensions from account
+      const supportedExtensions = this.selectedAccount.statement_file_extensions
+        .split(',')
+        .map(ext => ext.trim().toLowerCase());
+      
+      // Check if file extension is supported
+      if (!supportedExtensions.includes(fileExt)) {
+        this.fileTypeError = true;
       }
     }
   }
 
   // Add Statement to List
   addStatement() {
-    if (this.selectedAccount && this.selectedFile && this.selectedExtension) {
+    if (this.selectedAccount && this.selectedFile && !this.fileTypeError) {
       const reader = new FileReader();
       reader.onload = (e: any) => {
+        const fileExt = this.selectedFile!.name.split('.').pop()?.toLowerCase() || '';
+        
         const statement: Statement = {
           accountId: this.selectedAccount!.account_id,
           fileName: this.selectedFile!.name,
-          fileExtension: this.selectedExtension!,
+          fileExtension: fileExt as any, // Type assertion to satisfy the model
           uploadDate: new Date(),
           fileBase64: e.target.result.split(",")[1], // Base64 without data URL prefix
         };
@@ -156,7 +180,7 @@ export class StatementUploaderComponent implements OnInit {
   resetUploadForm() {
     this.selectedAccount = null;
     this.selectedFile = null;
-    this.selectedExtension = null;
+    this.fileTypeError = false;
     this.isUploadModalOpen = false;
   }
 
@@ -168,7 +192,6 @@ export class StatementUploaderComponent implements OnInit {
   // Edit Statement (Open Upload Modal with Existing Data)
   editStatement(statement: Statement, index: number) {
     this.selectedAccount = this.getAccountById(statement.accountId);
-    this.selectedExtension = statement.fileExtension;
     this.isUploadModalOpen = true;
     // Remove the existing statement to replace it
     this.statementsToBeUploaded.splice(index, 1);
@@ -188,5 +211,11 @@ export class StatementUploaderComponent implements OnInit {
       if (account) return account;
     }
     return null;
+  }
+  
+  // Helper method to convert comma-separated extensions to array
+  getFileExtensionsArray(extensions: string): string[] {
+    if (!extensions) return [];
+    return extensions.split(',').map(ext => ext.trim().toLowerCase());
   }
 }
