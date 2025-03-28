@@ -112,7 +112,7 @@
         <p class="transaction-date">
           {{ transaction.date | date : "mediumDate" }}
         </p>
-        <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.account_name}}</p> -->
+        <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.user_account_name}}</p> -->
         <h4>
           ({{ accountMap.get(transaction.user_account_id)?.user_account_id }})
           {{ transaction.title }}
@@ -180,9 +180,9 @@
         @for (account of group.user_accounts; track account) {
         <ion-item (click)="toggleAccountSelection(account.account_id)">
           <ion-avatar slot="start">
-            <img [src]="account.icon" [alt]="account.account_name" />
+            <img [src]="account.icon" [alt]="account.user_account_name" />
           </ion-avatar>
-          <ion-label>{{ account.account_name }}</ion-label>
+          <ion-label>{{ account.user_account_name }}</ion-label>
           <ion-checkbox
             slot="end"
             [checked]="isAccountSelected(account.account_id)"

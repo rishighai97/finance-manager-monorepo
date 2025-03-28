@@ -209,7 +209,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
     if (this.selectedAccountIds.length === 0) return "Select accounts";
     if (this.selectedAccountIds.length === 1) {
       const account = this.accountMap.get(this.selectedAccountIds[0]);
-      return account ? account.account_name : "One account selected";
+      return account ? account.user_account_name : "One account selected";
     }
     return `${this.selectedAccountIds.length} accounts selected`;
   }

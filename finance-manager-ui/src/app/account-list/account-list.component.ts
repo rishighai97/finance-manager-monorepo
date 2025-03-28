@@ -181,7 +181,7 @@ export class AccountListComponent implements OnInit {
   // Show transactions for a specific account
   showTransactionsForAccount(account: UserAccount) {
     this.selectedAccountId = account.account_id;
-    this.selectedAccountName = account.account_name;
+    this.selectedAccountName = account.user_account_name;
     this.showTransactions = true;
   }
 

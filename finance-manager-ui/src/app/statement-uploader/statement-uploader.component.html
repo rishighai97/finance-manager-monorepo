@@ -89,7 +89,7 @@
             <h2>Select Account</h2>
             <p>
               @if (selectedAccount) {
-              {{ selectedAccount.account_name }}
+              {{ selectedAccount.user_account_name }}
               } @else { Choose an account }
             </p>
           </ion-label>
@@ -161,9 +161,9 @@
             @for (account of group.user_accounts; track account) {
             <ion-item>
               <ion-avatar slot="start">
-                <img [src]="account.icon" [alt]="account.account_name" />
+                <img [src]="account.icon" [alt]="account.user_account_name" />
               </ion-avatar>
-              <ion-label>{{ account.account_name }}</ion-label>
+              <ion-label>{{ account.user_account_name }}</ion-label>
               <ion-radio slot="end" [value]="account"></ion-radio>
             </ion-item>
             } }
