@@ -1,0 +1,182 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Statement Uploader</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- No Statements Placeholder -->
+  @if (statementsToBeUploaded.length === 0) {
+  <div class="empty-state">
+    <ion-icon name="document-outline" class="empty-icon"></ion-icon>
+    <h2>No Statements Uploaded</h2>
+    <p>Click the plus button to start uploading bank statements</p>
+  </div>
+  }
+
+  <!-- Statements List -->
+  @if (statementsToBeUploaded.length > 0) {
+  <ion-list>
+    @for (statement of statementsToBeUploaded; track statement) {
+    <ion-item>
+      <ion-avatar slot="start">
+        <img [src]="getAccountById(statement.accountId)?.icon" />
+      </ion-avatar>
+
+      <ion-label>
+        {{ statement.fileName }}
+      </ion-label>
+
+      <div slot="end">
+        <ion-button
+          fill="clear"
+          color="primary"
+          (click)="
+            editStatement(statement, statementsToBeUploaded.indexOf(statement))
+          "
+        >
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button
+          fill="clear"
+          color="danger"
+          (click)="deleteStatement(statementsToBeUploaded.indexOf(statement))"
+        >
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-item>
+    }
+  </ion-list>
+
+  <!-- Clear All and Upload All Buttons -->
+  <div class="action-buttons">
+    <ion-button expand="block" color="danger" (click)="clearAllStatements()">
+      <ion-icon name="trash-outline" slot="start"></ion-icon>
+      Clear All Statements
+    </ion-button>
+  </div>
+  }
+
+  <!-- Upload Modal -->
+  <ion-modal [isOpen]="isUploadModalOpen" (didDismiss)="resetUploadForm()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="resetUploadForm()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Upload Statement</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="addStatement()"
+              [disabled]="
+                !selectedAccount || !selectedFile || !selectedExtension
+              "
+            >
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Selector -->
+        <ion-item (click)="openAccountSelector()">
+          <ion-label>
+            <h2>Select Account</h2>
+            <p>
+              @if (selectedAccount) {
+              {{ selectedAccount.account_name }}
+              } @else { Choose an account }
+            </p>
+          </ion-label>
+          <ion-icon name="chevron-forward" slot="end"></ion-icon>
+        </ion-item>
+
+        <!-- File Upload -->
+        <ion-item>
+          <ion-label>
+            <h2>Upload Statement</h2>
+            <p>
+              @if (selectedFile) {
+              {{ selectedFile.name }}
+              } @else { Choose a file to upload }
+            </p>
+          </ion-label>
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            style="display: none"
+            #fileInput
+            accept=".csv,.xlsx,.pdf"
+          />
+          <ion-button (click)="fileInput.click()" fill="clear">
+            <ion-icon name="cloud-upload-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        <!-- Extension Selector -->
+        <ion-item>
+          <ion-label>File Type</ion-label>
+          <ion-select
+            [(ngModel)]="selectedExtension"
+            placeholder="Select Extension"
+          >
+            <ion-select-option value="csv">CSV</ion-select-option>
+            <ion-select-option value="xlsx">XLSX</ion-select-option>
+            <ion-select-option value="pdf">PDF</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal for Account Selection -->
+  <ion-modal
+    #accountModal
+    [isOpen]="isAccountModalOpen"
+    (didDismiss)="closeAccountSelector()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Select Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAccountSelector()">Done</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <ion-radio-group [(ngModel)]="selectedAccount">
+          <ion-list>
+            @for (group of groupedAccounts; track group) {
+            <ion-item-divider>
+              {{ group.level_1_title }}
+            </ion-item-divider>
+
+            @for (account of group.user_accounts; track account) {
+            <ion-item>
+              <ion-avatar slot="start">
+                <img [src]="account.icon" [alt]="account.account_name" />
+              </ion-avatar>
+              <ion-label>{{ account.account_name }}</ion-label>
+              <ion-radio slot="end" [value]="account"></ion-radio>
+            </ion-item>
+            } }
+          </ion-list>
+        </ion-radio-group>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Floating Action Button -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="isUploadModalOpen = true">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

@@ -1,103 +1,62 @@
-// Reuse most of the transaction list SCSS
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 20px;
+  color: var(--ion-color-medium);
 
-* {
-  font-family: 'Nunito', sans-serif;
+  .empty-icon {
+    font-size: 100px;
+    color: var(--ion-color-light-shade);
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+  }
 }
 
-// Statement actions container
-.statement-actions {
-  display: flex;
-  align-items: center;
+.action-buttons {
+  padding: 16px;
 
   ion-button {
-    --padding-start: 4px;
-    --padding-end: 4px;
-    height: 32px;
-    width: 32px;
-    margin: 0 2px;
-
-    ion-icon {
-      font-size: 20px;
-    }
+    margin-top: 10px;
   }
 }
 
-// Rest of the styles from transaction list component can remain the same
-ion-content {
-  --background: #f5f7fa;
-}
-
-.transaction-item {
-  margin: 4px auto;
-  --background: #ffffff;
-  --border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  width: 100%;
+ion-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
 
   ion-label {
-    h4 {
-      font-size: 15px;
-      font-weight: 500;
-      margin: 8px 0;
-      line-height: 1.5;
-      letter-spacing: 0.2px;
-    }
-
-    p {
-      font-size: 12px;
-      color: #777;
-      margin: 4px 0;
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      ion-chip {
+        margin-left: 0;
+        margin-right: 10px;
+      }
     }
   }
 }
 
-// Refresh prompt and other styles can be exactly the same as in transaction list
-.refresh-prompt {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  margin-top: 16px;
-
-  .refresh-message {
-    color: var(--ion-color-primary);
-    font-size: 16px;
-    font-weight: 700;
-    margin-left: 16px;
-  }
-
-  .arrow-container {
-    position: absolute;
-    right: 32px;
-    display: flex;
-    align-items: center;
-
-    .refresh-arrow {
-      color: var(--ion-color-primary);
-      font-size: 28px;
-      transform: rotate(-15deg);
-    }
-  }
-}
-
-// Bottom spacer and other common styles
-.bottom-spacer {
-  height: 80px;
-  width: 100%;
-}
-
-// Modal and other styles can remain similar to transaction list
 ion-modal {
   --border-radius: 16px 16px 0 0;
 
   ion-header {
-    padding-top: 8px;
-  }
-
-  ion-title {
-    font-size: 16px;
-    font-weight: 600;
+    ion-toolbar {
+      --padding-start: 0;
+      --padding-end: 0;
+    }
   }
 }
