@@ -1,6 +1,6 @@
 package com.finance.manager.account_service.service;
 
-import com.finance.manager.account_service.dao.AccountDao;
+import com.finance.manager.account_service.dao.UserAccountDao;
 import com.finance.manager.account_service.dto.GroupedUserAccount;
 import com.finance.manager.account_service.dto.UserAccount;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +14,9 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class AccountServiceImpl implements AccountService {
+public class UserAccountServiceImpl implements UserAccountService {
 
-    private final AccountDao dao;
+    private final UserAccountDao dao;
 
     @Override
     public List<UserAccount> getAllAccounts(List<Integer> userIds) {

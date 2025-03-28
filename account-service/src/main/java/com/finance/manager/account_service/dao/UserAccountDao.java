@@ -4,6 +4,6 @@ import com.finance.manager.account_service.dto.UserAccount;
 
 import java.util.List;
 
-public interface AccountDao {
+public interface UserAccountDao {
     List<UserAccount> getAllAccounts(List<Integer> userIds);
 }

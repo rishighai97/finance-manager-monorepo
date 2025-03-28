@@ -16,11 +16,17 @@ public record UserAccount(
         @JsonProperty("user_id")
         int userId,
 
+        @JsonProperty("user_account_name")
+        String userAccountName,
+
         @JsonProperty("account_type_id")
         int accountTypeId,
 
         @JsonProperty("account_name")
         String accountName,
+
+        @JsonProperty("statement_file_extensions")
+        String statementFileExtensions,
 
         @JsonProperty("icon")
         String icon,

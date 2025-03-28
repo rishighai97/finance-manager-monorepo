@@ -5,7 +5,7 @@ import com.finance.manager.account_service.dto.UserAccount;
 
 import java.util.List;
 
-public interface AccountService {
+public interface UserAccountService {
     List<UserAccount> getAllAccounts(List<Integer> userIds);
     List<GroupedUserAccount> getAllGroupedAccounts(List<Integer> userIds);
 }

@@ -2,7 +2,7 @@ package com.finance.manager.account_service.controller;
 
 import com.finance.manager.account_service.dto.GroupedUserAccount;
 import com.finance.manager.account_service.dto.UserAccount;
-import com.finance.manager.account_service.service.AccountService;
+import com.finance.manager.account_service.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
@@ -10,17 +10,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping("/user_account")
 @CrossOrigin
 @RequiredArgsConstructor
-public class AccountController {
+public class UserAccountController {
 
-    private static final Logger logger = Logger.getLogger(AccountController.class.getName());
+    private static final Logger logger = Logger.getLogger(UserAccountController.class.getName());
 
-    private final AccountService service;
+    private final UserAccountService service;
 
 
     @GetMapping("/v1/healthcheck")
