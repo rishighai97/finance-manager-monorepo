@@ -7,7 +7,11 @@ import {
   IonLabel,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
-import { ellipse, square, walletOutline, cashOutline } from "ionicons/icons";
+import { 
+  walletOutline, 
+  cashOutline, 
+  documentTextOutline 
+} from "ionicons/icons";
 
 @Component({
   selector: "app-tabs",
@@ -19,10 +23,9 @@ import { ellipse, square, walletOutline, cashOutline } from "ionicons/icons";
 export class TabsPage {
   constructor() {
     addIcons({
-      ellipse,
-      square,
       walletOutline,
       cashOutline,
+      documentTextOutline
     });
   }
 }

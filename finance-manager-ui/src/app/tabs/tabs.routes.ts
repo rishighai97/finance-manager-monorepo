@@ -21,6 +21,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: "statement-uploader",
+        loadComponent: () =>
+          import("../statement-uploader/statement-uploader.component").then(
+            (m) => m.StatementUploaderComponent
+          ),
+      },
+      {
         path: "tab2",
         loadComponent: () =>
           import("../tab2/tab2.page").then((m) => m.Tab2Page),
