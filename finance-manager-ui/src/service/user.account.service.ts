@@ -10,7 +10,7 @@ import { GroupedUserAccount } from "src/model/grouped-user-account";
   providedIn: "root",
 })
 export class UserAccountService {
-  private accountApiUri = "http://localhost:5003"; // API URL
+  private accountApiUri = "http://localhost:5003/user_account"; // API URL
 
   constructor(private http: HttpClient) {}
 
@@ -67,7 +67,7 @@ export class UserAccountService {
   ): Observable<GroupedUserAccount[]> {
     // Construct the query string with comma-separated user_ids
     const userIdsQuery = userIds.join(",");
-    const url = `${this.accountApiUri}/user_account/v1/fetch_all/grouped?user_ids=${userIdsQuery}`;
+    const url = `${this.accountApiUri}/v1/fetch_all/grouped?user_ids=${userIdsQuery}`;
     console.log(`Fetching grouped accounts for users ${userIdsQuery}`);
     // Send the GET request to the API and return the observable
     return this.http.get<GroupedUserAccount[]>(url);
