@@ -1,15 +1,20 @@
+
 package com.finance.manager.account_service.dao;
 
 import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class UserAccountPostgresDao implements UserAccountDao {
@@ -50,7 +55,7 @@ public class UserAccountPostgresDao implements UserAccountDao {
                         ua.user_account_name as user_account_name,
                         type_id as account_type_id,
                         ai.icon as icon,
-                        name as account_name,
+                        a.name as account_name,
                         type_1 as account_type_1,
                         type_2 as account_type_2,
                         type_3 as account_type_3,
@@ -80,7 +85,7 @@ public class UserAccountPostgresDao implements UserAccountDao {
                         ua.user_account_name,
                         type_id,
                         ai.icon,
-                        name,
+                        a.name,
                         type_1,
                         type_2,
                         type_3,
@@ -119,5 +124,30 @@ public class UserAccountPostgresDao implements UserAccountDao {
 
         logger.info("Retrieved {} user accounts for user_ids: {} from postgres", userAccounts.size(), userIds);
         return userAccounts;
+    }
+    
+    @Override
+    public int saveUserAccount(UserAccountSaveRequest request) {
+        logger.info("Creating new user account for user_id: {}, account_id: {}", request.userId(), request.accountId());
+        
+        String sql = """
+                INSERT INTO user_account (user_id, account_id, user_account_name)
+                VALUES (:userId, :accountId, :userAccountName)
+                RETURNING id
+                """;
+                
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", request.userId());
+        params.addValue("accountId", request.accountId());
+        params.addValue("userAccountName", request.userAccountName());
+        
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        
+        namedParameterJdbcTemplate.update(sql, params, keyHolder);
+        
+        int newUserAccountId = Objects.requireNonNull(keyHolder.getKey()).intValue();
+        logger.info("Created new user account with id: {}", newUserAccountId);
+        
+        return newUserAccountId;
     }
 }

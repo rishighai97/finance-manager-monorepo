@@ -1,8 +1,10 @@
+
 package com.finance.manager.account_service.service;
 
 import com.finance.manager.account_service.dao.UserAccountDao;
 import com.finance.manager.account_service.dto.GroupedUserAccount;
 import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import com.finance.manager.account_service.util.AccountGrouper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,5 +26,10 @@ public class UserAccountServiceImpl implements UserAccountService {
     public List<GroupedUserAccount> getAllGroupedAccounts(List<Integer> userIds) {
         List<UserAccount> accounts = getAllAccounts(userIds);
         return AccountGrouper.groupUserAccounts(accounts);
+    }
+    
+    @Override
+    public int saveUserAccount(UserAccountSaveRequest request) {
+        return dao.saveUserAccount(request);
     }
 }

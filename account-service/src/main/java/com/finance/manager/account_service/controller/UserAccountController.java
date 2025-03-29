@@ -1,10 +1,13 @@
+
 package com.finance.manager.account_service.controller;
 
 import com.finance.manager.account_service.dto.GroupedUserAccount;
 import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import com.finance.manager.account_service.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,10 +43,33 @@ public class UserAccountController {
         logger.info("Received request to fetch grouped accounts for user ids " + userIds);
         return service.getAllGroupedAccounts(userIds);
     }
+    
+    @PostMapping("/v1/save")
+    public ResponseEntity<Integer> saveUserAccount(@RequestBody UserAccountSaveRequest request) {
+        validateUserAccountSaveRequest(request);
+        logger.info("Received request to create user account for user ID: " + request.userId());
+        int userAccountId = service.saveUserAccount(request);
+        return ResponseEntity.ok(userAccountId);
+    }
 
     private void validateUserIds(List<Integer> userIdsList) {
         if (userIdsList == null || userIdsList.isEmpty()) {
             throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass user_account_ids in request");
         }
     }
+    
+    private void validateUserAccountSaveRequest(UserAccountSaveRequest request) {
+        if (request.userId() <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "User ID must be a positive integer");
+        }
+        
+        if (request.accountId() <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Account ID must be a positive integer");
+        }
+        
+        if (request.userAccountName() == null || request.userAccountName().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Account userAccountName is required");
+        }
+    }
 }
+
