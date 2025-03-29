@@ -3,6 +3,7 @@ package com.finance.manager.account_service.controller;
 
 import com.finance.manager.account_service.dto.GroupedUserAccount;
 import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
 import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import com.finance.manager.account_service.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,22 @@ public class UserAccountController {
         return ResponseEntity.ok(userAccountId);
     }
 
+    @DeleteMapping("/v1/delete")
+    public ResponseEntity<Void> deleteUserAccount(@RequestParam(value = "user_account_id") int userAccountId) {
+        validateUserAccountId(userAccountId);
+        logger.info("Received request to delete user account with ID: " + userAccountId);
+        service.deleteUserAccount(userAccountId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/v1/edit")
+    public ResponseEntity<Void> editUserAccountName(@RequestBody UserAccountEditRequest request) {
+        validateUserAccountEditRequest(request);
+        logger.info("Received request to edit user account name for account ID: " + request.userAccountId());
+        service.editUserAccountName(request);
+        return ResponseEntity.ok().build();
+    }
+
     private void validateUserIds(List<Integer> userIdsList) {
         if (userIdsList == null || userIdsList.isEmpty()) {
             throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass user_account_ids in request");
@@ -71,5 +88,20 @@ public class UserAccountController {
             throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Account userAccountName is required");
         }
     }
-}
 
+    private void validateUserAccountId(int userAccountId) {
+        if (userAccountId <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "User account ID must be a positive integer");
+        }
+    }
+
+    private void validateUserAccountEditRequest(UserAccountEditRequest request) {
+        if (request.userAccountId() <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "User account ID must be a positive integer");
+        }
+        
+        if (request.newUserAccountName() == null || request.newUserAccountName().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "New account name is required");
+        }
+    }
+}

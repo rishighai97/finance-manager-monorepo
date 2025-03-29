@@ -4,6 +4,7 @@ package com.finance.manager.account_service.service;
 import com.finance.manager.account_service.dao.UserAccountDao;
 import com.finance.manager.account_service.dto.GroupedUserAccount;
 import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
 import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import com.finance.manager.account_service.util.AccountGrouper;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,15 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     public int saveUserAccount(UserAccountSaveRequest request) {
         return dao.saveUserAccount(request);
+    }
+
+    @Override
+    public void deleteUserAccount(int userAccountId) {
+        dao.deleteUserAccount(userAccountId);
+    }
+
+    @Override
+    public void editUserAccountName(UserAccountEditRequest request) {
+        dao.editUserAccountName(request);
     }
 }

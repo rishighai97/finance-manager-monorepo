@@ -2,6 +2,7 @@
 package com.finance.manager.account_service.dao;
 
 import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
 import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -149,5 +150,43 @@ public class UserAccountPostgresDao implements UserAccountDao {
         logger.info("Created new user account with id: {}", newUserAccountId);
         
         return newUserAccountId;
+    }
+
+    @Override
+    public void deleteUserAccount(int userAccountId) {
+        logger.info("Deleting user account with ID: {}", userAccountId);
+        
+        String sql = "DELETE FROM user_account WHERE id = :userAccountId";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", userAccountId);
+        
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        
+        if (rowsAffected == 0) {
+            logger.warn("No user account found with ID: {}", userAccountId);
+        } else {
+            logger.info("Successfully deleted user account with ID: {}", userAccountId);
+        }
+    }
+
+    @Override
+    public void editUserAccountName(UserAccountEditRequest request) {
+        logger.info("Updating name for user account with ID: {} to: {}", 
+                request.userAccountId(), request.newUserAccountName());
+        
+        String sql = "UPDATE user_account SET user_account_name = :newUserAccountName WHERE id = :userAccountId";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", request.userAccountId());
+        params.addValue("newUserAccountName", request.newUserAccountName());
+        
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        
+        if (rowsAffected == 0) {
+            logger.warn("No user account found with ID: {}", request.userAccountId());
+        } else {
+            logger.info("Successfully updated name for user account with ID: {}", request.userAccountId());
+        }
     }
 }
