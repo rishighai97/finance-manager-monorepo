@@ -51,53 +51,31 @@
       </div>
     </ion-item>
 
-    <!-- Individual accounts within Level 2 -->
-    <!-- Update this part in account-list.component.html -->
-    <!-- Individual accounts within Level 2 -->
-    <!-- Update this part in account-list.component.html -->
     @for (account of groupedAccount.user_accounts; track account) {
-    <ion-item class="account-item" button="false" lines="none">
+    <ion-item
+      class="account-item"
+      (click)="onAccountClick(account.account_id)"
+      button="true"
+      lines="none"
+    >
       <ion-avatar slot="start">
         <img alt="Account Icon" [src]="account.icon" />
       </ion-avatar>
       <ion-label>
-        <ion-row>
-          <h4>{{ account.user_account_name }}</h4>
-        </ion-row>
-        <ion-row>
-          <p>{{ account.latest_balance_date | date : "mediumDate" }}</p>
-        </ion-row>
-        <ion-row>
-          <!-- Separate action buttons row -->
-          <div class="buttons-container">
-            <ion-button
-              size="small"
-              fill="outline"
-              class="view-button"
-              (click)="onAccountClick(account.account_id)"
-            >
-              View Transactions
-            </ion-button>
-
-            <ion-button
-              size="small"
-              fill="outline"
-              class="edit-button"
-              (click)="openEditAccountModal(account)"
-            >
-              Edit
-            </ion-button>
-
-            <ion-button
-              size="small"
-              fill="outline"
-              class="delete-button"
-              (click)="confirmDeleteAccount(account)"
-            >
-              Delete
-            </ion-button>
-          </div>
-        </ion-row>
+        <h4>{{ account.user_account_name }}</h4>
+        @if (account.latest_balance_date) {
+        <p>{{ account.latest_balance_date | date : "mediumDate" }}</p>
+        }
+        <ion-button
+          size="small"
+          fill="outline"
+          color="primary"
+          class="edit-options-button"
+          (click)="showAccountOptions(account, $event)"
+        >
+          <!-- <ion-icon name="ellipsis-horizontal" slot="start"></ion-icon> -->
+          Edit Options
+        </ion-button>
       </ion-label>
 
       <div slot="end" class="amount-container">

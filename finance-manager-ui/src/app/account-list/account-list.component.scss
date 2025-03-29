@@ -72,7 +72,7 @@
   }
 }
 
-// Individual account items styling
+
 .account-item {
   margin: 4px auto 4px 40px;
   --background: #ffffff;
@@ -89,40 +89,82 @@
   p {
     font-size: 12px;
     color: #777;
-  }
-
-  ion-chip {
-    font-size: 13px;
-    font-weight: 500;
-    height: 24px;
-    padding: 0 8px;
+    margin-bottom: 6px;
   }
   
-  // Edit button
-  .edit-button {
-    position: absolute;
-    left: -8px;
-    top: 50%;
-    transform: translateY(-50%);
-    --padding-start: 4px;
-    --padding-end: 4px;
-    --padding-top: 4px;
-    --padding-bottom: 4px;
-    margin: 0;
-    opacity: 0.7;
-    z-index: 2;
-    height: 28px;
-    width: 28px;
+  .edit-options-button {
+    margin-top: 6px;
+    --border-radius: 16px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    height: 26px;
     
-    ion-icon {
-      font-size: 16px;
-      color: var(--ion-color-medium);
+    // ion-icon {
+    //   font-size: 14px;
+    //   margin-right: 4px;
+    // }
+  }
+}
+
+/* Responsive styles to ensure buttons stay on one line */
+@media (max-width: 400px) {
+  .account-item {
+    .action-buttons {
+      max-width: 180px;
+      
+      ion-button {
+        height: 22px;
+        
+        .btn-text {
+          font-size: 8px;
+        }
+        
+        ion-icon {
+          font-size: 10px;
+        }
+      }
     }
-    
-    &:hover {
-      opacity: 1;
-      ion-icon {
-        color: var(--ion-color-primary);
+  }
+}
+
+@media (max-width: 340px) {
+  .account-item {
+    .action-buttons {
+      max-width: 150px;
+      
+      ion-button {
+        height: 20px;
+        --padding-start: 2px;
+        --padding-end: 2px;
+        
+        .btn-text {
+          font-size: 7px;
+        }
+        
+        ion-icon {
+          font-size: 9px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 300px) {
+  .account-item {
+    .action-buttons {
+      ion-button {
+        padding: 0;
+        
+        .btn-text {
+          display: none;
+        }
+        
+        ion-icon {
+          margin: 0 auto;
+        }
       }
     }
   }

@@ -114,6 +114,22 @@ export class UserAccountService {
    * Refreshes the accounts list by fetching the latest data
    */
   refreshAccounts() {
-    this.loadGroupedUserAccounts();
+    // Fetch fresh data with a cache-busting parameter
+    this.fetchGroupedUserAccounts([1]).subscribe(
+      (groupedAccounts) => {
+        // Process icons
+        groupedAccounts.forEach((group) => {
+          group.user_accounts.forEach((acct) => {
+            acct.icon = `data:image/png;base64,${acct.icon}`;
+          });
+        });
+
+        // Update the accounts subject with new data
+        this.groupedUserAccountsSubject.next(groupedAccounts);
+      },
+      (error) => {
+        console.error("Error refreshing accounts:", error);
+      }
+    );
   }
 }

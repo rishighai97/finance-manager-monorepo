@@ -256,21 +256,21 @@ export class AccountListComponent implements OnInit {
       header: account.user_account_name,
       buttons: [
         {
-          text: "View Transactions",
+          text: "Transactions",
           // icon: "document-text-outline",
           handler: () => {
             this.onAccountClick(account.account_id);
           },
         },
         {
-          text: "Edit Name",
+          text: "Rename",
           // icon: "create-outline",
           handler: () => {
             this.openEditAccountModal(account);
           },
         },
         {
-          text: "Delete Account",
+          text: "Delete",
           // icon: "trash-outline",
           role: "destructive",
           handler: () => {
@@ -396,16 +396,27 @@ export class AccountListComponent implements OnInit {
   // Delete the account after confirmation
   deleteAccount() {
     if (!this.accountToDelete) return;
-
+  
     this.userAccountService
       .deleteUserAccount(this.accountToDelete.user_account_id)
       .subscribe(
         () => {
           this.toastService.showSuccess(`Account deleted successfully`);
-          this.userAccountService.refreshAccounts(); // Refresh accounts list
+          
+          // Use proper method to refresh accounts
+          this.userAccountService.refreshAccounts();
+          
+          // Also refresh available account types
           this.accountService.loadGroupedAccounts();
+          
+          // Reset UI state
           this.isDeleteAccountAlertOpen = false;
           this.accountToDelete = null;
+          
+          // Force re-generation of level1Groups after a short delay to ensure data is loaded
+          setTimeout(() => {
+            this.generateLevel1Groups();
+          }, 500);
         },
         (error) => {
           this.toastService.showError("Unable to delete account");

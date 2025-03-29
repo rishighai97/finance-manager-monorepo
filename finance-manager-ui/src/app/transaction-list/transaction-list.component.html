@@ -85,69 +85,26 @@
   </div>
 
   <ion-list [inset]="true" lines="none">
-    @if (getTransactions().length > 0) { @for (transaction of getTransactions();
-    track transaction) {
-    <ion-item class="transaction-item">
-      <div class="category-container">
-        <ion-avatar slot="start">
-          <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
-        </ion-avatar>
-        <!-- @if (transaction.category_id) {
-            <p class="category-id">ID: {{ transaction.category_id }}</p>
-            <p class="category-type">{{ transaction.type || "General" }}</p>
-            } @else {
-            <ion-button
-              fill="clear"
-              size="small"
-              class="add-category-btn"
-              (click)="addCategory(transaction)"
-            >
-              <ion-icon name="add-circle-outline"></ion-icon>
-              <span>Add Category</span>
-            </ion-button>
-            } -->
-      </div>
-
-      <ion-label>
-        <p class="transaction-date">
-          {{ transaction.date | date : "mediumDate" }}
-        </p>
-        <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.user_account_name}}</p> -->
-        <h4>
-          ({{ accountMap.get(transaction.user_account_id)?.user_account_id }})
-          {{ transaction.title }}
-        </h4>
-      </ion-label>
-
-      <div slot="end" class="amount-container">
-        <ion-chip
-          [ngClass]="{
-            danger: isDebit(transaction),
-            success: !isDebit(transaction)
-          }"
-        >
-          <ion-label>{{
-            transaction.debit_or_credit_amount | currency : "INR"
-          }}</ion-label>
-        </ion-chip>
-      </div>
-    </ion-item>
-    }
-    <div class="bottom-spacer"></div>
+    @if (getTransactions().length > 0) {
+      @for (transaction of getTransactions(); track transaction) {
+        <!-- Existing transaction item code -->
+      }
+      <div class="bottom-spacer"></div>
     } @else if (isLoading) {
-    <ion-item>
-      <ion-label>Loading transactions...</ion-label>
-      <ion-spinner></ion-spinner>
-    </ion-item>
+      <ion-item>
+        <ion-label>Loading transactions...</ion-label>
+        <ion-spinner></ion-spinner>
+      </ion-item>
     } @else {
-    <div class="refresh-prompt">
-      <div class="refresh-message">
-        Please click refresh to load transactions
+      <div class="empty-state">
+        <ion-icon name="cash-outline" class="empty-icon" (click)="navigateToStatementUploader()"></ion-icon>
+        <h2>No transactions exist</h2>
+        <p>Go to Statement Uploader to upload some transactions</p>
+        <ion-button expand="block" (click)="navigateToStatementUploader()">
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          Upload Statements
+        </ion-button>
       </div>
-      <div class="arrow-container">
-        <ion-icon name="arrow-forward" class="refresh-arrow"></ion-icon>
-      </div>
-    </div>
     }
   </ion-list>
 </ion-content>

@@ -44,7 +44,7 @@ import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { UserAccountService } from "src/service/user.account.service";
 
 @Component({
@@ -107,7 +107,8 @@ export class TransactionListComponent implements OnInit, OnChanges {
   constructor(
     private transactionService: TransactionService,
     private route: ActivatedRoute,
-    private userAccountService: UserAccountService
+    private userAccountService: UserAccountService,
+    private router: Router
   ) {
     addIcons({
       refreshOutline,
@@ -327,5 +328,9 @@ export class TransactionListComponent implements OnInit, OnChanges {
     this.endDate = `${fyStartYear + 1}-03-31`;
     this.startDateInput = this.startDate;
     this.endDateInput = this.endDate;
+  }
+
+  navigateToStatementUploader() {
+    this.router.navigateByUrl("/tabs/statement-uploader");
   }
 }
