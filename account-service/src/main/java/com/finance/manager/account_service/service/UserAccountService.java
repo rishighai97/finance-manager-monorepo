@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface UserAccountService {
     List<UserAccount> getAllAccounts(List<Integer> userIds);
+
     List<GroupedUserAccount> getAllGroupedAccounts(List<Integer> userIds);
 }
