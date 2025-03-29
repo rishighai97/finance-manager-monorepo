@@ -35,52 +35,25 @@ public class AccountGrouper {
         }
 
         // List to store the final GroupedAccount objects
-        List<GroupedAccount> groupedAccountsWithoutLevel1Amounts = new ArrayList<>();
-        // Map to track level 1 totals
-        Map<String, BigDecimal> level1Amounts = new HashMap<>();
+        List<GroupedAccount> result = new ArrayList<>();
 
-        // Calculate level 2 totals and create GroupedAccount objects
+        // Create GroupedAccount objects for each group
         for (Map.Entry<String, Map<String, List<Account>>> level1Entry : groupedAccounts.entrySet()) {
             String level1Title = level1Entry.getKey();
-            BigDecimal level1Total = BigDecimal.ZERO;
 
             for (Map.Entry<String, List<Account>> level2Entry : level1Entry.getValue().entrySet()) {
                 String level2Title = level2Entry.getKey();
                 List<Account> accountList = level2Entry.getValue();
-                
-                // For regular accounts, we don't have a balance field to sum up
-                // We'll use 0 as the amount for demonstration, but in a real application
-                // you might want to join with a balance table or use another field
-                BigDecimal level2Total = BigDecimal.ZERO;
 
-                // Create a GroupedAccount for this level_2 group
+                // Create a GroupedAccount for this group (without amount fields)
                 GroupedAccount groupedAccount = GroupedAccount.builder()
                         .level1Title(level1Title)
                         .level2Title(level2Title)
-                        .level2Amount(level2Total)
                         .accounts(accountList)
                         .build();
 
-                groupedAccountsWithoutLevel1Amounts.add(groupedAccount);
-                level1Total = level1Total.add(level2Total);
+                result.add(groupedAccount);
             }
-
-            // Store level1Title total for updating later
-            level1Amounts.put(level1Title, level1Total);
-        }
-
-        // Update level_1_amount with correct totals
-        List<GroupedAccount> result = new ArrayList<>();
-        for (GroupedAccount account : groupedAccountsWithoutLevel1Amounts) {
-            result.add(
-                    GroupedAccount.builder()
-                            .level1Title(account.level1Title())
-                            .level1Amount(level1Amounts.get(account.level1Title()))
-                            .level2Title(account.level2Title())
-                            .level2Amount(account.level2Amount())
-                            .accounts(account.accounts())
-                            .build()
-            );
         }
 
         return result;

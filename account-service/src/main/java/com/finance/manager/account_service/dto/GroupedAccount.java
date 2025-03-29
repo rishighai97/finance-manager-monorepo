@@ -12,14 +12,8 @@ public record GroupedAccount(
         @JsonProperty("level_1_title")
         String level1Title,
 
-        @JsonProperty("level_1_amount")
-        BigDecimal level1Amount,
-
         @JsonProperty("level_2_title")
         String level2Title,
-
-        @JsonProperty("level_2_amount")
-        BigDecimal level2Amount,
 
         @JsonProperty("accounts")
         List<Account> accounts
