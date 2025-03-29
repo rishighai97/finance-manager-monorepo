@@ -33,12 +33,13 @@ import {
   createOutline,
   arrowBackOutline,
   closeCircle,
-  checkmarkCircle
+  checkmarkCircle,
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
 import { UserAccountService } from "src/service/user.account.service";
 import { Statement } from "./../../model/statement";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-statement-uploader",
@@ -86,7 +87,10 @@ export class StatementUploaderComponent implements OnInit {
   // Account selection
   isAccountModalOpen = false;
 
-  constructor(private userAccountService: UserAccountService) {
+  constructor(
+    private userAccountService: UserAccountService,
+    private router: Router
+  ) {
     addIcons({
       addOutline,
       documentOutline,
@@ -95,7 +99,7 @@ export class StatementUploaderComponent implements OnInit {
       createOutline,
       arrowBackOutline,
       closeCircle,
-      checkmarkCircle
+      checkmarkCircle,
     });
   }
 
@@ -103,6 +107,15 @@ export class StatementUploaderComponent implements OnInit {
     this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
       this.groupedAccounts = accounts;
     });
+
+    // Check if we should open the upload modal automatically
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state?.["openUploadModal"]) {
+      // Open the modal after a short delay to ensure the component is fully initialized
+      setTimeout(() => {
+        this.isUploadModalOpen = true;
+      }, 300);
+    }
   }
 
   // Account Selection Methods
@@ -137,16 +150,16 @@ export class StatementUploaderComponent implements OnInit {
   // Validate file type against account's supported extensions
   validateFileType() {
     this.fileTypeError = false;
-    
+
     if (this.selectedAccount && this.selectedFile) {
       const fileName = this.selectedFile.name;
-      const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
-      
+      const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
+
       // Get supported extensions from account
       const supportedExtensions = this.selectedAccount.statement_file_extensions
-        .split(',')
-        .map(ext => ext.trim().toLowerCase());
-      
+        .split(",")
+        .map((ext) => ext.trim().toLowerCase());
+
       // Check if file extension is supported
       if (!supportedExtensions.includes(fileExt)) {
         this.fileTypeError = true;
@@ -159,8 +172,9 @@ export class StatementUploaderComponent implements OnInit {
     if (this.selectedAccount && this.selectedFile && !this.fileTypeError) {
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        const fileExt = this.selectedFile!.name.split('.').pop()?.toLowerCase() || '';
-        
+        const fileExt =
+          this.selectedFile!.name.split(".").pop()?.toLowerCase() || "";
+
         const statement: Statement = {
           accountId: this.selectedAccount!.account_id,
           fileName: this.selectedFile!.name,
@@ -212,10 +226,10 @@ export class StatementUploaderComponent implements OnInit {
     }
     return null;
   }
-  
+
   // Helper method to convert comma-separated extensions to array
   getFileExtensionsArray(extensions: string): string[] {
     if (!extensions) return [];
-    return extensions.split(',').map(ext => ext.trim().toLowerCase());
+    return extensions.split(",").map((ext) => ext.trim().toLowerCase());
   }
 }

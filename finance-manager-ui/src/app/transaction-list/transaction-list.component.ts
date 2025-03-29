@@ -331,6 +331,6 @@ export class TransactionListComponent implements OnInit, OnChanges {
   }
 
   navigateToStatementUploader() {
-    this.router.navigateByUrl("/tabs/statement-uploader");
+    this.router.navigateByUrl('/tabs/statement-uploader', { state: { openUploadModal: true } });
   }
 }
