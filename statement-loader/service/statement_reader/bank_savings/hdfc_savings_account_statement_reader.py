@@ -15,7 +15,6 @@ class HdfcSavingsAccountXlsStatementReader(StatementReader):
 
     @override
     def read_statement(self, request: AccountStatementUploadRequest, file: bytes) -> List[Transaction]:
-        account_id = request.account_id
         df = pd.read_excel(xlrd.open_workbook(file_contents=file))
         asterix_row_count = 0
         transactions = []

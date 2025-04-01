@@ -48,7 +48,7 @@ class StatementUploader:
 
         for request in account_statement_requests:
 
-            file_extension = request.extension.strip().lower()
+            file_extension = request.file_extension.strip().lower()
             account_id: int = request.account_id
             transactions = []
             status = False
@@ -99,9 +99,9 @@ class StatementUploader:
         return list(result.values())
 
     def get_extension_to_statement_reader_mapping(self, account_statement_requests) -> Mapping[AccountExtensionData, StatementReader]:
-        requested_file_extensions: Set[str] = {statement.extension.lower().strip() for statement in
+        requested_file_extensions: Set[str] = {statement.file_extension.lower().strip() for statement in
                                                account_statement_requests if
-                                               statement is not None and statement.extension is not None}
+                                               statement is not None and statement.file_extension is not None}
 
         requested_account_ids: Set[int] = {statement.account_id for statement in account_statement_requests if
                                            statement is not None and statement.account_id is not None}

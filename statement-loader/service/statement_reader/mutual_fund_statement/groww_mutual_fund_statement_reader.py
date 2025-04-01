@@ -16,7 +16,6 @@ class GrowwStatementReader(StatementReader):
     # fixme - handle multiple transactions with same key
     @override
     def read_statement(self, request: AccountStatementUploadRequest, file: bytes) -> List[Transaction]:
-        account_id = request.account_id
         df = pd.read_excel(file)
         transactions = []
         start = False

@@ -13,7 +13,6 @@ class CanaraStatementReader(StatementReader):
 
     @override
     def read_statement(self, request: AccountStatementUploadRequest, file: bytes) -> List[Transaction]:
-        account_id = request.account_id
         start = False
         transactions: List[Transaction] = []
         for line in file.decode().split("\n"):
