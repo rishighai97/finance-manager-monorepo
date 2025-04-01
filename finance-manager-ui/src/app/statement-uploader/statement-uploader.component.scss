@@ -1,4 +1,11 @@
-// Add validation icon styling
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
 // Add validation icon styling
 .validation-icon {
   font-size: 22px;
@@ -24,12 +31,6 @@
     line-height: 1.5;
     white-space: normal;
   }
-}// Import font
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
-
-// Set font family for all elements
-* {
-  font-family: 'Nunito', sans-serif;
 }
 
 .empty-state {
@@ -63,9 +64,12 @@
 // Action buttons styling
 .action-buttons {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
   ion-button {
-    margin-top: 10px;
+    margin: 0;
     --border-radius: 12px;
     height: 48px;
   }
@@ -110,6 +114,91 @@ ion-item.statement-item {
       height: 32px;
       margin: 0;
     }
+  }
+}
+
+// Upload results container
+.upload-results-container {
+  margin-top: 16px;
+  padding: 0 16px 16px;
+  
+  .section-title {
+    margin-bottom: 10px;
+    
+    h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+      padding: 16px 0 8px;
+    }
+  }
+  
+  .result-item {
+    margin: 4px auto;
+    --background: #ffffff;
+    --border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid transparent;
+    
+    &.success-result {
+      border-left-color: var(--ion-color-success);
+    }
+    
+    &.error-result {
+      border-left-color: var(--ion-color-danger);
+    }
+    
+    ion-avatar {
+      width: 40px;
+      height: 40px;
+      margin-right: 12px;
+    }
+    
+    ion-label {
+      h2 {
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+      
+      p {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        margin: 0;
+      }
+      
+      .error-messages {
+        margin-top: 4px;
+        
+        .error-message {
+          color: var(--ion-color-danger);
+          font-size: 12px;
+          margin: 3px 0;
+          display: flex;
+          align-items: center;
+          
+          ion-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+  }
+  
+  .reset-button {
+    margin-top: 16px;
+    --border-radius: 12px;
+    height: 48px;
   }
 }
 
@@ -168,7 +257,7 @@ ion-modal {
         font-size: 13px;
         font-weight: 500;
         line-height: 1.4;
-        font-family: 'Nunito', sans-serif;
+        font-font-family: 'Nunito', sans-serif;
         
         // Improved error message styling to match app theme
         padding: 12px 16px;
@@ -258,4 +347,26 @@ ion-content {
   --background: #f5f7fa;
   --padding-top: 12px;
   --padding-bottom: 16px;
+}
+
+// Loading container
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  
+  ion-spinner {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
 }

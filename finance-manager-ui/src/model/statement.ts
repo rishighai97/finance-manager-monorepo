@@ -7,3 +7,15 @@ export interface Statement {
   file: string;
   request_id: string;
 }
+
+export interface UploadResult {
+  statement: Statement;
+  response: AccountStatementUploadResponse;
+}
+
+export interface AccountStatementUploadResponse {
+  status: boolean;
+  request_id: string;
+  transaction_count: number;
+  error_messages: string[];
+}

@@ -23,6 +23,7 @@ import {
   IonInput,
   IonRadio,
   IonRadioGroup,
+  IonSpinner,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
@@ -34,13 +35,18 @@ import {
   arrowBackOutline,
   closeCircle,
   checkmarkCircle,
+  refreshOutline,
+  alertCircleOutline,
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
 import { UserAccountService } from "src/service/user.account.service";
-import { Statement } from "./../../model/statement";
+import { Statement, UploadResult } from "../../model/statement";
 import { Router } from "@angular/router";
 import * as uuid from "uuid";
+import { ToastService } from "src/service/toast.service";
+import { StatementUploadService } from "src/service/statement-upload.service";
+
 @Component({
   selector: "app-statement-uploader",
   templateUrl: "./statement-uploader.component.html",
@@ -70,6 +76,7 @@ import * as uuid from "uuid";
     IonInput,
     IonRadio,
     IonRadioGroup,
+    IonSpinner,
   ],
 })
 export class StatementUploaderComponent implements OnInit {
@@ -87,9 +94,15 @@ export class StatementUploaderComponent implements OnInit {
   // Account selection
   isAccountModalOpen = false;
 
+  // Upload results tracking
+  uploadResults: UploadResult[] = [];
+  isUploading = false;
+
   constructor(
     private userAccountService: UserAccountService,
-    private router: Router
+    private statementUploadService: StatementUploadService,
+    private router: Router,
+    private toastService: ToastService
   ) {
     addIcons({
       addOutline,
@@ -100,6 +113,8 @@ export class StatementUploaderComponent implements OnInit {
       arrowBackOutline,
       closeCircle,
       checkmarkCircle,
+      refreshOutline,
+      alertCircleOutline,
     });
   }
 
@@ -192,12 +207,91 @@ export class StatementUploaderComponent implements OnInit {
     }
   }
 
+  // Upload all statements to the API
+  uploadAllStatements() {
+    if (this.statementsToBeUploaded.length === 0) {
+      this.toastService.showError("No statements to upload");
+      return;
+    }
+
+    this.isUploading = true;
+    this.uploadResults = []; // Clear previous results
+
+    // Create a map of request_id to statement for easy lookup
+    const statementMap = new Map<string, Statement>();
+    this.statementsToBeUploaded.forEach((statement) => {
+      statementMap.set(statement.request_id, statement);
+    });
+
+    // Send all statements in a single API call
+    this.statementUploadService
+      .uploadAllStatements(this.statementsToBeUploaded)
+      .subscribe(
+        (responses) => {
+          this.isUploading = false;
+
+          // Process each response and match with the corresponding statement
+          this.uploadResults = responses.map((response) => {
+            const statement = statementMap.get(response.request_id);
+            return {
+              statement: statement!,
+              response: response,
+            };
+          });
+
+          // Count successful uploads
+          const successCount = responses.filter((r) => r.status).length;
+
+          // Remove successfully uploaded statements from the list
+          this.statementsToBeUploaded = this.statementsToBeUploaded.filter(
+            (statement) => {
+              // Find the response for this statement
+              const response = responses.find(
+                (r) => r.request_id === statement.request_id
+              );
+              // Keep only failed statements
+              return response ? !response.status : true;
+            }
+          );
+
+          // Show appropriate toast message
+          if (successCount === responses.length) {
+            this.toastService.showSuccess(
+              `All ${successCount} statements uploaded successfully`
+            );
+          } else {
+            this.toastService.showSuccess(
+              `${successCount} of ${responses.length} statements uploaded successfully`
+            );
+          }
+        },
+        (error) => {
+          console.error("Error uploading statements:", error);
+
+          // Create failed responses for all statements
+          this.uploadResults = this.statementsToBeUploaded.map((statement) => ({
+            statement,
+            response: {
+              status: false,
+              request_id: statement.request_id,
+              transaction_count: 0,
+              error_messages: ["Network or server error occurred"],
+            },
+          }));
+
+          this.isUploading = false;
+          this.toastService.showError("Failed to upload statements");
+        }
+      );
+  }
+
   // Reset Upload Form
   resetUploadForm() {
     this.selectedAccount = null;
     this.selectedFile = null;
     this.fileTypeError = false;
     this.isUploadModalOpen = false;
+    this.uploadResults = []; // Clear upload results
   }
 
   // Delete Statement
@@ -216,6 +310,14 @@ export class StatementUploaderComponent implements OnInit {
   // Clear All Statements
   clearAllStatements() {
     this.statementsToBeUploaded = [];
+    this.uploadResults = []; // Also clear upload results
+  }
+
+  // Reset uploader completely
+  resetUploader() {
+    this.statementsToBeUploaded = [];
+    this.uploadResults = [];
+    this.resetUploadForm();
   }
 
   // Helper method to get account by ID

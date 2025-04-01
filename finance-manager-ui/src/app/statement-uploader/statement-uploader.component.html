@@ -6,7 +6,7 @@
 
 <ion-content [fullscreen]="true">
   <!-- No Statements Placeholder -->
-  @if (statementsToBeUploaded.length === 0) {
+  @if (statementsToBeUploaded.length === 0 && uploadResults.length === 0) {
   <div class="empty-state">
     <ion-icon name="document-outline" class="empty-icon"></ion-icon>
     <h2>No Statements Uploaded</h2>
@@ -49,14 +49,85 @@
     }
   </ion-list>
 
-  <!-- Clear All and Upload All Buttons -->
+  <!-- Action Buttons -->
   <div class="action-buttons">
     <ion-button expand="block" color="danger" (click)="clearAllStatements()">
       <ion-icon name="trash-outline" slot="start"></ion-icon>
       Clear All Statements
     </ion-button>
+
+    <ion-button expand="block" color="primary" (click)="uploadAllStatements()">
+      <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+      Upload Statements
+    </ion-button>
   </div>
   }
+
+  <!-- Upload Results List -->
+  <div class="upload-results-container" *ngIf="uploadResults.length > 0">
+    <div class="section-title">
+      <h4>Statement Upload Summary</h4>
+    </div>
+
+    <ion-list>
+      <ion-item
+        *ngFor="let result of uploadResults"
+        class="result-item"
+        [ngClass]="{
+          'success-result': result.response.status,
+          'error-result': !result.response.status
+        }"
+      >
+        <ion-avatar slot="start">
+          <img
+            [src]="getUserAccountById(result.statement.user_account_id)?.icon"
+          />
+        </ion-avatar>
+
+        <ion-label>
+          <h2>{{ result.statement.file_name }}</h2>
+          <p *ngIf="result.response.status">
+            Transactions: {{ result.response.transaction_count }}
+          </p>
+          <div *ngIf="!result.response.status" class="error-messages">
+            <p class="error-message">
+              <ion-icon name="alert-circle-outline"></ion-icon> Failed to upload
+              statement
+            </p>
+          </div>
+        </ion-label>
+
+        <div slot="end" class="status-indicator">
+          <ion-icon
+            *ngIf="result.response.status"
+            name="checkmark-circle"
+            color="success"
+          ></ion-icon>
+          <ion-icon
+            *ngIf="!result.response.status"
+            name="close-circle"
+            color="danger"
+          ></ion-icon>
+        </div>
+      </ion-item>
+    </ion-list>
+
+    <ion-button
+      expand="block"
+      color="medium"
+      (click)="resetUploader()"
+      class="reset-button"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Clear All & Start Over
+    </ion-button>
+  </div>
+
+  <!-- Loading indicator during upload -->
+  <div class="loading-container" *ngIf="isUploading">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Uploading statements...</p>
+  </div>
 
   <!-- Upload Modal -->
   <ion-modal [isOpen]="isUploadModalOpen" (didDismiss)="resetUploadForm()">
