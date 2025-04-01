@@ -40,7 +40,7 @@ import { UserAccount } from "src/model/user-account";
 import { UserAccountService } from "src/service/user.account.service";
 import { Statement } from "./../../model/statement";
 import { Router } from "@angular/router";
-
+import * as uuid from "uuid";
 @Component({
   selector: "app-statement-uploader",
   templateUrl: "./statement-uploader.component.html",
@@ -152,8 +152,8 @@ export class StatementUploaderComponent implements OnInit {
     this.fileTypeError = false;
 
     if (this.selectedAccount && this.selectedFile) {
-      const fileName = this.selectedFile.name;
-      const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
+      const file_name = this.selectedFile.name;
+      const fileExt = file_name.split(".").pop()?.toLowerCase() || "";
 
       // Get supported extensions from account
       const supportedExtensions = this.selectedAccount.statement_file_extensions
@@ -176,11 +176,13 @@ export class StatementUploaderComponent implements OnInit {
           this.selectedFile!.name.split(".").pop()?.toLowerCase() || "";
 
         const statement: Statement = {
-          accountId: this.selectedAccount!.account_id,
-          fileName: this.selectedFile!.name,
-          fileExtension: fileExt as any, // Type assertion to satisfy the model
-          uploadDate: new Date(),
-          fileBase64: e.target.result.split(",")[1], // Base64 without data URL prefix
+          account_id: this.selectedAccount!.account_id,
+          user_account_id: this.selectedAccount!.user_account_id,
+          user_id: this.selectedAccount!.user_id,
+          file_name: this.selectedFile!.name,
+          file_extension: fileExt as any, // Type assertion to satisfy the model
+          file: e.target.result.split(",")[1], // Base64 without data URL prefix
+          request_id: uuid.v4(),
         };
 
         this.statementsToBeUploaded.push(statement);
@@ -205,7 +207,7 @@ export class StatementUploaderComponent implements OnInit {
 
   // Edit Statement (Open Upload Modal with Existing Data)
   editStatement(statement: Statement, index: number) {
-    this.selectedAccount = this.getAccountById(statement.accountId);
+    this.selectedAccount = this.getUserAccountById(statement.user_account_id);
     this.isUploadModalOpen = true;
     // Remove the existing statement to replace it
     this.statementsToBeUploaded.splice(index, 1);
@@ -217,10 +219,10 @@ export class StatementUploaderComponent implements OnInit {
   }
 
   // Helper method to get account by ID
-  getAccountById(accountId: number): UserAccount | null {
+  getUserAccountById(user_account_id: number): UserAccount | null {
     for (const group of this.groupedAccounts) {
       const account = group.user_accounts.find(
-        (a) => a.account_id === accountId
+        (a) => a.user_account_id === user_account_id
       );
       if (account) return account;
     }

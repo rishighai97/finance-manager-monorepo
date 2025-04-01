@@ -20,11 +20,11 @@
     @for (statement of statementsToBeUploaded; track statement) {
     <ion-item class="statement-item">
       <ion-avatar slot="start">
-        <img [src]="getAccountById(statement.accountId)?.icon" />
+        <img [src]="getUserAccountById(statement.user_account_id)?.icon" />
       </ion-avatar>
 
       <ion-label>
-        {{ statement.fileName }}
+        {{ statement.file_name }}
       </ion-label>
 
       <div slot="end" class="statement-actions">

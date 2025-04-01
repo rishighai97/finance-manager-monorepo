@@ -1,8 +1,9 @@
 export interface Statement {
-  id?: number;
-  accountId: number;
-  fileName: string;
-  fileExtension: "csv" | "xlsx" | "pdf";
-  uploadDate: Date;
-  fileBase64: string;
+  account_id: number;
+  user_id: number;
+  user_account_id: number;
+  file_name: string;
+  file_extension: string;
+  file: string;
+  request_id: string;
 }
