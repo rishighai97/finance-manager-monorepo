@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.service;
 
 import com.finance.manager.transaction_service.dao.CategoryDao;
@@ -87,5 +88,16 @@ public class CategoryServiceImpl implements CategoryService {
         if (!insertList.isEmpty()) {
             categoryDao.insertTransactionCategories(insertList, batchSize);
         }
+    }
+    
+    @Override
+    public void saveCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to save");
+            return;
+        }
+        
+        logger.info("Saving {} new categories", categories.size());
+        categoryDao.saveCategories(categories, batchSize);
     }
 }

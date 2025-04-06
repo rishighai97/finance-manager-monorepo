@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.controller;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
@@ -68,6 +69,16 @@ public class CategoryController {
         
         return ResponseEntity.ok().build();
     }
+    
+    @PostMapping("/v1/save_all")
+    public ResponseEntity<Void> saveAllCategories(@RequestBody List<UserCategory> categories) {
+        validateNewCategories(categories);
+        
+        logger.info("Received request to save {} new categories", categories.size());
+        categoryService.saveCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
 
     private void validateUserIds(List<Integer> userIds) {
         if (userIds == null || userIds.isEmpty()) {
@@ -84,6 +95,23 @@ public class CategoryController {
         for (UserCategory category : categories) {
             if (category.id() == null || category.id() <= 0) {
                 throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid ID");
+            }
+        }
+    }
+    
+    private void validateNewCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of categories");
+        }
+        
+        // Validate each category has a user_id and category_title
+        for (UserCategory category : categories) {
+            if (category.userId() == null || category.userId() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid user ID");
+            }
+            
+            if (category.categoryTitle() == null || category.categoryTitle().isEmpty()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a title");
             }
         }
     }

@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.service;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
@@ -36,4 +37,12 @@ public interface CategoryService {
      * @param mappings The list of transaction-category mappings to edit
      */
     void editTransactionCategories(List<TransactionUserCategory> mappings);
+    
+    /**
+     * Saves new categories
+     * 
+     * @param categories The list of categories to save
+     * @return
+     */
+    void saveCategories(List<UserCategory> categories);
 }

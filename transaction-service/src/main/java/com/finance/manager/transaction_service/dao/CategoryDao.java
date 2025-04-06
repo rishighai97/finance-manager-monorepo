@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.dao;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
@@ -46,4 +47,13 @@ public interface CategoryDao {
      * @param batchSize The size of each batch for insertion
      */
     void insertTransactionCategories(List<TransactionUserCategory> mappings, int batchSize);
+
+    /**
+     * Saves new categories in batches
+     * 
+     * @param categories The list of categories to save
+     * @param batchSize The size of each batch for insertion
+     * @return
+     */
+    void saveCategories(List<UserCategory> categories, int batchSize);
 }

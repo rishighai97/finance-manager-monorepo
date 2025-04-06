@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.dao;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
@@ -7,11 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Repository
@@ -230,5 +234,41 @@ public class CategoryPostgresDao implements CategoryDao {
 
         int[] inserted = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
         logger.info("Inserted {} transaction-category mappings in batch", inserted.length);
+    }
+    
+    @Override
+    @Transactional
+    public void saveCategories(List<UserCategory> categories, int batchSize) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to save");
+            return;
+        }
+
+        logger.info("Saving {} new categories with batch size {}", categories.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < categories.size(); i += batchSize) {
+            int end = Math.min(categories.size(), i + batchSize);
+            List<UserCategory> batch = categories.subList(i, end);
+            
+            saveCategoryBatch(batch);
+            
+            logger.info("Processed save batch {} to {} of {} categories", i, end, categories.size());
+        }
+    }
+    
+    private void saveCategoryBatch(List<UserCategory> categories) {
+        String sql = """
+                INSERT INTO user_category (user_id, category_title)
+                VALUES (:userId, :categoryTitle)
+                """;
+        for (UserCategory category : categories) {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("userId", category.userId())
+                    .addValue("categoryTitle", category.categoryTitle());
+            
+            namedParameterJdbcTemplate.update(sql, params);
+        }
     }
 }
