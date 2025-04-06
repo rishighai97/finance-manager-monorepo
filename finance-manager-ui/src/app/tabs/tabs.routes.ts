@@ -28,6 +28,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: "categories",
+        loadComponent: () =>
+          import("../category-list/category-list.component").then(
+            (m) => m.CategoryListComponent
+          ),
+      },
+      {
         path: "tab2",
         loadComponent: () =>
           import("../tab2/tab2.page").then((m) => m.Tab2Page),
