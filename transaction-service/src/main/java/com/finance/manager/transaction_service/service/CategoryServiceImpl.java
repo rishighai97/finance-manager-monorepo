@@ -2,10 +2,13 @@ package com.finance.manager.transaction_service.service;
 
 import com.finance.manager.transaction_service.dao.CategoryDao;
 import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategoryAction;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -53,5 +56,36 @@ public class CategoryServiceImpl implements CategoryService {
         
         logger.info("Updating {} categories", categories.size());
         categoryDao.updateCategories(categories, batchSize);
+    }
+    
+    @Override
+    @Transactional
+    public void editTransactionCategories(List<TransactionUserCategory> mappings) {
+        if (mappings == null || mappings.isEmpty()) {
+            logger.info("No transaction-category mappings to edit");
+            return;
+        }
+        
+        // Segregate mappings by action
+        List<TransactionUserCategory> deleteList = mappings.stream()
+                .filter(m -> m.action() == TransactionUserCategoryAction.DELETE)
+                .collect(Collectors.toList());
+        
+        List<TransactionUserCategory> insertList = mappings.stream()
+                .filter(m -> m.action() == TransactionUserCategoryAction.INSERT)
+                .collect(Collectors.toList());
+        
+        logger.info("Processing {} transaction-category mappings: {} to delete, {} to insert", 
+                mappings.size(), deleteList.size(), insertList.size());
+        
+        // First delete all mappings marked for deletion
+        if (!deleteList.isEmpty()) {
+            categoryDao.deleteTransactionCategories(deleteList, batchSize);
+        }
+        
+        // Then insert all mappings marked for insertion
+        if (!insertList.isEmpty()) {
+            categoryDao.insertTransactionCategories(insertList, batchSize);
+        }
     }
 }

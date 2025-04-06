@@ -1,6 +1,7 @@
 package com.finance.manager.transaction_service.dao;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
 
 import java.util.List;
 import java.util.Set;
@@ -29,4 +30,20 @@ public interface CategoryDao {
      * @param batchSize The size of each batch for update
      */
     void updateCategories(List<UserCategory> categories, int batchSize);
+    
+    /**
+     * Deletes transaction-category mappings in batches
+     * 
+     * @param mappings The list of transaction-category mappings to delete
+     * @param batchSize The size of each batch for deletion
+     */
+    void deleteTransactionCategories(List<TransactionUserCategory> mappings, int batchSize);
+    
+    /**
+     * Inserts transaction-category mappings in batches, ignoring duplicates
+     * 
+     * @param mappings The list of transaction-category mappings to insert
+     * @param batchSize The size of each batch for insertion
+     */
+    void insertTransactionCategories(List<TransactionUserCategory> mappings, int batchSize);
 }

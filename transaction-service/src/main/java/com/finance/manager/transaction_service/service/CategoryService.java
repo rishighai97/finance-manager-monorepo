@@ -1,6 +1,7 @@
 package com.finance.manager.transaction_service.service;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
 
 import java.util.List;
 import java.util.Set;
@@ -27,4 +28,12 @@ public interface CategoryService {
      * @param categories The list of categories to update
      */
     void updateCategories(List<UserCategory> categories);
+    
+    /**
+     * Edits transaction categories by first deleting those marked for deletion
+     * and then inserting those marked for insertion
+     * 
+     * @param mappings The list of transaction-category mappings to edit
+     */
+    void editTransactionCategories(List<TransactionUserCategory> mappings);
 }

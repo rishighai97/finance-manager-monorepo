@@ -1,6 +1,8 @@
 package com.finance.manager.transaction_service.controller;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategoryAction;
 import com.finance.manager.transaction_service.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -56,6 +58,16 @@ public class CategoryController {
         
         return ResponseEntity.ok().build();
     }
+    
+    @PutMapping("/v1/transaction_user_category/edit_all")
+    public ResponseEntity<Void> editTransactionCategories(@RequestBody List<TransactionUserCategory> mappings) {
+        validateTransactionCategoryMappings(mappings);
+        
+        logger.info("Received request to edit {} transaction-category mappings", mappings.size());
+        categoryService.editTransactionCategories(mappings);
+        
+        return ResponseEntity.ok().build();
+    }
 
     private void validateUserIds(List<Integer> userIds) {
         if (userIds == null || userIds.isEmpty()) {
@@ -72,6 +84,27 @@ public class CategoryController {
         for (UserCategory category : categories) {
             if (category.id() == null || category.id() <= 0) {
                 throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid ID");
+            }
+        }
+    }
+    
+    private void validateTransactionCategoryMappings(List<TransactionUserCategory> mappings) {
+        if (mappings == null || mappings.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of transaction-category mappings");
+        }
+        
+        // Validate each mapping has required fields
+        for (TransactionUserCategory mapping : mappings) {
+            if (mapping.transactionId() == null || mapping.transactionId().isBlank()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid transaction ID");
+            }
+            
+            if (mapping.userCategoryId() == null || mapping.userCategoryId() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid user category ID");
+            }
+            
+            if (mapping.action() == null) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid action (DELETE or INSERT)");
             }
         }
     }

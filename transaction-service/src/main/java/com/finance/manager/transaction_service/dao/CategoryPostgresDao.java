@@ -1,6 +1,7 @@
 package com.finance.manager.transaction_service.dao;
 
 import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,5 +149,86 @@ public class CategoryPostgresDao implements CategoryDao {
 
         int[] updated = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
         logger.info("Updated {} categories in batch", updated.length);
+    }
+    
+    @Override
+    @Transactional
+    public void deleteTransactionCategories(List<TransactionUserCategory> mappings, int batchSize) {
+        if (mappings == null || mappings.isEmpty()) {
+            logger.info("No transaction-category mappings to delete");
+            return;
+        }
+
+        logger.info("Deleting {} transaction-category mappings with batch size {}", mappings.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < mappings.size(); i += batchSize) {
+            int end = Math.min(mappings.size(), i + batchSize);
+            List<TransactionUserCategory> batch = mappings.subList(i, end);
+            
+            deleteTransactionCategoryBatch(batch);
+            
+            logger.info("Processed delete batch {} to {} of {} mappings", i, end, mappings.size());
+        }
+    }
+
+    private void deleteTransactionCategoryBatch(List<TransactionUserCategory> mappings) {
+        String sql = """
+                DELETE FROM transaction_user_category
+                WHERE transaction_id = :transactionId AND user_category_id = :userCategoryId
+                """;
+
+        List<MapSqlParameterSource> paramsList = new ArrayList<>();
+        
+        for (TransactionUserCategory mapping : mappings) {
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("transactionId", mapping.transactionId())
+                    .addValue("userCategoryId", mapping.userCategoryId());
+            paramsList.add(params);
+        }
+
+        int[] deleted = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
+        logger.info("Deleted {} transaction-category mappings in batch", deleted.length);
+    }
+    
+    @Override
+    @Transactional
+    public void insertTransactionCategories(List<TransactionUserCategory> mappings, int batchSize) {
+        if (mappings == null || mappings.isEmpty()) {
+            logger.info("No transaction-category mappings to insert");
+            return;
+        }
+
+        logger.info("Inserting {} transaction-category mappings with batch size {}", mappings.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < mappings.size(); i += batchSize) {
+            int end = Math.min(mappings.size(), i + batchSize);
+            List<TransactionUserCategory> batch = mappings.subList(i, end);
+            
+            insertTransactionCategoryBatch(batch);
+            
+            logger.info("Processed insert batch {} to {} of {} mappings", i, end, mappings.size());
+        }
+    }
+
+    private void insertTransactionCategoryBatch(List<TransactionUserCategory> mappings) {
+        String sql = """
+                INSERT INTO transaction_user_category (transaction_id, user_category_id)
+                VALUES (:transactionId, :userCategoryId)
+                ON CONFLICT (transaction_id, user_category_id) DO NOTHING
+                """;
+
+        List<MapSqlParameterSource> paramsList = new ArrayList<>();
+        
+        for (TransactionUserCategory mapping : mappings) {
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("transactionId", mapping.transactionId())
+                    .addValue("userCategoryId", mapping.userCategoryId());
+            paramsList.add(params);
+        }
+
+        int[] inserted = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
+        logger.info("Inserted {} transaction-category mappings in batch", inserted.length);
     }
 }
