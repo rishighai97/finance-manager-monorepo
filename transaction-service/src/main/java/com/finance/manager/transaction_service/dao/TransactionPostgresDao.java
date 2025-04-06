@@ -10,7 +10,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 public class TransactionPostgresDao implements TransactionDao {
@@ -29,19 +34,22 @@ public class TransactionPostgresDao implements TransactionDao {
                 userAccountIds, startDate, endDate);
 
         String sql = """
-        SELECT id,
-            date,
-            user_account_id,
-            title,
-            amount,
-            debit_credit_indicator,
-            closing_balance,
-            category_id,
-            units,
-            price_per_unit
-        FROM "transaction"
-        WHERE user_account_id IN (:userAccountIds) AND date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE) 
-        ORDER BY date desc, user_account_id desc
+        SELECT t.id,
+            t.date,
+            t.user_account_id,
+            t.title,
+            t.amount,
+            t.debit_credit_indicator,
+            t.closing_balance,
+            t.category_id,
+            t.units,
+            t.price_per_unit,
+            STRING_AGG(CAST(tuc.user_category_id AS TEXT), ',') AS user_category_ids
+        FROM "transaction" t
+        LEFT JOIN transaction_user_category tuc ON t.id = tuc.transaction_id
+        WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE) 
+        GROUP BY t.id, t.date, t.user_account_id, t.title, t.amount, t.debit_credit_indicator, t.closing_balance, t.category_id, t.units, t.price_per_unit
+        ORDER BY t.date desc, t.user_account_id desc
         """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -60,6 +68,9 @@ public class TransactionPostgresDao implements TransactionDao {
             Integer categoryId = rs.getObject("category_id") != null ? rs.getInt("category_id") : null;
             Integer units = rs.getObject("units") != null ? rs.getInt("units") : null;
             BigDecimal pricePerUnit = rs.getBigDecimal("price_per_unit");
+            
+            // Parse the comma-separated category IDs into a Set<Integer>
+            Set<Integer> userCategoryIds = parseCategoryIds(rs.getString("user_category_ids"));
 
             if (date == null) {
                 throw new RuntimeException("Invalid date " + rs.getObject("date") + " received for request");
@@ -76,6 +87,7 @@ public class TransactionPostgresDao implements TransactionDao {
                     .categoryId(categoryId)
                     .units(units)
                     .pricePerUnit(pricePerUnit)
+                    .userCategoryIds(userCategoryIds)
                     .build();
         });
 
@@ -83,5 +95,25 @@ public class TransactionPostgresDao implements TransactionDao {
                 transactions.size(), userAccountIds, startDate, endDate);
 
         return transactions;
+    }
+    
+    /**
+     * Parses a comma-separated string of category IDs into a Set of Integers
+     */
+    private Set<Integer> parseCategoryIds(String categoryIdsStr) {
+        if (categoryIdsStr == null || categoryIdsStr.isEmpty()) {
+            return Collections.emptySet();
+        }
+        
+        try {
+            return Arrays.stream(categoryIdsStr.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toSet());
+        } catch (NumberFormatException e) {
+            logger.error("Error parsing category IDs: {}", categoryIdsStr, e);
+            return Collections.emptySet();
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.finance.manager.transaction_service.dto;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -17,5 +18,6 @@ public record Transaction(
         @JsonProperty("category_id") Integer categoryId,
         @JsonProperty("type") String type,
         @JsonProperty("units") Integer units,
-        @JsonProperty("price_per_unit") BigDecimal pricePerUnit
+        @JsonProperty("price_per_unit") BigDecimal pricePerUnit,
+        @JsonProperty("user_category_ids") Set<Integer> userCategoryIds
 ) {}
