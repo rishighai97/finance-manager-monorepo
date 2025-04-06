@@ -1,3 +1,4 @@
+
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
@@ -61,6 +62,17 @@ export class CategoryService {
     const url = `${this.categoryApiUrl}/v1/edit_all`;
     console.log(`Updating ${categories.length} categories`);
     return this.http.put<void>(url, categories);
+  }
+  
+  /**
+   * Adds a new category
+   * @param category The new category to add
+   * @returns Observable of void
+   */
+  addNewCategory(category: UserCategory): Observable<void> {
+    const url = `${this.categoryApiUrl}/v1/save_all`;
+    console.log(`Adding new category: ${category.category_title}`);
+    return this.http.post<void>(url, [category]);
   }
 
   /**

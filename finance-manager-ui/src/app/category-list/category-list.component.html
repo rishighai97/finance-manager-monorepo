@@ -1,10 +1,8 @@
+
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      <ion-icon name="list-outline" class="category-header-icon"></ion-icon>
-      Categories
-    </ion-title>
-    <!-- Removed Save Changes button from header since it's now below the search -->
+    <ion-title>Categories</ion-title>
+    <!-- Removed the icon from title -->
   </ion-toolbar>
 </ion-header>
 
@@ -95,14 +93,6 @@
           </ng-container>
         </div>
       </ion-item>
-      
-      <!-- Reset changes button - Remove this since we now have it at the top -->
-      <!-- <div class="reset-container" *ngIf="hasPendingChanges">
-        <ion-button fill="clear" (click)="resetChanges()">
-          <ion-icon name="refresh-outline" slot="start"></ion-icon>
-          Reset All Changes
-        </ion-button>
-      </div> -->
     </ng-container>
     
     <!-- Empty state -->
@@ -119,4 +109,64 @@
       </div>
     </ng-template>
   </ion-list>
+  
+  <!-- Add New Category Modal -->
+  <ion-modal [isOpen]="isAddCategoryModalOpen" (didDismiss)="closeAddCategoryModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeAddCategoryModal()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Add New Category</ion-title>
+          <ion-buttons slot="end">
+            <ion-button 
+              (click)="saveNewCategory()" 
+              [disabled]="!newCategoryName.trim()">
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content>
+        <div class="form-group">
+          <ion-item lines="none" class="name-input-item">
+            <ion-label position="stacked">Category Name (Max 50 characters)</ion-label>
+            <ion-input 
+              [(ngModel)]="newCategoryName" 
+              placeholder="Enter category name"
+              maxlength="50"
+              required="true">
+            </ion-input>
+          </ion-item>
+          
+          @if (newCategoryName && newCategoryName.length > 50) {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon name="alert-circle" color="danger" slot="start"></ion-icon>
+            <ion-label color="danger">
+              Category name cannot exceed 50 characters
+            </ion-label>
+          </ion-item>
+          } @if (!newCategoryName.trim() && newCategoryName !== '') {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon name="alert-circle" color="danger" slot="start"></ion-icon>
+            <ion-label color="danger">
+              Category name cannot be empty
+            </ion-label>
+          </ion-item>
+          }
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+  
+  <!-- Floating Action Button to Add New Category -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openAddCategoryModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

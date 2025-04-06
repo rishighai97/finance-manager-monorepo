@@ -1,3 +1,4 @@
+
 // Import font
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
 
@@ -144,13 +145,6 @@ ion-searchbar {
   margin-bottom: 16px;
 }
 
-// Category header icon
-.category-header-icon {
-  vertical-align: middle;
-  margin-right: 8px;
-  font-size: 20px;
-}
-
 // Action buttons container
 .action-buttons-container {
   display: flex;
@@ -202,5 +196,71 @@ ion-searchbar {
     font-weight: 600;
     margin-left: 0;
     white-space: nowrap;
+  }
+}
+
+// Floating Action Button styling
+ion-fab {
+  margin-bottom: 16px;
+  margin-right: 16px;
+  
+  ion-fab-button {
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+  
+  ion-header {
+    --background: var(--ion-background-color);
+  }
+  
+  ion-content {
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+  }
+  
+  .form-group {
+    margin: 16px;
+    
+    .name-input-item {
+      --background: #f8f9fa;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      margin-bottom: 8px;
+      
+      ion-label {
+        color: var(--ion-color-medium);
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      
+      ion-input {
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+        --padding-start: 0;
+        font-size: 16px;
+      }
+    }
+  }
+  
+  .error-message-item {
+    margin-top: 4px;
+    --background: rgba(var(--ion-color-danger-rgb), 0.05);
+    --border-radius: 8px;
+    
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+    
+    ion-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
   }
 }

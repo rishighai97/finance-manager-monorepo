@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -26,7 +27,10 @@ import {
   IonInput,
   IonText,
   AlertController,
-  ToastController
+  ToastController,
+  IonFab,
+  IonFabButton,
+  IonModal
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
@@ -39,7 +43,10 @@ import {
   informationCircleOutline,
   arrowForwardOutline,
   pricetagsOutline,
-  listOutline
+  listOutline,
+  addOutline,
+  arrowBackOutline,
+  alertCircle
 } from "ionicons/icons";
 import { CategoryService } from "src/service/category.service";
 import { UserCategory } from "src/model/user-category";
@@ -75,7 +82,10 @@ import { ToastService } from "src/service/toast.service";
     IonCardContent,
     IonToggle,
     IonInput,
-    IonText
+    IonText,
+    IonFab,
+    IonFabButton,
+    IonModal
   ],
 })
 export class CategoryListComponent implements OnInit {
@@ -86,6 +96,10 @@ export class CategoryListComponent implements OnInit {
   hasPendingChanges: boolean = false;
   isSaving: boolean = false;
   statusActive: boolean = false;
+  
+  // Properties for Add Category Modal
+  isAddCategoryModalOpen: boolean = false;
+  newCategoryName: string = "";
 
   constructor(
     private categoryService: CategoryService,
@@ -102,7 +116,10 @@ export class CategoryListComponent implements OnInit {
       informationCircleOutline,
       arrowForwardOutline,
       pricetagsOutline,
-      listOutline
+      listOutline,
+      addOutline,
+      arrowBackOutline,
+      alertCircle
     });
   }
 
@@ -277,5 +294,53 @@ export class CategoryListComponent implements OnInit {
    */
   toggleStatusActive() {
     this.statusActive = !this.statusActive;
+  }
+  
+  /**
+   * Open the modal to add a new category
+   */
+  openAddCategoryModal() {
+    this.isAddCategoryModalOpen = true;
+    this.newCategoryName = '';
+  }
+  
+  /**
+   * Close the add category modal
+   */
+  closeAddCategoryModal() {
+    this.isAddCategoryModalOpen = false;
+  }
+  
+  /**
+   * Save a new category
+   */
+  saveNewCategory() {
+    if (!this.newCategoryName.trim()) {
+      this.toastService.showError("Please enter a valid category name");
+      return;
+    }
+    
+    if (this.newCategoryName.length > 50) {
+      this.toastService.showError("Category name cannot exceed 50 characters");
+      return;
+    }
+    
+    const newCategory: UserCategory = {
+      id: 0, // Will be ignored by the API
+      user_id: 1, // Assuming user ID 1 as in other services
+      category_title: this.newCategoryName.trim()
+    };
+    
+    this.categoryService.addNewCategory(newCategory).subscribe(
+      () => {
+        this.toastService.showSuccess("New category added successfully");
+        this.closeAddCategoryModal();
+        this.refreshCategories();
+      },
+      (error) => {
+        this.toastService.showError("Failed to add new category");
+        console.error("Error adding new category:", error);
+      }
+    );
   }
 }
