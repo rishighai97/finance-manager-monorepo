@@ -844,4 +844,18 @@ export class TransactionListComponent implements OnInit, OnChanges {
       state: { openUploadModal: true },
     });
   }
+
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest("ion-button");
+    const icon = button.querySelector("ion-icon") || button; // Fallback if icon not found
+    icon.classList.add("refreshing");
+
+    // Call the actual refresh method
+    this.refreshTransactions();
+
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove("refreshing");
+    }, 1000);
+  }
 }

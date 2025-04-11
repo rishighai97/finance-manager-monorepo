@@ -1,8 +1,14 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Transactions</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshWithAnimation($event)">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
 
 <ion-content [fullscreen]="true" color="light" class="ion-no-padding">
   <!-- Date Filter Row -->

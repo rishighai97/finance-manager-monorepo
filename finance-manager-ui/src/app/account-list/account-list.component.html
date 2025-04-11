@@ -1,10 +1,15 @@
 @if (!showTransactions) {
 
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Accounts</ion-title>
-  </ion-toolbar>
-</ion-header>
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-title>Accounts</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="refreshWithAnimation($event)">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 
 }
 

@@ -46,6 +46,7 @@ import {
   createOutline,
   trashOutline,
   documentTextOutline,
+  refreshOutline,
 } from "ionicons/icons";
 import { UserAccount } from "src/model/user-account";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
@@ -167,6 +168,7 @@ export class AccountListComponent implements OnInit {
       createOutline,
       trashOutline,
       documentTextOutline,
+      refreshOutline,
     });
   }
 
@@ -396,23 +398,23 @@ export class AccountListComponent implements OnInit {
   // Delete the account after confirmation
   deleteAccount() {
     if (!this.accountToDelete) return;
-  
+
     this.userAccountService
       .deleteUserAccount(this.accountToDelete.user_account_id)
       .subscribe(
         () => {
           this.toastService.showSuccess(`Account deleted successfully`);
-          
+
           // Use proper method to refresh accounts
           this.userAccountService.refreshAccounts();
-          
+
           // Also refresh available account types
           this.accountService.loadGroupedAccounts();
-          
+
           // Reset UI state
           this.isDeleteAccountAlertOpen = false;
           this.accountToDelete = null;
-          
+
           // Force re-generation of level1Groups after a short delay to ensure data is loaded
           setTimeout(() => {
             this.generateLevel1Groups();
@@ -432,5 +434,30 @@ export class AccountListComponent implements OnInit {
     this.showTransactions = false;
     this.selectedAccountId = null;
     this.selectedAccountName = "";
+  }
+
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest("ion-button");
+    const icon = button.querySelector("ion-icon") || button; // Fallback if icon not found
+    icon.classList.add("refreshing");
+
+    // Call the actual refresh method
+    this.refreshAccounts();
+
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove("refreshing");
+    }, 1000);
+  }
+
+  refreshAccounts() {
+    this.isLoading = true;
+    this.userAccountService.refreshAccounts();
+    this.accountService.loadGroupedAccounts();
+    setTimeout(() => {
+      this.generateLevel1Groups();
+      this.isLoading = false;
+      this.toastService.showSuccess("Accounts refreshed successfully");
+    }, 500);
   }
 }

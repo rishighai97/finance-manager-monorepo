@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Statement Uploader</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshWithAnimation($event)">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

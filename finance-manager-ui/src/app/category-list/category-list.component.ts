@@ -343,4 +343,18 @@ export class CategoryListComponent implements OnInit {
       }
     );
   }
+  
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest('ion-button');
+    const icon = button.querySelector('ion-icon') || button; // Fallback if icon not found
+    icon.classList.add('refreshing');
+    
+    // Call the actual refresh method
+    this.refreshCategories();
+    
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove('refreshing');
+    }, 1000);
+  }
 }

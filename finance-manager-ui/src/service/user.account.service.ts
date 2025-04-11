@@ -22,7 +22,7 @@ export class UserAccountService {
   groupedUserAccounts$ = this.groupedUserAccountsSubject.asObservable();
 
   loadGroupedUserAccounts() {
-    this.fetchGroupedUserAccounts([1]).subscribe(
+    this.fetchGroupedUserAccounts([2]).subscribe(
       (groupedAccounts) => {
         // Process icons
         groupedAccounts.forEach((group) => {

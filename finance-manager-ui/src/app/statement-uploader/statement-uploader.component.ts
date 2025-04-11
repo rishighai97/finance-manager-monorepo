@@ -336,4 +336,19 @@ export class StatementUploaderComponent implements OnInit {
     if (!extensions) return [];
     return extensions.split(",").map((ext) => ext.trim().toLowerCase());
   }
+
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest('ion-button');
+    const icon = button.querySelector('ion-icon') || button; // Fallback if icon not found
+    icon.classList.add('refreshing');
+    
+    // Call the actual refresh method
+    this.resetUploader();
+    
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove('refreshing');
+      this.toastService.showSuccess("Statement uploader reset");
+    }, 1000);
+  }
 }

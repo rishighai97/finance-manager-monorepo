@@ -2,7 +2,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Categories</ion-title>
-    <!-- Removed the icon from title -->
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshWithAnimation($event)">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
