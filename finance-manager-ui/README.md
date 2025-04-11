@@ -37,6 +37,7 @@ npm run start:uat
 
 # Production environment
 npm run start:prod
+ionic serve --external
 ```
 
 ## Building the Application for Different Environments
