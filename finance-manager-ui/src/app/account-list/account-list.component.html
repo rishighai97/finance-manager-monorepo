@@ -73,7 +73,6 @@
           class="edit-options-button"
           (click)="showAccountOptions(account, $event)"
         >
-          <!-- <ion-icon name="ellipsis-horizontal" slot="start"></ion-icon> -->
           Settings
         </ion-button>
       </ion-label>
@@ -97,9 +96,12 @@
       <ion-spinner></ion-spinner>
     </ion-item>
     } @else {
-    <ion-item>
-      <ion-label>No accounts available</ion-label>
-    </ion-item>
+    <!-- Empty state when no accounts are available -->
+    <div class="empty-state">
+      <ion-icon name="wallet-outline" class="empty-icon"></ion-icon>
+      <h2>No Accounts Available</h2>
+      <p>Click the plus button below to add your first account</p>
+    </div>
     }
   </ion-list>
 
@@ -110,7 +112,6 @@
     </ion-fab-button>
   </ion-fab>
 
-  <!-- Update this part in account-list.component.html -->
   <!-- New Account Modal -->
   <ion-modal [isOpen]="isAccountModalOpen" (didDismiss)="closeAccountModal()">
     <ng-template>
