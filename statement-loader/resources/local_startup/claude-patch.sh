@@ -1,0 +1,3 @@
+cd /Users/rishighai/Desktop/finance-manager-application/.venv/bin/
+source activate
+python /Users/rishighai/Desktop/finance-manager-application/statement-loader/resources/claude/claude_patch.py --app_key ui
