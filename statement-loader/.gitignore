@@ -4,6 +4,7 @@ resources/statements
 resources/ignore
 .idea
 *.DS_Store
+*claude*.txt
 
 __pycache__/
 *.py[cod]
