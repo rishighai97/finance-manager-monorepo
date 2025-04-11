@@ -334,17 +334,13 @@ export class TransactionListComponent implements OnInit, OnChanges {
   private loadTransactions() {
     if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
       this.isLoading = true;
-
-      // Pass selected category IDs to the service
-      const categoryIds =
-        this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : null;
-
+      
       this.transactionService
         .fetchAllTransactions(
           this.selectedAccountIds,
           this.startDate,
           this.endDate,
-          categoryIds
+          this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : null
         )
         .subscribe(
           (transactions) => {
