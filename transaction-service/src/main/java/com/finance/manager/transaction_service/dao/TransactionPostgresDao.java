@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.dao;
 
 import com.finance.manager.transaction_service.dto.Transaction;
@@ -30,10 +31,16 @@ public class TransactionPostgresDao implements TransactionDao {
 
     @Override
     public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate) {
-        logger.info("Fetching user transactions for user accounts {}, start date {}, end date {} from database",
-                userAccountIds, startDate, endDate);
+        // Call the overloaded method with null categoryIds
+        return fetchAll(userAccountIds, startDate, endDate, null);
+    }
 
-        String sql = """
+    @Override
+    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+        logger.info("Fetching user transactions for user accounts {}, start date {}, end date {}{}",
+                userAccountIds, startDate, endDate, categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        StringBuilder sqlBuilder = new StringBuilder("""
         SELECT t.id,
             t.date,
             t.user_account_id,
@@ -47,15 +54,35 @@ public class TransactionPostgresDao implements TransactionDao {
             STRING_AGG(CAST(tuc.user_category_id AS TEXT), ',') AS user_category_ids
         FROM "transaction" t
         LEFT JOIN transaction_user_category tuc ON t.id = tuc.transaction_id
-        WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE) 
+        WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE)
+        """);
+
+        // Add category filter if categoryIds is provided
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sqlBuilder.append("""
+            AND EXISTS (
+                SELECT 1 FROM transaction_user_category tuc2
+                WHERE tuc2.transaction_id = t.id AND tuc2.user_category_id IN (:categoryIds)
+            )
+            """);
+        }
+
+        sqlBuilder.append("""
         GROUP BY t.id, t.date, t.user_account_id, t.title, t.amount, t.debit_credit_indicator, t.closing_balance, t.category_id, t.units, t.price_per_unit
         ORDER BY t.date desc, t.user_account_id desc
-        """;
+        """);
+
+        String sql = sqlBuilder.toString();
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userAccountIds", userAccountIds)
                 .addValue("startDate", startDate)
                 .addValue("endDate", endDate);
+
+        // Only add categoryIds parameter if it's not null and not empty
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            params.addValue("categoryIds", categoryIds);
+        }
 
         List<Transaction> transactions = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             String id = rs.getString("id");
@@ -68,7 +95,7 @@ public class TransactionPostgresDao implements TransactionDao {
             Integer categoryId = rs.getObject("category_id") != null ? rs.getInt("category_id") : null;
             Integer units = rs.getObject("units") != null ? rs.getInt("units") : null;
             BigDecimal pricePerUnit = rs.getBigDecimal("price_per_unit");
-            
+
             // Parse the comma-separated category IDs into a Set<Integer>
             Set<Integer> userCategoryIds = parseCategoryIds(rs.getString("user_category_ids"));
 
@@ -91,12 +118,13 @@ public class TransactionPostgresDao implements TransactionDao {
                     .build();
         });
 
-        logger.info("Fetched {} user transactions for user accounts {}, start date {}, end date {} from database",
-                transactions.size(), userAccountIds, startDate, endDate);
+        logger.info("Fetched {} user transactions for user accounts {}, start date {}, end date {}{}",
+                transactions.size(), userAccountIds, startDate, endDate,
+                categoryIds != null ? ", filtered by categories: " + categoryIds : "");
 
         return transactions;
     }
-    
+
     /**
      * Parses a comma-separated string of category IDs into a Set of Integers
      */
@@ -104,7 +132,7 @@ public class TransactionPostgresDao implements TransactionDao {
         if (categoryIdsStr == null || categoryIdsStr.isEmpty()) {
             return Collections.emptySet();
         }
-        
+
         try {
             return Arrays.stream(categoryIdsStr.split(","))
                     .map(String::trim)

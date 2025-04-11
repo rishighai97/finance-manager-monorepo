@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.service;
 
 import com.finance.manager.transaction_service.DebitCreditIndicator;
@@ -14,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +29,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate) {
-        List<Transaction> transactionList = transactionDao.fetchAll(userAccountIds, startDate, endDate);
+        // Call the overloaded method with null categoryIds
+        return getUserTransactions(userAccountIds, startDate, endDate, null);
+    }
+
+    @Override
+    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+        List<Transaction> transactionList = transactionDao.fetchAll(userAccountIds, startDate, endDate, categoryIds);
         return TransactionsDto
                 .builder()
                 .startDate(startDate)
@@ -88,3 +96,4 @@ public class TransactionServiceImpl implements TransactionService {
         return LocalDate.parse(t1.date(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 }
+

@@ -1,3 +1,4 @@
+
 package com.finance.manager.transaction_service.controller;
 
 import com.finance.manager.transaction_service.dto.Transaction;
@@ -14,7 +15,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/transaction")
@@ -35,16 +38,32 @@ public class TransactionController {
     public ResponseEntity<TransactionsDto> fetchAllTransactionsByUserIdsStartDateAndEndDate(
             @RequestParam("user_account_ids") List<String> userAccountIdsList,
             @RequestParam("start_date") String startDate,
-            @RequestParam("end_date") String endDate) {
+            @RequestParam("end_date") String endDate,
+            @RequestParam(value = "category_ids", required = false) List<String> categoryIdsList) {
 
         List<Integer> userAccountIds = validateAndGetUserAccountIds(userAccountIdsList);
         validateAndGetRequestDate(startDate);
         validateAndGetRequestDate(endDate);
 
-        logger.info("Received request to fetch transactions for user ids {}, start date {} and end date {}",
-                userAccountIds, startDate, endDate);
+        // Parse optional category IDs
+        Set<Integer> categoryIds = null;
+        if (categoryIdsList != null && !categoryIdsList.isEmpty()) {
+            categoryIds = new HashSet<>();
+            try {
+                for (String categoryId : categoryIdsList) {
+                    categoryIds.add(Integer.parseInt(categoryId));
+                }
+            } catch (NumberFormatException e) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                        "Invalid category_ids passed in request - " + categoryIdsList + ". Please pass valid integer ids");
+            }
+        }
 
-        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate);
+        logger.info("Received request to fetch transactions for user ids {}, start date {}, end date {}{}",
+                userAccountIds, startDate, endDate,
+                categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate, categoryIds);
         return ResponseEntity.ok(transactions);
     }
 
@@ -83,3 +102,4 @@ public class TransactionController {
         }
     }
 }
+
