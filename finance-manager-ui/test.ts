@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.financemanager',
-  appName: 'Finance Manager',
+  appId: 'io.ionic.starter',
+  appName: 'finance-manager-ui',
   webDir: 'www'
 };
 

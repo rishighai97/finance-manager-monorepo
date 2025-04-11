@@ -12,6 +12,9 @@ import {
   cashOutline,
   documentTextOutline,
   cloudUploadOutline,
+  bookmarkOutline,
+  folderOutline,
+  folder,
 } from "ionicons/icons";
 
 @Component({
@@ -28,6 +31,8 @@ export class TabsPage {
       cashOutline,
       documentTextOutline,
       cloudUploadOutline,
+      bookmarkOutline,
+      folderOutline,
     });
   }
 }
