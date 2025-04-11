@@ -10,4 +10,5 @@ export interface Transaction {
   type: string | null;
   units: number | null;
   price_per_unit: number | null;
+  user_category_ids: Set<number> | null;
 }

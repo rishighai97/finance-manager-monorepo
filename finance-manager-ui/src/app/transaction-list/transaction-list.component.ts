@@ -32,6 +32,8 @@ import {
   IonCheckbox,
   IonRow,
   IonCol,
+  IonBadge,
+  IonPopover,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
@@ -39,6 +41,10 @@ import {
   addCircleOutline,
   arrowBackOutline,
   walletOutline,
+  pricetagsOutline,
+  filterOutline,
+  checkmarkOutline,
+  closeOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
@@ -46,6 +52,8 @@ import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UserAccountService } from "src/service/user.account.service";
+import { CategoryService } from "src/service/category.service";
+import { UserCategory } from "src/model/user-category";
 
 @Component({
   selector: "app-transaction-list",
@@ -76,6 +84,8 @@ import { UserAccountService } from "src/service/user.account.service";
     IonCheckbox,
     IonRow,
     IonCol,
+    IonBadge,
+    IonPopover,
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
@@ -85,14 +95,21 @@ export class TransactionListComponent implements OnInit, OnChanges {
   @Input() endDate: string = "";
   @Output() backClicked = new EventEmitter<void>();
   @ViewChild("accountModal") accountModal!: IonModal;
+  @ViewChild("categoryModal") categoryModal!: IonModal;
 
   selectedAccountIds: number[] = [];
   isAccountModalOpen: boolean = false;
+  isCategoryModalOpen: boolean = false;
   accountMap: Map<number, UserAccount> = new Map();
 
   // New properties for date inputs
   startDateInput: string = "";
   endDateInput: string = "";
+
+  // New properties for category filter
+  userCategories: UserCategory[] = [];
+  selectedCategoryIds: number[] = [];
+  categoryMap: Map<number, UserCategory> = new Map();
 
   private transactions: Transaction[] = [];
   isLoading: boolean = true;
@@ -103,11 +120,13 @@ export class TransactionListComponent implements OnInit, OnChanges {
   closingBalance?: number;
 
   private accountSelectionChanged = false; // Add this flag
+  private categorySelectionChanged = false; // Add this flag for categories
 
   constructor(
     private transactionService: TransactionService,
     private route: ActivatedRoute,
     private userAccountService: UserAccountService,
+    private categoryService: CategoryService,
     private router: Router
   ) {
     addIcons({
@@ -115,6 +134,10 @@ export class TransactionListComponent implements OnInit, OnChanges {
       addCircleOutline,
       arrowBackOutline,
       walletOutline,
+      pricetagsOutline,
+      filterOutline,
+      checkmarkOutline,
+      closeOutline,
     });
   }
 
@@ -130,6 +153,14 @@ export class TransactionListComponent implements OnInit, OnChanges {
         this.groupedAccounts = accounts;
         this.processAccountIcons();
         this.createAccountMap();
+      }
+    );
+
+    // Subscribe to categories
+    this.categoryService.userCategories$.subscribe(
+      (categories: UserCategory[]) => {
+        this.userCategories = categories;
+        this.createCategoryMap();
       }
     );
 
@@ -192,6 +223,20 @@ export class TransactionListComponent implements OnInit, OnChanges {
     this.isAccountModalOpen = false;
   }
 
+  // New methods for category selector
+  openCategorySelector() {
+    this.isCategoryModalOpen = true;
+  }
+
+  closeCategorySelector() {
+    if (this.categorySelectionChanged) {
+      // Only clear if selection changed
+      this.clearTransactions();
+      this.categorySelectionChanged = false; // Reset the flag
+    }
+    this.isCategoryModalOpen = false;
+  }
+
   toggleAccountSelection(accountId: number) {
     const index = this.selectedAccountIds.indexOf(accountId);
     if (index > -1) {
@@ -202,8 +247,24 @@ export class TransactionListComponent implements OnInit, OnChanges {
     this.accountSelectionChanged = true; // Set flag when selection changes
   }
 
+  // Method to toggle category selection
+  toggleCategorySelection(categoryId: number) {
+    const index = this.selectedCategoryIds.indexOf(categoryId);
+    if (index > -1) {
+      this.selectedCategoryIds.splice(index, 1);
+    } else {
+      this.selectedCategoryIds.push(categoryId);
+    }
+    this.categorySelectionChanged = true; // Set flag when selection changes
+  }
+
   isAccountSelected(accountId: number): boolean {
     return this.selectedAccountIds.includes(accountId);
+  }
+
+  // Method to check if a category is selected
+  isCategorySelected(categoryId: number): boolean {
+    return this.selectedCategoryIds.includes(categoryId);
   }
 
   getSelectedAccountsText(): string {
@@ -213,6 +274,16 @@ export class TransactionListComponent implements OnInit, OnChanges {
       return account ? account.user_account_name : "One account selected";
     }
     return `${this.selectedAccountIds.length} accounts selected`;
+  }
+
+  // Method to get selected categories text
+  getSelectedCategoriesText(): string {
+    if (this.selectedCategoryIds.length === 0) return "Select categories";
+    if (this.selectedCategoryIds.length === 1) {
+      const category = this.categoryMap.get(this.selectedCategoryIds[0]);
+      return category ? category.category_title : "One category selected";
+    }
+    return `${this.selectedCategoryIds.length} categories selected`;
   }
 
   refreshTransactions() {
@@ -233,15 +304,47 @@ export class TransactionListComponent implements OnInit, OnChanges {
     // This function is a placeholder - will be implemented later
   }
 
+  // Get category title for a transaction
+  getCategoryTitle(transaction: Transaction): string {
+    if (
+      transaction.category_id &&
+      this.categoryMap.has(transaction.category_id)
+    ) {
+      return (
+        this.categoryMap.get(transaction.category_id)?.category_title || ""
+      );
+    }
+    return "";
+  }
+
+  // Get user category titles for a transaction
+  getUserCategoryTitles(transaction: Transaction): string[] {
+    if (
+      !transaction.user_category_ids ||
+      transaction.user_category_ids.size === 0
+    ) {
+      return [];
+    }
+
+    return Array.from(transaction.user_category_ids)
+      .map((id) => this.categoryMap.get(id)?.category_title || "")
+      .filter((title) => title !== "");
+  }
+
   private loadTransactions() {
     if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
       this.isLoading = true;
+
+      // Pass selected category IDs to the service
+      const categoryIds =
+        this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : null;
 
       this.transactionService
         .fetchAllTransactions(
           this.selectedAccountIds,
           this.startDate,
-          this.endDate
+          this.endDate,
+          categoryIds
         )
         .subscribe(
           (transactions) => {
@@ -296,6 +399,14 @@ export class TransactionListComponent implements OnInit, OnChanges {
     });
   }
 
+  // Create a map of category IDs to category objects for easier lookup
+  private createCategoryMap() {
+    this.categoryMap.clear();
+    this.userCategories.forEach((category) => {
+      this.categoryMap.set(category.id, category);
+    });
+  }
+
   // Add method to clear transactions
   private clearTransactions() {
     this.transactions = [];
@@ -331,6 +442,8 @@ export class TransactionListComponent implements OnInit, OnChanges {
   }
 
   navigateToStatementUploader() {
-    this.router.navigateByUrl('/tabs/statement-uploader', { state: { openUploadModal: true } });
+    this.router.navigateByUrl("/tabs/statement-uploader", {
+      state: { openUploadModal: true },
+    });
   }
 }

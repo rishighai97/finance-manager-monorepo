@@ -44,6 +44,20 @@
       ></ion-input>
     </ion-item>
 
+    <!-- Category Selector - NEW -->
+    <ion-item
+      lines="none"
+      class="category-selector-item"
+      (click)="openCategorySelector()"
+    >
+      <ion-label position="stacked">Category</ion-label>
+      <ion-input
+        readonly
+        [value]="getSelectedCategoriesText()"
+        placeholder="Select categories"
+      ></ion-input>
+    </ion-item>
+
     <ion-button class="refresh-button" (click)="refreshTransactions()">
       <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
     </ion-button>
@@ -92,31 +106,45 @@
         <ion-avatar slot="start">
           <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
         </ion-avatar>
-        <!-- @if (transaction.category_id) {
-                <p class="category-id">ID: {{ transaction.category_id }}</p>
-                <p class="category-type">{{ transaction.type || "General" }}</p>
-                } @else {
-                <ion-button
-                  fill="clear"
-                  size="small"
-                  class="add-category-btn"
-                  (click)="addCategory(transaction)"
-                >
-                  <ion-icon name="add-circle-outline"></ion-icon>
-                  <span>Add Category</span>
-                </ion-button>
-                } -->
+        <!-- Display category badges -->
+        @if (transaction.user_category_ids && transaction.user_category_ids.size
+        > 0) {
+        <div class="category-badges">
+          @for (categoryId of transaction.user_category_ids; track categoryId) {
+          @if (categoryMap.has(categoryId)) {
+          <ion-badge class="category-badge" color="primary">
+            {{ categoryMap.get(categoryId)?.category_title }}
+          </ion-badge>
+          } }
+        </div>
+        } @else {
+        <ion-button
+          fill="clear"
+          size="small"
+          class="add-category-btn"
+          (click)="addCategory(transaction)"
+        >
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Add Category</span>
+        </ion-button>
+        }
       </div>
 
       <ion-label>
         <p class="transaction-date">
           {{ transaction.date | date : "mediumDate" }}
         </p>
-        <!-- <p class="account-name">{{ accountMap.get(transaction.user_account_id)?.user_account_name}}</p> -->
         <h4>
-          ({{ accountMap.get(transaction.user_account_id)?.user_account_id }})
+          ({{ accountMap.get(transaction.user_account_id)?.user_account_name }})
           {{ transaction.title }}
         </h4>
+        <!-- Display category -->
+        @if (transaction.category_id) {
+        <p class="transaction-category">
+          <ion-icon name="pricetags-outline"></ion-icon>
+          {{ getCategoryTitle(transaction) }}
+        </p>
+        }
       </ion-label>
 
       <div slot="end" class="amount-container">
@@ -191,6 +219,51 @@
           <ion-checkbox
             slot="end"
             [checked]="isAccountSelected(account.account_id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Category Selector Modal - NEW -->
+<ion-modal
+  #categoryModal
+  [isOpen]="isCategoryModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeCategorySelector()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Select Categories</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeCategorySelector()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        @if (userCategories.length === 0) {
+        <ion-item>
+          <ion-label class="ion-text-center">
+            No categories available. Add categories from the Categories tab.
+          </ion-label>
+        </ion-item>
+        } @else { @for (category of userCategories; track category.id) {
+        <ion-item (click)="toggleCategorySelection(category.id)">
+          <ion-icon
+            name="pricetags-outline"
+            slot="start"
+            color="primary"
+          ></ion-icon>
+          <ion-label>{{ category.category_title }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isCategorySelected(category.id)"
           ></ion-checkbox>
         </ion-item>
         } }
