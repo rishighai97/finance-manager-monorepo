@@ -7,13 +7,53 @@
   font-family: 'Nunito', sans-serif;
 }
 
+// Search container styling (New)
+.search-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px 0;
+  background-color: #ffffff;
+  margin-top: 16px;
+
+  ion-searchbar {
+    padding: 0;
+    --border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .search-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .add-cat-btn, .save-cat-btn {
+      font-size: 12px;
+      height: 32px;
+      --border-radius: 16px;
+    }
+  }
+}
+
+// Category changes container (New)
+.category-changes-container {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 8px;
+  background-color: #ffffff;
+
+  ion-button {
+    margin: 0;
+    font-size: 12px;
+    --border-radius: 16px;
+  }
+}
+
 // Date filter container
 .date-filter-container {
   display: flex;
   align-items: flex-end;
   padding: 10px 16px;
   background-color: #ffffff;
-  margin-top: 16px;
   margin-bottom: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
@@ -141,25 +181,53 @@
       display: none; // Hide the text
     }
   }
+}
 
-  // Category badges - NEW
-  .category-badges {
+// Category pills styling (New)
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+
+  .category-pill {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px;
-    margin-top: 4px;
-    max-width: 80px;
+    align-items: center;
+    background-color: var(--ion-color-primary);
+    color: white;
+    border-radius: 16px;
+    padding: 3px 10px 3px 12px;
+    font-size: 11px;
+    white-space: nowrap;
 
-    .category-badge {
-      font-size: 10px;
-      padding: 3px 6px;
-      border-radius: 10px;
-      text-transform: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
+    .remove-category-btn {
+      --padding-start: 2px;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      height: 18px;
+      margin: 0 -3px 0 4px;
+
+      ion-icon {
+        font-size: 14px;
+        color: white;
+      }
+    }
+  }
+
+  .add-category-btn-small {
+    height: 24px;
+    width: 24px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    margin: 0;
+
+    ion-icon {
+      font-size: 18px;
+      color: var(--ion-color-primary);
     }
   }
 }
@@ -171,6 +239,12 @@
   --border-radius: 12px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   width: 100%;
+
+  // Edited item styling (orange background)
+  &.edited-item {
+    --background: rgba(255, 180, 0, 0.05);
+    border-left: 3px solid #ffb400;
+  }
 
   &:last-of-type {
     margin-bottom: 8px; // Add extra margin to last item
@@ -208,7 +282,21 @@
         padding-right: 8px;
       }
 
-      // Transaction category display - NEW
+      // Add category button
+      .add-category-btn {
+        height: 28px;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        margin: 4px 0;
+        font-size: 12px;
+
+        ion-icon {
+          margin-right: 4px;
+          font-size: 14px;
+        }
+      }
+
+      // Transaction category display
       .transaction-category {
         font-size: 12px;
         color: var(--ion-color-primary);
@@ -253,19 +341,19 @@
     text-overflow: ellipsis;
     max-width: 100%;
   }
+}
 
 p {
-    font-size: 12px;
-    color: #777;
-    margin: 3px 0;
-  }
+  font-size: 12px;
+  color: #777;
+  margin: 3px 0;
+}
 
-  ion-chip {
-    font-size: 13px;
-    font-weight: 500;
-    height: 24px;
-    padding: 0 8px;
-  }
+ion-chip {
+  font-size: 13px;
+  font-weight: 500;
+  height: 24px;
+  padding: 0 8px;
 }
 
 // Fix layout issues on small screens
@@ -441,35 +529,31 @@ ion-modal {
   }
 }
 
-// Add this to your existing styles
-.refresh-prompt {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+// Add Category Modal Styling
+.modal-info {
   padding: 16px;
-  margin-top: 16px;
+  text-align: center;
 
-  .refresh-message {
-    color: var(--ion-color-primary);
+  .transaction-title {
     font-size: 16px;
-    font-weight: 700;
-    margin-left: 16px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin-bottom: 4px;
   }
 
-  .arrow-container {
-    position: absolute;
-    right: 32px;
-    display: flex;
-    align-items: center;
+  .category-limit-info {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin-top: 4px;
+  }
 
-    .refresh-arrow {
-      color: var(--ion-color-primary);
-      font-size: 28px;
-      transform: rotate(-15deg);
-    }
+  .batch-info {
+    font-size: 14px;
+    color: var(--ion-color-medium);
+    font-style: italic;
   }
 }
+
 
 .empty-state {
   display: flex;

@@ -2,3 +2,5 @@ node_modules
 .angular
 .vscode
 *.DS_Store
+www
+src.zip

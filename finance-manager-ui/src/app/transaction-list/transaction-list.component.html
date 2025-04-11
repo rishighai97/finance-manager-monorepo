@@ -10,6 +10,58 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" color="light" class="ion-no-padding">
+  <!-- Search Bar (New) -->
+  <div class="search-container">
+    <ion-searchbar
+      placeholder="Search transactions"
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange($event)"
+      animated
+      debounce="300"
+      showCancelButton="focus"
+      cancelButtonText="Clear"
+    >
+    </ion-searchbar>
+
+    <div class="search-actions">
+      <ion-button
+        fill="outline"
+        size="small"
+        (click)="openBatchAddCategories()"
+        class="add-cat-btn"
+      >
+        <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+        Add Category
+      </ion-button>
+
+      <ion-button
+        *ngIf="hasCategoryChanges"
+        fill="solid"
+        color="warning"
+        size="small"
+        (click)="saveAllCategoryChanges()"
+        [disabled]="isSaving"
+        class="save-cat-btn"
+      >
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        Update Categories
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Category Changes Actions (New) -->
+  <div class="category-changes-container" *ngIf="hasCategoryChanges">
+    <ion-button
+      fill="outline"
+      color="medium"
+      size="small"
+      (click)="resetCategoryChanges()"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Reset Changes
+    </ion-button>
+  </div>
+
   <!-- Date Filter Row -->
   <div class="date-filter-container">
     <ion-item lines="none" class="date-picker-item">
@@ -44,7 +96,7 @@
       ></ion-input>
     </ion-item>
 
-    <!-- Category Selector - NEW -->
+    <!-- Category Selector -->
     <ion-item
       lines="none"
       class="category-selector-item"
@@ -100,34 +152,15 @@
 
   <ion-list [inset]="true" lines="none">
     @if (getTransactions().length > 0) { @for (transaction of getTransactions();
-    track transaction) {
-    <ion-item class="transaction-item">
+    track transaction.transaction_id) {
+    <ion-item
+      class="transaction-item"
+      [ngClass]="{ 'edited-item': hasTransactionCategoryChanges(transaction) }"
+    >
       <div class="category-container">
         <ion-avatar slot="start">
           <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
         </ion-avatar>
-        <!-- Display category badges -->
-        @if (transaction.user_category_ids && transaction.user_category_ids.size
-        > 0) {
-        <div class="category-badges">
-          @for (categoryId of transaction.user_category_ids; track categoryId) {
-          @if (categoryMap.has(categoryId)) {
-          <ion-badge class="category-badge" color="primary">
-            {{ categoryMap.get(categoryId)?.category_title }}
-          </ion-badge>
-          } }
-        </div>
-        } @else {
-        <ion-button
-          fill="clear"
-          size="small"
-          class="add-category-btn"
-          (click)="addCategory(transaction)"
-        >
-          <ion-icon name="add-circle-outline"></ion-icon>
-          <span>Add Category</span>
-        </ion-button>
-        }
       </div>
 
       <ion-label>
@@ -138,6 +171,45 @@
           ({{ accountMap.get(transaction.user_account_id)?.user_account_name }})
           {{ transaction.title }}
         </h4>
+
+        <!-- Display user categories as pills -->
+        @if (getUserCategoryTitles(transaction).length > 0) {
+        <div class="category-pills">
+          @for (categoryTitle of getUserCategoryTitles(transaction); track
+          categoryTitle) {
+          <div class="category-pill">
+            {{ categoryTitle }}
+            <ion-button
+              fill="clear"
+              class="remove-category-btn"
+              (click)="removeCategory(transaction, categoryTitle, $event)"
+            >
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </ion-button>
+          </div>
+          }
+          <ion-button
+            fill="clear"
+            size="small"
+            class="add-category-btn-small"
+            (click)="addCategory(transaction, $event)"
+            *ngIf="getUserCategoryTitles(transaction).length < 5"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </ion-button>
+        </div>
+        } @else {
+        <ion-button
+          fill="clear"
+          size="small"
+          class="add-category-btn"
+          (click)="addCategory(transaction, $event)"
+        >
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Add Category</span>
+        </ion-button>
+        }
+
         <!-- Display category -->
         @if (transaction.category_id) {
         <p class="transaction-category">
@@ -227,7 +299,7 @@
   </ng-template>
 </ion-modal>
 
-<!-- Category Selector Modal - NEW -->
+<!-- Category Selector Modal -->
 <ion-modal
   #categoryModal
   [isOpen]="isCategoryModalOpen"
@@ -264,6 +336,75 @@
           <ion-checkbox
             slot="end"
             [checked]="isCategorySelected(category.id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Add Category Modal (New) -->
+<ion-modal
+  #addCategoryModal
+  [isOpen]="isAddCategoryModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeAddCategoryModal()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="closeAddCategoryModal()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>
+          {{
+            selectedTransaction
+              ? "Edit Transaction Categories"
+              : "Add Category to All"
+          }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="saveSelectedCategories()"> Save </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="modal-info">
+        @if (selectedTransaction) {
+        <p class="transaction-title">{{ selectedTransaction.title }}</p>
+        <p class="category-limit-info">
+          Select up to 5 categories for this transaction
+        </p>
+        } @else {
+        <p class="batch-info">
+          Add selected categories to all visible transactions
+        </p>
+        }
+      </div>
+
+      <ion-list>
+        @if (userCategories.length === 0) {
+        <ion-item>
+          <ion-label class="ion-text-center">
+            No categories available. Add categories from the Categories tab.
+          </ion-label>
+        </ion-item>
+        } @else { @for (category of userCategories; track category.id) {
+        <ion-item (click)="toggleAddCategorySelection(category.id)">
+          <ion-icon
+            name="pricetags-outline"
+            slot="start"
+            color="primary"
+          ></ion-icon>
+          <ion-label>{{ category.category_title }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isAddCategorySelected(category.id)"
           ></ion-checkbox>
         </ion-item>
         } }

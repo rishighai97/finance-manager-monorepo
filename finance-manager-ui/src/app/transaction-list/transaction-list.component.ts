@@ -34,6 +34,10 @@ import {
   IonCol,
   IonBadge,
   IonPopover,
+  IonSearchbar,
+  IonRadioGroup,
+  IonRadio,
+  AlertController,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
@@ -45,6 +49,11 @@ import {
   filterOutline,
   checkmarkOutline,
   closeOutline,
+  closeCircleOutline,
+  searchOutline,
+  saveOutline,
+  addOutline,
+  ellipsisVerticalOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
@@ -54,6 +63,11 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { UserAccountService } from "src/service/user.account.service";
 import { CategoryService } from "src/service/category.service";
 import { UserCategory } from "src/model/user-category";
+import {
+  TransactionUserCategory,
+  TransactionUserCategoryAction,
+} from "src/model/transaction-user-category";
+import { ToastService } from "src/service/toast.service";
 
 @Component({
   selector: "app-transaction-list",
@@ -86,6 +100,9 @@ import { UserCategory } from "src/model/user-category";
     IonCol,
     IonBadge,
     IonPopover,
+    IonSearchbar,
+    IonRadioGroup,
+    IonRadio,
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
@@ -96,11 +113,17 @@ export class TransactionListComponent implements OnInit, OnChanges {
   @Output() backClicked = new EventEmitter<void>();
   @ViewChild("accountModal") accountModal!: IonModal;
   @ViewChild("categoryModal") categoryModal!: IonModal;
+  @ViewChild("addCategoryModal") addCategoryModal!: IonModal;
 
   selectedAccountIds: number[] = [];
   isAccountModalOpen: boolean = false;
   isCategoryModalOpen: boolean = false;
+  isAddCategoryModalOpen: boolean = false;
   accountMap: Map<number, UserAccount> = new Map();
+
+  // Transaction search
+  searchTerm: string = "";
+  filteredTransactions: Transaction[] = [];
 
   // New properties for date inputs
   startDateInput: string = "";
@@ -111,23 +134,34 @@ export class TransactionListComponent implements OnInit, OnChanges {
   selectedCategoryIds: number[] = [];
   categoryMap: Map<number, UserCategory> = new Map();
 
+  // New properties for category management
+  selectedTransaction: Transaction | null = null;
+  selectedCategories: number[] = [];
+  catInsertMap: Map<string, TransactionUserCategory[]> = new Map();
+  catDeleteMap: Map<string, TransactionUserCategory[]> = new Map();
+  hasCategoryChanges: boolean = false;
+  batchAddCategories: number[] = [];
+
   private transactions: Transaction[] = [];
   isLoading: boolean = true;
+  isSaving: boolean = false;
 
-  openingBalance?: number; // Default opening balance
+  openingBalance?: number;
   totalDebit?: number;
   totalCredit?: number;
   closingBalance?: number;
 
-  private accountSelectionChanged = false; // Add this flag
-  private categorySelectionChanged = false; // Add this flag for categories
+  private accountSelectionChanged = false;
+  private categorySelectionChanged = false;
 
   constructor(
     private transactionService: TransactionService,
     private route: ActivatedRoute,
     private userAccountService: UserAccountService,
     private categoryService: CategoryService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService,
+    private alertController: AlertController
   ) {
     addIcons({
       refreshOutline,
@@ -138,6 +172,11 @@ export class TransactionListComponent implements OnInit, OnChanges {
       filterOutline,
       checkmarkOutline,
       closeOutline,
+      closeCircleOutline,
+      searchOutline,
+      saveOutline,
+      addOutline,
+      ellipsisVerticalOutline,
     });
   }
 
@@ -292,16 +331,345 @@ export class TransactionListComponent implements OnInit, OnChanges {
       this.endDate = this.endDateInput;
       // Only load transactions when refresh button is clicked
       this.loadTransactions();
+
+      // Clear category changes when refreshing
+      this.resetCategoryChanges();
     }
   }
 
-  // Add category method (placeholder for now)
-  addCategory(transaction: Transaction) {
-    console.log(
-      "Add category clicked for transaction:",
-      transaction.transaction_id
+  // Search transactions
+  onSearchChange(event: any) {
+    this.searchTerm = event.detail.value || "";
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (!this.searchTerm) {
+      this.filteredTransactions = [...this.transactions];
+    } else {
+      const searchLower = this.searchTerm.toLowerCase();
+      this.filteredTransactions = this.transactions.filter(
+        (transaction) =>
+          transaction.title.toLowerCase().includes(searchLower) ||
+          this.accountMap
+            .get(transaction.user_account_id)
+            ?.user_account_name.toLowerCase()
+            .includes(searchLower) ||
+          this.getUserCategoryTitles(transaction).some((title) =>
+            title.toLowerCase().includes(searchLower)
+          )
+      );
+    }
+  }
+
+  // Open add category modal for a specific transaction
+  addCategory(transaction: Transaction, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    this.selectedTransaction = transaction;
+    this.selectedCategories = Array.from(transaction.user_category_ids || []);
+    this.isAddCategoryModalOpen = true;
+  }
+
+  // Open add category modal to batch add categories to all visible transactions
+  openBatchAddCategories() {
+    this.selectedTransaction = null;
+    this.batchAddCategories = [];
+    this.isAddCategoryModalOpen = true;
+  }
+
+  // Close add category modal
+  closeAddCategoryModal() {
+    this.isAddCategoryModalOpen = false;
+    this.selectedTransaction = null;
+    this.selectedCategories = [];
+    this.batchAddCategories = [];
+  }
+
+  // Toggle category selection in add category modal
+  toggleAddCategorySelection(categoryId: number) {
+    if (this.selectedTransaction) {
+      const index = this.selectedCategories.indexOf(categoryId);
+      if (index > -1) {
+        this.selectedCategories.splice(index, 1);
+      } else {
+        // Check if we're at the maximum of 5 categories
+        if (this.selectedCategories.length >= 5) {
+          this.toastService.showError(
+            "Maximum 5 categories allowed per transaction"
+          );
+          return;
+        }
+        this.selectedCategories.push(categoryId);
+      }
+    } else {
+      // Batch add mode
+      const index = this.batchAddCategories.indexOf(categoryId);
+      if (index > -1) {
+        this.batchAddCategories.splice(index, 1);
+      } else {
+        // No limit on batch selection
+        this.batchAddCategories.push(categoryId);
+      }
+    }
+  }
+
+  // Check if a category is selected in the add category modal
+  isAddCategorySelected(categoryId: number): boolean {
+    if (this.selectedTransaction) {
+      return this.selectedCategories.includes(categoryId);
+    } else {
+      return this.batchAddCategories.includes(categoryId);
+    }
+  }
+
+  // Save selected categories for a transaction
+  saveSelectedCategories() {
+    if (this.selectedTransaction) {
+      // Single transaction mode
+      const transactionId = this.selectedTransaction.transaction_id;
+      const originalCategories = new Set(
+        this.selectedTransaction.user_category_ids || []
+      );
+
+      // Find categories to add
+      const categoriesToAdd = this.selectedCategories.filter(
+        (catId) => !originalCategories.has(catId)
+      );
+
+      // Find categories to remove
+      const categoriesToRemove = Array.from(originalCategories).filter(
+        (catId) => !this.selectedCategories.includes(catId)
+      );
+
+      // Process additions
+      if (categoriesToAdd.length > 0) {
+        const insertItems = categoriesToAdd.map((catId) => ({
+          transaction_id: transactionId,
+          user_category_id: catId,
+          action: TransactionUserCategoryAction.INSERT,
+        }));
+
+        let currentInserts = this.catInsertMap.get(transactionId) || [];
+        currentInserts = [...currentInserts, ...insertItems];
+        this.catInsertMap.set(transactionId, currentInserts);
+      }
+
+      // Process removals
+      if (categoriesToRemove.length > 0) {
+        const deleteItems = categoriesToRemove.map((catId) => ({
+          transaction_id: transactionId,
+          user_category_id: catId,
+          action: TransactionUserCategoryAction.DELETE,
+        }));
+
+        let currentDeletes = this.catDeleteMap.get(transactionId) || [];
+        currentDeletes = [...currentDeletes, ...deleteItems];
+        this.catDeleteMap.set(transactionId, currentDeletes);
+      }
+
+      // Update the transaction in the view
+      this.updateTransactionCategories(this.selectedTransaction);
+      this.checkCategoryChanges();
+    } else {
+      // Batch add mode - add selected categories to all visible transactions
+      if (this.batchAddCategories.length === 0) {
+        this.toastService.showError("Please select at least one category");
+        return;
+      }
+
+      // Apply to all filtered transactions
+      this.filteredTransactions.forEach((transaction) => {
+        const transactionId = transaction.transaction_id;
+        const originalCategories = new Set(transaction.user_category_ids || []);
+
+        // Only add categories that don't already exist
+        const categoriesToAdd = this.batchAddCategories.filter(
+          (catId) => !originalCategories.has(catId)
+        );
+
+        // Check if adding would exceed 5 categories
+        if (originalCategories.size + categoriesToAdd.length > 5) {
+          // Skip this transaction
+          return;
+        }
+
+        // Process additions
+        if (categoriesToAdd.length > 0) {
+          const insertItems = categoriesToAdd.map((catId) => ({
+            transaction_id: transactionId,
+            user_category_id: catId,
+            action: TransactionUserCategoryAction.INSERT,
+          }));
+
+          let currentInserts = this.catInsertMap.get(transactionId) || [];
+          currentInserts = [...currentInserts, ...insertItems];
+          this.catInsertMap.set(transactionId, currentInserts);
+
+          // Update the transaction in the view
+          this.updateTransactionCategories(transaction);
+        }
+      });
+
+      this.checkCategoryChanges();
+    }
+
+    this.closeAddCategoryModal();
+  }
+
+  // Update a transaction's categories based on pending changes
+  updateTransactionCategories(transaction: Transaction) {
+    const transactionId = transaction.transaction_id;
+    let updatedCategories = new Set(transaction.user_category_ids || []);
+
+    // Apply inserts
+    const insertItems = this.catInsertMap.get(transactionId) || [];
+    insertItems.forEach((item) => {
+      updatedCategories.add(item.user_category_id);
+    });
+
+    // Apply deletes
+    const deleteItems = this.catDeleteMap.get(transactionId) || [];
+    deleteItems.forEach((item) => {
+      updatedCategories.delete(item.user_category_id);
+    });
+
+    // Update the transaction object
+    transaction.user_category_ids = updatedCategories;
+  }
+
+  // Remove a category from a transaction
+  removeCategory(
+    transaction: Transaction,
+    categoryTitle: string,
+    event: Event
+  ) {
+    event.stopPropagation();
+
+    let categoryId: number | undefined = Array.from(
+      transaction.user_category_ids || []
+    ).find((id) => this.categoryMap.get(id));
+
+    // todo handle this condition
+    if (categoryId === undefined) {
+      return;
+    }
+    const transactionId = transaction.transaction_id;
+
+    // Create a DELETE action for this category
+    const deleteItem: TransactionUserCategory = {
+      transaction_id: transactionId,
+      user_category_id: categoryId,
+      action: TransactionUserCategoryAction.DELETE,
+    };
+
+    // Add to delete map
+    let currentDeletes = this.catDeleteMap.get(transactionId) || [];
+    currentDeletes = [...currentDeletes, deleteItem];
+    this.catDeleteMap.set(transactionId, currentDeletes);
+
+    // Check if we need to remove from insert map
+    let currentInserts = this.catInsertMap.get(transactionId) || [];
+    const insertIndex = currentInserts.findIndex(
+      (item) =>
+        item.user_category_id === categoryId &&
+        item.action === TransactionUserCategoryAction.INSERT
     );
-    // This function is a placeholder - will be implemented later
+
+    if (insertIndex !== -1) {
+      // If it's in the insert map, just remove it from there
+      currentInserts.splice(insertIndex, 1);
+      if (currentInserts.length === 0) {
+        this.catInsertMap.delete(transactionId);
+      } else {
+        this.catInsertMap.set(transactionId, currentInserts);
+      }
+
+      // And remove from delete map too since it was never actually saved
+      const deleteIndex = currentDeletes.findIndex(
+        (item) =>
+          item.user_category_id === categoryId &&
+          item.action === TransactionUserCategoryAction.DELETE
+      );
+      if (deleteIndex !== -1) {
+        currentDeletes.splice(deleteIndex, 1);
+        if (currentDeletes.length === 0) {
+          this.catDeleteMap.delete(transactionId);
+        } else {
+          this.catDeleteMap.set(transactionId, currentDeletes);
+        }
+      }
+    }
+
+    // Update the transaction in the view
+    this.updateTransactionCategories(transaction);
+    this.checkCategoryChanges();
+  }
+
+  // Check if there are pending category changes
+  checkCategoryChanges() {
+    this.hasCategoryChanges =
+      this.catInsertMap.size > 0 || this.catDeleteMap.size > 0;
+  }
+
+  // Reset all category changes
+  resetCategoryChanges() {
+    this.catInsertMap.clear();
+    this.catDeleteMap.clear();
+    this.hasCategoryChanges = false;
+
+    // Reset transactions to original state by reloading
+    this.loadTransactions();
+  }
+
+  // Save all category changes
+  saveAllCategoryChanges() {
+    if (!this.hasCategoryChanges) return;
+
+    this.isSaving = true;
+
+    // Create list of all changes
+    const allChanges: TransactionUserCategory[] = [];
+
+    // Add all inserts
+    this.catInsertMap.forEach((items) => {
+      allChanges.push(...items);
+    });
+
+    // Add all deletes
+    this.catDeleteMap.forEach((items) => {
+      allChanges.push(...items);
+    });
+
+    // Call the API
+    this.categoryService.editTransactionCategories(allChanges).subscribe(
+      () => {
+        this.toastService.showSuccess("Categories updated successfully");
+        this.catInsertMap.clear();
+        this.catDeleteMap.clear();
+        this.hasCategoryChanges = false;
+        this.isSaving = false;
+
+        // Reload transactions to get fresh data
+        this.loadTransactions();
+      },
+      (error) => {
+        console.error("Error updating categories:", error);
+        this.toastService.showError("Failed to update categories");
+        this.isSaving = false;
+      }
+    );
+  }
+
+  // Check if transaction has category changes
+  hasTransactionCategoryChanges(transaction: Transaction): boolean {
+    const transactionId = transaction.transaction_id;
+    return (
+      this.catInsertMap.has(transactionId) ||
+      this.catDeleteMap.has(transactionId)
+    );
   }
 
   // Get category title for a transaction
@@ -319,14 +687,22 @@ export class TransactionListComponent implements OnInit, OnChanges {
 
   // Get user category titles for a transaction
   getUserCategoryTitles(transaction: Transaction): string[] {
-    if (
-      !transaction.user_category_ids ||
-      transaction.user_category_ids.size === 0
-    ) {
-      return [];
-    }
+    // First, create a "working copy" of the transaction's categories
+    // by applying pending changes
+    let effectiveCategories = new Set(transaction.user_category_ids || []);
 
-    return Array.from(transaction.user_category_ids)
+    // Apply inserts
+    const inserts = this.catInsertMap.get(transaction.transaction_id) || [];
+    inserts.forEach((item) => effectiveCategories.add(item.user_category_id));
+
+    // Apply deletes
+    const deletes = this.catDeleteMap.get(transaction.transaction_id) || [];
+    deletes.forEach((item) =>
+      effectiveCategories.delete(item.user_category_id)
+    );
+
+    // Get titles
+    return Array.from(effectiveCategories)
       .map((id) => this.categoryMap.get(id)?.category_title || "")
       .filter((title) => title !== "");
   }
@@ -334,7 +710,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
   private loadTransactions() {
     if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
       this.isLoading = true;
-      
+
       this.transactionService
         .fetchAllTransactions(
           this.selectedAccountIds,
@@ -349,6 +725,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
             this.totalDebit = transactions.total_debit;
             this.totalCredit = transactions.total_credit;
             this.transactions = transactions.transactions;
+            this.filteredTransactions = [...this.transactions]; // Initialize filtered transactions
             this.isLoading = false;
           },
           (error) => {
@@ -366,7 +743,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
 
   // Get all transactions
   getTransactions(): Transaction[] {
-    return this.transactions;
+    return this.filteredTransactions;
   }
 
   // Go back to accounts
@@ -406,6 +783,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
   // Add method to clear transactions
   private clearTransactions() {
     this.transactions = [];
+    this.filteredTransactions = [];
     this.totalDebit = 0;
     this.totalCredit = 0;
     this.closingBalance = 0;

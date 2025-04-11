@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
 import { UserCategory } from "../model/user-category";
+import { TransactionUserCategory } from "../model/transaction-user-category";
 
 @Injectable({
   providedIn: "root",
@@ -73,6 +74,17 @@ export class CategoryService {
     const url = `${this.categoryApiUrl}/v1/save_all`;
     console.log(`Adding new category: ${category.category_title}`);
     return this.http.post<void>(url, [category]);
+  }
+
+  /**
+   * Edits transaction categories by adding or removing transaction-category links
+   * @param mappings List of transaction-category mappings to edit
+   * @returns Observable of void
+   */
+  editTransactionCategories(mappings: TransactionUserCategory[]): Observable<void> {
+    const url = `${this.categoryApiUrl}/v1/transaction_user_category/edit_all`;
+    console.log(`Editing ${mappings.length} transaction-category mappings`);
+    return this.http.put<void>(url, mappings);
   }
 
   /**
@@ -155,3 +167,4 @@ export class CategoryService {
     );
   }
 }
+
