@@ -336,25 +336,41 @@ export class TransactionListComponent implements OnInit, OnChanges {
     return `${this.selectedCategoryIds.length} categories selected`;
   }
 
-  refreshTransactions() {
-    if (this.startDateInput && this.endDateInput) {
-      this.startDate = this.startDateInput;
-      this.endDate = this.endDateInput;
+  // Update the refreshTransactions method in transaction-list.component.ts
 
+refreshTransactions() {
+  if (this.startDateInput && this.endDateInput) {
+    this.startDate = this.startDateInput;
+    this.endDate = this.endDateInput;
+
+    // Refresh user accounts first
+    this.userAccountService.refreshAccounts();
+    
+    // After a short delay to allow accounts to load
+    setTimeout(() => {
+      // If no accounts were previously selected or refresh was clicked
       if (this.selectedAccountIds.length === 0) {
-        this.noAccountsSelected = true;
-        this.toastService.showError("Please select at least one account");
-        return;
+        // Get the first account ID from the service
+        const firstAccountId = this.userAccountService.getFirstAccountId();
+        if (firstAccountId) {
+          this.selectedAccountIds = [firstAccountId];
+          this.noAccountsSelected = false;
+        } else {
+          this.noAccountsSelected = true;
+          this.toastService.showError("No accounts available");
+          return;
+        }
       }
 
       this.noAccountsSelected = false;
-      // Only load transactions when refresh button is clicked
+      // Load transactions with either the selected accounts or first account
       this.loadTransactions();
 
       // Clear category changes when refreshing
       this.resetCategoryChanges();
-    }
+    }, 300); // Short delay to allow accounts to refresh
   }
+}
 
   // Search transactions
   onSearchChange(event: any) {
@@ -849,13 +865,18 @@ export class TransactionListComponent implements OnInit, OnChanges {
     const button = event.target.closest("ion-button");
     const icon = button.querySelector("ion-icon") || button; // Fallback if icon not found
     icon.classList.add("refreshing");
-
-    // Call the actual refresh method
-    this.refreshTransactions();
-
-    // Remove the animation class after animation completes
+    
+    // Refresh accounts first
+    this.userAccountService.refreshAccounts();
+    
+    // After a short delay, refresh transactions
     setTimeout(() => {
-      icon.classList.remove("refreshing");
-    }, 1000);
+      this.refreshTransactions();
+      
+      // Remove the animation class after animation completes
+      setTimeout(() => {
+        icon.classList.remove("refreshing");
+      }, 1000);
+    }, 300);
   }
 }
