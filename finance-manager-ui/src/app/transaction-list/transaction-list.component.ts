@@ -1,3 +1,5 @@
+// Updated transaction-list.component.ts
+
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -54,6 +56,7 @@ import {
   saveOutline,
   addOutline,
   ellipsisVerticalOutline,
+  alertCircleOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
@@ -142,8 +145,11 @@ export class TransactionListComponent implements OnInit, OnChanges {
   hasCategoryChanges: boolean = false;
   batchAddCategories: number[] = [];
 
+  // New property to track if no accounts are selected
+  noAccountsSelected: boolean = true;
+
   private transactions: Transaction[] = [];
-  isLoading: boolean = true;
+  isLoading: boolean = false;
   isSaving: boolean = false;
 
   openingBalance?: number;
@@ -177,6 +183,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
       saveOutline,
       addOutline,
       ellipsisVerticalOutline,
+      alertCircleOutline,
     });
   }
 
@@ -215,6 +222,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
       if (accountId) {
         this.accountId = accountId;
         this.selectedAccountIds = [accountId];
+        this.noAccountsSelected = false; // Set flag to false since we have an account
         this.loadTransactions();
       }
 
@@ -260,6 +268,9 @@ export class TransactionListComponent implements OnInit, OnChanges {
       this.accountSelectionChanged = false; // Reset the flag
     }
     this.isAccountModalOpen = false;
+
+    // Update the noAccountsSelected flag
+    this.noAccountsSelected = this.selectedAccountIds.length === 0;
   }
 
   // New methods for category selector
@@ -329,6 +340,14 @@ export class TransactionListComponent implements OnInit, OnChanges {
     if (this.startDateInput && this.endDateInput) {
       this.startDate = this.startDateInput;
       this.endDate = this.endDateInput;
+
+      if (this.selectedAccountIds.length === 0) {
+        this.noAccountsSelected = true;
+        this.toastService.showError("Please select at least one account");
+        return;
+      }
+
+      this.noAccountsSelected = false;
       // Only load transactions when refresh button is clicked
       this.loadTransactions();
 
@@ -710,6 +729,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
   private loadTransactions() {
     if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
       this.isLoading = true;
+      this.noAccountsSelected = false;
 
       this.transactionService
         .fetchAllTransactions(
@@ -733,6 +753,10 @@ export class TransactionListComponent implements OnInit, OnChanges {
             this.isLoading = false;
           }
         );
+    } else if (this.selectedAccountIds.length === 0) {
+      // Set noAccountsSelected flag if no accounts are selected
+      this.noAccountsSelected = true;
+      this.clearTransactions();
     }
   }
 

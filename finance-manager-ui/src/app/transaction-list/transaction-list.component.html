@@ -1,11 +1,5 @@
-# Updated transaction-list.component.html ```html
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <!-- <ion-buttons slot="start">
-      <ion-button (click)="backToAccounts()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons> -->
     <ion-title>Transactions</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -64,92 +58,105 @@
     </ion-button>
   </div>
 
-  <!-- Summary Row -->
-  <div class="summary-container">
-    <div class="summary-item">
-      <div class="summary-label">Opening</div>
-      <div class="summary-amount neutral">
-        {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-label">Debit</div>
-      <div class="summary-amount danger">
-        {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-label">Credit</div>
-      <div class="summary-amount success">
-        {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
-      </div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-label">Closing</div>
-      <div
-        class="summary-amount"
-        [ngClass]="{
-          success: closingBalance && closingBalance > 0,
-          danger: closingBalance && closingBalance < 0,
-          neutral: !closingBalance || closingBalance === 0
-        }"
-      >
-        {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
-      </div>
-    </div>
-  </div>
-
-  <!-- Search Bar (Moved here) -->
-  <div class="search-container">
-    <ion-searchbar
-      placeholder="Search transactions"
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange($event)"
-      animated
-      debounce="300"
-      showCancelButton="focus"
-      cancelButtonText="Clear"
-    >
-    </ion-searchbar>
-
-    <div class="search-actions">
-      <ion-button
-        fill="outline"
-        size="small"
-        (click)="openBatchAddCategories()"
-        class="add-cat-btn"
-      >
-        <ion-icon name="pricetags-outline" slot="start"></ion-icon>
-        Add Category
-      </ion-button>
-
-      <ion-button
-        *ngIf="hasCategoryChanges"
-        fill="solid"
-        color="warning"
-        size="small"
-        (click)="saveAllCategoryChanges()"
-        [disabled]="isSaving"
-        class="save-cat-btn"
-      >
-        <ion-icon name="save-outline" slot="start"></ion-icon>
-        Update Categories
-      </ion-button>
-    </div>
-  </div>
-
-  <!-- Category Changes Actions (Moved here) -->
-  <div class="category-changes-container" *ngIf="hasCategoryChanges">
-    <ion-button
-      fill="outline"
-      color="medium"
-      size="small"
-      (click)="resetCategoryChanges()"
-    >
-      <ion-icon name="refresh-outline" slot="start"></ion-icon>
-      Reset Changes
+  <!-- No accounts selected warning -->
+  <div *ngIf="noAccountsSelected" class="no-accounts-warning">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <h3>No Accounts Selected</h3>
+    <p>Please select at least one account to view transactions</p>
+    <ion-button expand="block" (click)="openAccountSelector()">
+      Select Accounts
     </ion-button>
   </div>
+
+  <!-- Only show Summary and Transactions when accounts are selected -->
+  <ng-container *ngIf="!noAccountsSelected">
+    <!-- Summary Row -->
+    <div class="summary-container">
+      <div class="summary-item">
+        <div class="summary-label">Opening</div>
+        <div class="summary-amount neutral">
+          {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Debit</div>
+        <div class="summary-amount danger">
+          {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Credit</div>
+        <div class="summary-amount success">
+          {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
+        </div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Closing</div>
+        <div
+          class="summary-amount"
+          [ngClass]="{
+            success: closingBalance && closingBalance > 0,
+            danger: closingBalance && closingBalance < 0,
+            neutral: !closingBalance || closingBalance === 0
+          }"
+        >
+          {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <ion-searchbar
+        placeholder="Search transactions"
+        [(ngModel)]="searchTerm"
+        (ionInput)="onSearchChange($event)"
+        animated
+        debounce="300"
+        showCancelButton="focus"
+        cancelButtonText="Clear"
+      >
+      </ion-searchbar>
+
+      <div class="search-actions">
+        <ion-button
+          fill="outline"
+          size="small"
+          (click)="openBatchAddCategories()"
+          class="add-cat-btn"
+        >
+          <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+          Add Category
+        </ion-button>
+
+        <ion-button
+          *ngIf="hasCategoryChanges"
+          fill="solid"
+          color="warning"
+          size="small"
+          (click)="saveAllCategoryChanges()"
+          [disabled]="isSaving"
+          class="save-cat-btn"
+        >
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Update Categories
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Category Changes Actions -->
+    <div class="category-changes-container" *ngIf="hasCategoryChanges">
+      <ion-button
+        fill="outline"
+        color="medium"
+        size="small"
+        (click)="resetCategoryChanges()"
+      >
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Reset Changes
+      </ion-button>
+    </div>
+  </ng-container>
 
   <ion-list [inset]="true" lines="none">
     @if (getTransactions().length > 0) { @for (transaction of getTransactions();
@@ -240,6 +247,8 @@
       <ion-label>Loading transactions...</ion-label>
       <ion-spinner></ion-spinner>
     </ion-item>
+    } @else if (noAccountsSelected) {
+    <!-- This is handled by the dedicated warning above -->
     } @else {
     <div class="empty-state">
       <ion-icon
@@ -345,7 +354,7 @@
   </ng-template>
 </ion-modal>
 
-<!-- Add Category Modal (New) -->
+<!-- Add Category Modal -->
 <ion-modal
   #addCategoryModal
   [isOpen]="isAddCategoryModalOpen"
@@ -413,4 +422,3 @@
     </ion-content>
   </ng-template>
 </ion-modal>
-```
