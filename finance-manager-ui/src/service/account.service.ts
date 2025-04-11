@@ -1,14 +1,16 @@
+
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
 import { Account } from "../model/account";
 import { GroupedAccount } from "../model/grouped-account";
+import { environment } from "../environments/environment";
 
 @Injectable({
   providedIn: "root",
 })
 export class AccountService {
-  private accountApiUri = "http://localhost:5003/account"; // API URL
+  private accountApiUri = `${environment.apiEndpoints.accountService}/account`; // API URL
 
   constructor(private http: HttpClient) {}
 
@@ -52,7 +54,7 @@ export class AccountService {
     console.log("Fetching all grouped accounts");
     return this.http.get<GroupedAccount[]>(url);
   }
-  
+
   /**
    * Gets the first available account ID
    * @returns The first account ID or null if none available

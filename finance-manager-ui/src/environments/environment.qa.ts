@@ -1,7 +1,7 @@
 
 export const environment = {
-  production: true,
-  name: 'prod',
+  production: false,
+  name: 'qa',
   apiEndpoints: {
     accountService: "http://192.168.29.183:5003",
     transactionService: "http://192.168.29.183:5004",

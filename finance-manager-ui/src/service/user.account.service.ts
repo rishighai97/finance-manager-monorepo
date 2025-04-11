@@ -1,3 +1,4 @@
+
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
@@ -5,12 +6,13 @@ import { UserAccount } from "../model/user-account"; // Import the UserAccount m
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccountSaveRequest } from "src/model/user-account-save-request";
 import { UserAccountEditRequest } from "src/model/user-account-edit-request";
+import { environment } from "../environments/environment";
 
 @Injectable({
   providedIn: "root",
 })
 export class UserAccountService {
-  private accountApiUri = "http://localhost:5003/user_account"; // API URL
+  private accountApiUri = `${environment.apiEndpoints.accountService}/user_account`; // API URL
 
   constructor(private http: HttpClient) {}
 

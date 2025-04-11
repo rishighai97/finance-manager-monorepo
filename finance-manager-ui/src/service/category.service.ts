@@ -4,12 +4,13 @@ import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
 import { UserCategory } from "../model/user-category";
 import { TransactionUserCategory } from "../model/transaction-user-category";
+import { environment } from "../environments/environment";
 
 @Injectable({
   providedIn: "root",
 })
 export class CategoryService {
-  private categoryApiUrl = "http://localhost:5004/category"; // API URL
+  private categoryApiUrl = `${environment.apiEndpoints.transactionService}/category`; // API URL
 
   // BehaviorSubject to store categories
   private userCategoriesSubject = new BehaviorSubject<UserCategory[]>([]);
@@ -64,7 +65,7 @@ export class CategoryService {
     console.log(`Updating ${categories.length} categories`);
     return this.http.put<void>(url, categories);
   }
-  
+
   /**
    * Adds a new category
    * @param category The new category to add
@@ -93,17 +94,17 @@ export class CategoryService {
    */
   applyPendingChanges(): Observable<any> {
     const categories = this.userCategoriesSubject.value;
-    
+
     // Find categories to delete
     const categoriesToDelete = categories.filter(c => c.delete);
-    
+
     // Find categories to update
     const categoriesToUpdate = categories.filter(c => c.new_title && !c.delete)
       .map(c => ({
         ...c,
         category_title: c.new_title as string  // Type assertion since we've already filtered for non-null new_title
       }));
-      
+
     // If nothing to change, return immediately
     if (categoriesToDelete.length === 0 && categoriesToUpdate.length === 0) {
       return new Observable(subscriber => {
@@ -111,7 +112,7 @@ export class CategoryService {
         subscriber.complete();
       });
     }
-    
+
     // Create observable for deletions
     const deleteObservable = categoriesToDelete.length > 0 ?
       this.deleteCategories(categoriesToDelete) :
@@ -119,7 +120,7 @@ export class CategoryService {
         subscriber.next(true);
         subscriber.complete();
       });
-      
+
     // Create observable for updates
     const updateObservable = categoriesToUpdate.length > 0 ?
       this.updateCategories(categoriesToUpdate) :
@@ -127,7 +128,7 @@ export class CategoryService {
         subscriber.next(true);
         subscriber.complete();
       });
-      
+
     // Combine both operations
     return new Observable(subscriber => {
       deleteObservable.subscribe(
@@ -167,4 +168,3 @@ export class CategoryService {
     );
   }
 }
-

@@ -1,7 +1,9 @@
+
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { Statement } from "../model/statement";
+import { environment } from "../environments/environment";
 
 // Response object interface matching the Python class
 export interface AccountStatementUploadResponse {
@@ -15,7 +17,7 @@ export interface AccountStatementUploadResponse {
   providedIn: "root",
 })
 export class StatementUploadService {
-  private apiUrl = "http://localhost:5002/statement";
+  private apiUrl = `${environment.apiEndpoints.statementUploaderService}/statement`;
 
   constructor(private http: HttpClient) {}
 
