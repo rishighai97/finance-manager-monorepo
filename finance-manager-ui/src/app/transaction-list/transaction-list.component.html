@@ -1,3 +1,4 @@
+# Updated transaction-list.component.html ```html
 <ion-header [translucent]="true">
   <ion-toolbar>
     <!-- <ion-buttons slot="start">
@@ -10,58 +11,6 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" color="light" class="ion-no-padding">
-  <!-- Search Bar (New) -->
-  <div class="search-container">
-    <ion-searchbar
-      placeholder="Search transactions"
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange($event)"
-      animated
-      debounce="300"
-      showCancelButton="focus"
-      cancelButtonText="Clear"
-    >
-    </ion-searchbar>
-
-    <div class="search-actions">
-      <ion-button
-        fill="outline"
-        size="small"
-        (click)="openBatchAddCategories()"
-        class="add-cat-btn"
-      >
-        <ion-icon name="pricetags-outline" slot="start"></ion-icon>
-        Add Category
-      </ion-button>
-
-      <ion-button
-        *ngIf="hasCategoryChanges"
-        fill="solid"
-        color="warning"
-        size="small"
-        (click)="saveAllCategoryChanges()"
-        [disabled]="isSaving"
-        class="save-cat-btn"
-      >
-        <ion-icon name="save-outline" slot="start"></ion-icon>
-        Update Categories
-      </ion-button>
-    </div>
-  </div>
-
-  <!-- Category Changes Actions (New) -->
-  <div class="category-changes-container" *ngIf="hasCategoryChanges">
-    <ion-button
-      fill="outline"
-      color="medium"
-      size="small"
-      (click)="resetCategoryChanges()"
-    >
-      <ion-icon name="refresh-outline" slot="start"></ion-icon>
-      Reset Changes
-    </ion-button>
-  </div>
-
   <!-- Date Filter Row -->
   <div class="date-filter-container">
     <ion-item lines="none" class="date-picker-item">
@@ -148,6 +97,58 @@
         {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
       </div>
     </div>
+  </div>
+
+  <!-- Search Bar (Moved here) -->
+  <div class="search-container">
+    <ion-searchbar
+      placeholder="Search transactions"
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange($event)"
+      animated
+      debounce="300"
+      showCancelButton="focus"
+      cancelButtonText="Clear"
+    >
+    </ion-searchbar>
+
+    <div class="search-actions">
+      <ion-button
+        fill="outline"
+        size="small"
+        (click)="openBatchAddCategories()"
+        class="add-cat-btn"
+      >
+        <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+        Add Category
+      </ion-button>
+
+      <ion-button
+        *ngIf="hasCategoryChanges"
+        fill="solid"
+        color="warning"
+        size="small"
+        (click)="saveAllCategoryChanges()"
+        [disabled]="isSaving"
+        class="save-cat-btn"
+      >
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        Update Categories
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Category Changes Actions (Moved here) -->
+  <div class="category-changes-container" *ngIf="hasCategoryChanges">
+    <ion-button
+      fill="outline"
+      color="medium"
+      size="small"
+      (click)="resetCategoryChanges()"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Reset Changes
+    </ion-button>
   </div>
 
   <ion-list [inset]="true" lines="none">
@@ -412,3 +413,4 @@
     </ion-content>
   </ng-template>
 </ion-modal>
+```
