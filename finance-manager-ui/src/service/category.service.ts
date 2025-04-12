@@ -10,7 +10,7 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class CategoryService {
-  private categoryApiUrl = `${environment.apiEndpoints.backendService}/category`; // API URL
+  private categoryApiUrl = `${environment.apiEndpoints.transactionService}/category`; // API URL
 
   // BehaviorSubject to store categories
   private userCategoriesSubject = new BehaviorSubject<UserCategory[]>([]);
