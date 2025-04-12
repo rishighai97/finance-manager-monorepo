@@ -9,7 +9,7 @@ import { environment } from "src/environments/environment";
   providedIn: "root",
 })
 export class TransactionService {
-  private apiUrl = `${environment.apiEndpoints.transactionService}/transaction`;
+  private apiUrl = `${environment.apiEndpoints.backendService}/transaction`;
 
   constructor(private http: HttpClient) {}
 

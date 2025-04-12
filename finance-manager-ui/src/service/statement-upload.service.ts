@@ -17,7 +17,7 @@ export interface AccountStatementUploadResponse {
   providedIn: "root",
 })
 export class StatementUploadService {
-  private apiUrl = `${environment.apiEndpoints.statementUploaderService}/statement`;
+  private apiUrl = `${environment.apiEndpoints.backendService}/statement`;
 
   constructor(private http: HttpClient) {}
 

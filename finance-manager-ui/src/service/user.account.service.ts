@@ -12,7 +12,7 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class UserAccountService {
-  private accountApiUri = `${environment.apiEndpoints.accountService}/user_account`; // API URL
+  private accountApiUri = `${environment.apiEndpoints.backendService}/user_account`; // API URL
 
   constructor(private http: HttpClient) {}
 
