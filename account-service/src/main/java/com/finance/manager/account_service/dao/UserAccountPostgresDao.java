@@ -4,24 +4,21 @@ package com.finance.manager.account_service.dao;
 import com.finance.manager.account_service.dto.UserAccount;
 import com.finance.manager.account_service.dto.UserAccountEditRequest;
 import com.finance.manager.account_service.dto.UserAccountSaveRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
 @Repository
+@Slf4j
 public class UserAccountPostgresDao implements UserAccountDao {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserAccountPostgresDao.class);
-
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
@@ -31,7 +28,7 @@ public class UserAccountPostgresDao implements UserAccountDao {
 
     @Override
     public List<UserAccount> getAllAccounts(List<Integer> userIds) {
-        logger.info("Getting user accounts for user_ids: {} from postgres", userIds);
+        log.info("Getting user accounts for user_ids: {} from postgres", userIds);
 
         String sql = """
                 select  user_account_id,
@@ -123,13 +120,13 @@ public class UserAccountPostgresDao implements UserAccountDao {
                     .build();
         });
 
-        logger.info("Retrieved {} user accounts for user_ids: {} from postgres", userAccounts.size(), userIds);
+        log.info("Retrieved {} user accounts for user_ids: {} from postgres", userAccounts.size(), userIds);
         return userAccounts;
     }
     
     @Override
     public int saveUserAccount(UserAccountSaveRequest request) {
-        logger.info("Creating new user account for user_id: {}, account_id: {}", request.userId(), request.accountId());
+        log.info("Creating new user account for user_id: {}, account_id: {}", request.userId(), request.accountId());
         
         String sql = """
                 INSERT INTO user_account (user_id, account_id, user_account_name)
@@ -147,32 +144,14 @@ public class UserAccountPostgresDao implements UserAccountDao {
         namedParameterJdbcTemplate.update(sql, params, keyHolder);
         
         int newUserAccountId = Objects.requireNonNull(keyHolder.getKey()).intValue();
-        logger.info("Created new user account with id: {}", newUserAccountId);
+        log.info("Created new user account with id: {}", newUserAccountId);
         
         return newUserAccountId;
     }
 
     @Override
-    public void deleteUserAccount(int userAccountId) {
-        logger.info("Deleting user account with ID: {}", userAccountId);
-        
-        String sql = "DELETE FROM user_account WHERE id = :userAccountId";
-        
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("userAccountId", userAccountId);
-        
-        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
-        
-        if (rowsAffected == 0) {
-            logger.warn("No user account found with ID: {}", userAccountId);
-        } else {
-            logger.info("Successfully deleted user account with ID: {}", userAccountId);
-        }
-    }
-
-    @Override
     public void editUserAccountName(UserAccountEditRequest request) {
-        logger.info("Updating name for user account with ID: {} to: {}", 
+        log.info("Updating name for user account with ID: {} to: {}", 
                 request.userAccountId(), request.newUserAccountName());
         
         String sql = "UPDATE user_account SET user_account_name = :newUserAccountName WHERE id = :userAccountId";
@@ -184,9 +163,61 @@ public class UserAccountPostgresDao implements UserAccountDao {
         int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
         
         if (rowsAffected == 0) {
-            logger.warn("No user account found with ID: {}", request.userAccountId());
+            log.warn("No user account found with ID: {}", request.userAccountId());
         } else {
-            logger.info("Successfully updated name for user account with ID: {}", request.userAccountId());
+            log.info("Successfully updated name for user account with ID: {}", request.userAccountId());
         }
     }
+
+    @Override
+    public void deleteUserAccount(int userAccountId) {
+        log.info("Deleting user account with ID: {}", userAccountId);
+
+        String sql = "DELETE FROM user_account WHERE id = :userAccountId";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", userAccountId);
+
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+
+        if (rowsAffected == 0) {
+            log.warn("No user account found with ID: {}", userAccountId);
+        } else {
+            log.info("Successfully deleted user account with ID: {}", userAccountId);
+        }
+    }
+
+    @Override
+    public void deleteTransactionCategories(int userAccountId) {
+        log.info("Deleting transaction categories for user account ID: {}", userAccountId);
+
+        String sql = """
+                DELETE FROM transaction_user_category 
+                WHERE transaction_id IN (
+                    SELECT id FROM transaction WHERE user_account_id = :userAccountId
+                )
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", userAccountId);
+
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        log.info("Deleted {} transaction category mappings for user account ID: {}", rowsAffected, userAccountId);
+    }
+
+    @Override
+    public void deleteTransactions(int userAccountId) {
+        log.info("Deleting transactions for user account ID: {}", userAccountId);
+
+        String sql = "DELETE FROM transaction WHERE user_account_id = :userAccountId";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", userAccountId);
+
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        log.info("Deleted {} transactions for user account ID: {}", rowsAffected, userAccountId);
+    }
+
+
+
 }

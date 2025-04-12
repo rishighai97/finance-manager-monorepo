@@ -8,11 +8,14 @@ import com.finance.manager.account_service.dto.UserAccountEditRequest;
 import com.finance.manager.account_service.dto.UserAccountSaveRequest;
 import com.finance.manager.account_service.util.AccountGrouper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
 
@@ -35,7 +38,11 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
+    @Transactional
     public void deleteUserAccount(int userAccountId) {
+        log.info("Processing deletion of user account ID: {} and all related data", userAccountId);
+        dao.deleteTransactionCategories(userAccountId);
+        dao.deleteTransactions(userAccountId);
         dao.deleteUserAccount(userAccountId);
     }
 
