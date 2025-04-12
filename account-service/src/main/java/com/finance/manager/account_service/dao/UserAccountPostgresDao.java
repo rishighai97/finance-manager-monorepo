@@ -93,7 +93,7 @@ public class UserAccountPostgresDao implements UserAccountDao {
                         t.closing_balance,
                         t.date,
                         t.user_account_id
-                    ) where has_transactions = false or user_account_id_rank = 1
+                    ) as sub_query where has_transactions = false or user_account_id_rank = 1
                 """;
 
         MapSqlParameterSource params = new MapSqlParameterSource();
