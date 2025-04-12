@@ -212,17 +212,17 @@ export class TransactionListComponent implements OnInit, OnChanges {
 
     // Subscribe to query params
     this.route.queryParams.subscribe((params) => {
-      let accountId = Number(params["accountId"]);
+      let userAccountId = Number(params["userAccountId"]);
 
       // If no account ID in params, use first available account
-      if (!accountId || isNaN(accountId)) {
-        accountId = this.userAccountService.getFirstAccountId() || 0;
+      if (!userAccountId || isNaN(userAccountId)) {
+        userAccountId = this.userAccountService.getFirstAccountId() || 0;
       }
 
-      if (accountId) {
-        this.accountId = accountId;
-        this.selectedAccountIds = [accountId];
-        this.noAccountsSelected = false; // Set flag to false since we have an account
+      if (userAccountId) {
+        this.accountId = userAccountId; // You might want to rename this variable to userAccountId for clarity
+        this.selectedAccountIds = [userAccountId];
+        this.noAccountsSelected = false;
         this.loadTransactions();
       }
 

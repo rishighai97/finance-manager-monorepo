@@ -41,7 +41,7 @@ export class UserAccountService {
   getFirstAccountId(): number | null {
     const accounts = this.groupedUserAccountsSubject.value;
     if (accounts.length > 0 && accounts[0].user_accounts.length > 0) {
-      return accounts[0].user_accounts[0].account_id;
+      return accounts[0].user_accounts[0].user_account_id;
     }
     return null;
   }

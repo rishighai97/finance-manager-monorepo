@@ -243,10 +243,10 @@ export class AccountListComponent implements OnInit {
     return this.groupedAccounts;
   }
 
-  // Navigate to transactions for a specific account
-  onAccountClick(accountId: number) {
+  // Navigate to transactions for a specific user account
+  onAccountClick(account: UserAccount) {
     this.router.navigate(["/tabs/transactions"], {
-      queryParams: { accountId: accountId },
+      queryParams: { userAccountId: account.user_account_id },
     });
   }
 
@@ -261,7 +261,7 @@ export class AccountListComponent implements OnInit {
           text: "Transactions",
           // icon: "document-text-outline",
           handler: () => {
-            this.onAccountClick(account.account_id);
+            this.onAccountClick(account);
           },
         },
         {
