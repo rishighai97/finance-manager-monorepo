@@ -85,37 +85,41 @@ public class TransactionPostgresDao implements TransactionDao {
         }
 
         List<Transaction> transactions = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            String id = rs.getString("id");
-            String date = rs.getDate("date") != null ? rs.getDate("date").toString() : null;
-            int userAccountId = rs.getInt("user_account_id");
-            String title = rs.getString("title");
-            BigDecimal amount = rs.getBigDecimal("amount");
-            String debitCreditIndicator = rs.getString("debit_credit_indicator");
-            BigDecimal closingBalance = rs.getBigDecimal("closing_balance");
-            Integer categoryId = rs.getObject("category_id") != null ? rs.getInt("category_id") : null;
-            Integer units = rs.getObject("units") != null ? rs.getInt("units") : null;
-            BigDecimal pricePerUnit = rs.getBigDecimal("price_per_unit");
+            try {
+                String id = rs.getString("id");
+                String date = rs.getDate("date") != null ? rs.getDate("date").toString() : null;
+                int userAccountId = rs.getInt("user_account_id");
+                String title = rs.getString("title");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String debitCreditIndicator = rs.getString("debit_credit_indicator");
+                BigDecimal closingBalance = rs.getBigDecimal("closing_balance");
+                Integer categoryId = rs.getObject("category_id") != null ? rs.getInt("category_id") : null;
+                Integer units = rs.getObject("units") != null ? rs.getInt("units") : null;
+                BigDecimal pricePerUnit = rs.getBigDecimal("price_per_unit");
 
-            // Parse the comma-separated category IDs into a Set<Integer>
-            Set<Integer> userCategoryIds = parseCategoryIds(rs.getString("user_category_ids"));
+                // Parse the comma-separated category IDs into a Set<Integer>
+                Set<Integer> userCategoryIds = parseCategoryIds(rs.getString("user_category_ids"));
 
-            if (date == null) {
-                throw new RuntimeException("Invalid date " + rs.getObject("date") + " received for request");
+                if (date == null) {
+                    throw new RuntimeException("Invalid date " + rs.getObject("date") + " received for request");
+                }
+
+                return Transaction.builder()
+                        .transactionId(id)
+                        .date(date)
+                        .userAccountId(userAccountId)
+                        .title(title)
+                        .debitOrCreditAmount(amount)
+                        .isDebitOrCredit(debitCreditIndicator)
+                        .closingBalance(closingBalance)
+                        .categoryId(categoryId)
+                        .units(units)
+                        .pricePerUnit(pricePerUnit)
+                        .userCategoryIds(userCategoryIds)
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException("Exception occurred while converting transaction data", e);
             }
-
-            return Transaction.builder()
-                    .transactionId(id)
-                    .date(date)
-                    .userAccountId(userAccountId)
-                    .title(title)
-                    .debitOrCreditAmount(amount)
-                    .isDebitOrCredit(debitCreditIndicator)
-                    .closingBalance(closingBalance)
-                    .categoryId(categoryId)
-                    .units(units)
-                    .pricePerUnit(pricePerUnit)
-                    .userCategoryIds(userCategoryIds)
-                    .build();
         });
 
         logger.info("Fetched {} user transactions for user accounts {}, start date {}, end date {}{}",
