@@ -1,0 +1,1165 @@
+# Context for account
+# App Type: spring
+# Generated: claude_get_context.py
+# Number of files: 27
+
+
+
+# FILE: src/main/java/com/finance/manager/account_service/AccountServiceApplication.java
+
+package com.finance.manager.account_service;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AccountServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(AccountServiceApplication.class, args);
+	}
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/ServletInitializer.java
+
+package com.finance.manager.account_service;
+
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+
+public class ServletInitializer extends SpringBootServletInitializer {
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(AccountServiceApplication.class);
+	}
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/dto/GroupedUserAccount.java
+
+package com.finance.manager.account_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+
+@Builder
+public record GroupedUserAccount(
+        @JsonProperty("level_1_title")
+        String level1Title,
+
+        @JsonProperty("level_1_amount")
+        BigDecimal level1Amount,
+
+        @JsonProperty("level_2_title")
+        String level2Title,
+
+        @JsonProperty("level_2_amount")
+        BigDecimal level2Amount,
+
+        @JsonProperty("date")
+        String date,
+
+        @JsonProperty("user_accounts")
+        List<UserAccount> userAccounts
+) {
+        @Override
+        public List<UserAccount> userAccounts() {
+                return Collections.unmodifiableList(userAccounts);
+        }
+
+        public static class GroupedUserAccountBuilder {
+                public GroupedUserAccount.GroupedUserAccountBuilder userAccounts(List<UserAccount> userAccounts) {
+                        this.userAccounts = Collections.unmodifiableList(userAccounts);
+                        return this;
+                }
+        }
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/dto/UserAccountEditRequest.java
+
+
+package com.finance.manager.account_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+@Builder
+public record UserAccountEditRequest(
+        @JsonProperty("user_account_id")
+        int userAccountId,
+
+        @JsonProperty("new_user_account_name")
+        String newUserAccountName
+) {
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/dto/GroupedAccount.java
+
+package com.finance.manager.account_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+
+@Builder
+public record GroupedAccount(
+        @JsonProperty("level_1_title")
+        String level1Title,
+
+        @JsonProperty("level_2_title")
+        String level2Title,
+
+        @JsonProperty("accounts")
+        List<Account> accounts
+) {
+        @Override
+        public List<Account> accounts() {
+                return Collections.unmodifiableList(accounts);
+        }
+
+        public static class GroupedAccountBuilder {
+                public GroupedAccount.GroupedAccountBuilder accounts(List<Account> accounts) {
+                        this.accounts = Collections.unmodifiableList(accounts);
+                        return this;
+                }
+        }
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/dto/Account.java
+
+package com.finance.manager.account_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+import java.math.BigDecimal;
+
+@Builder
+public record Account(
+        @JsonProperty("account_id")
+        int accountId,
+
+        @JsonProperty("account_name")
+        String accountName,
+
+        @JsonProperty("statement_file_extensions")
+        String statementFileExtensions,
+
+        @JsonProperty("icon")
+        String icon,
+
+        @JsonProperty("account_type_1")
+        String accountType1,
+
+        @JsonProperty("account_type_2")
+        String accountType2,
+
+        @JsonProperty("account_type_3")
+        String accountType3,
+        
+        @JsonProperty("account_type_id")
+        int accountTypeId
+) {
+
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/dto/UserAccount.java
+
+package com.finance.manager.account_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+import java.math.BigDecimal;
+
+@Builder
+public record UserAccount(
+        @JsonProperty("user_account_id")
+        int userAccountId,
+
+        @JsonProperty("account_id")
+        int accountId,
+
+        @JsonProperty("user_id")
+        int userId,
+
+        @JsonProperty("user_account_name")
+        String userAccountName,
+
+        @JsonProperty("account_type_id")
+        int accountTypeId,
+
+        @JsonProperty("account_name")
+        String accountName,
+
+        @JsonProperty("statement_file_extensions")
+        String statementFileExtensions,
+
+        @JsonProperty("icon")
+        String icon,
+
+        @JsonProperty("account_type_1")
+        String accountType1,
+
+        @JsonProperty("account_type_2")
+        String accountType2,
+
+        @JsonProperty("account_type_3")
+        String accountType3,
+
+        @JsonProperty("latest_balance")
+        BigDecimal latestBalance,
+
+        @JsonProperty("latest_balance_date")
+        String latestBalanceDate
+) {
+
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/dto/UserAccountSaveRequest.java
+
+
+package com.finance.manager.account_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+@Builder
+public record UserAccountSaveRequest(
+        @JsonProperty("user_id")
+        int userId,
+
+        @JsonProperty("account_id")
+        int accountId,
+
+        @JsonProperty("user_account_name")
+        String userAccountName
+) {
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/util/AccountGrouper.java
+
+package com.finance.manager.account_service.util;
+
+import com.finance.manager.account_service.dto.Account;
+import com.finance.manager.account_service.dto.GroupedAccount;
+import com.finance.manager.account_service.dto.GroupedUserAccount;
+import com.finance.manager.account_service.dto.UserAccount;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class AccountGrouper {
+
+    /**
+     * Groups Account objects by account type levels
+     *
+     * @param accounts List of accounts to group
+     * @return List of grouped accounts
+     */
+    public static List<GroupedAccount> groupAccounts(List<Account> accounts) {
+        // Using a map of maps to organize accounts by level 1 and level 2
+        Map<String, Map<String, List<Account>>> groupedAccounts = new HashMap<>();
+
+        // Group accounts by level 1 and level 2
+        for (Account account : accounts) {
+            String level1 = account.accountType1();
+            String level2 = account.accountType2();
+
+            // Add account to the appropriate group
+            groupedAccounts.computeIfAbsent(level1, k -> new HashMap<>())
+                    .computeIfAbsent(level2, k -> new ArrayList<>())
+                    .add(account);
+        }
+
+        // List to store the final GroupedAccount objects
+        List<GroupedAccount> result = new ArrayList<>();
+
+        // Create GroupedAccount objects for each group
+        for (Map.Entry<String, Map<String, List<Account>>> level1Entry : groupedAccounts.entrySet()) {
+            String level1Title = level1Entry.getKey();
+
+            for (Map.Entry<String, List<Account>> level2Entry : level1Entry.getValue().entrySet()) {
+                String level2Title = level2Entry.getKey();
+                List<Account> accountList = level2Entry.getValue();
+
+                // Create a GroupedAccount for this group (without amount fields)
+                GroupedAccount groupedAccount = GroupedAccount.builder()
+                        .level1Title(level1Title)
+                        .level2Title(level2Title)
+                        .accounts(accountList)
+                        .build();
+
+                result.add(groupedAccount);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Groups UserAccount objects by account type levels
+     *
+     * @param userAccounts List of user accounts to group
+     * @return List of grouped user accounts
+     */
+    public static List<GroupedUserAccount> groupUserAccounts(List<UserAccount> userAccounts) {
+        // Using a map of maps to organize accounts by level 1 and level 2
+        Map<String, Map<String, List<UserAccount>>> groupedAccounts = new HashMap<>();
+
+        // Group accounts by level 1 and level 2
+        for (UserAccount account : userAccounts) {
+            String level1 = account.accountType1();
+            String level2 = account.accountType2();
+
+            // Add account to the appropriate group
+            groupedAccounts.computeIfAbsent(level1, k -> new HashMap<>())
+                    .computeIfAbsent(level2, k -> new ArrayList<>())
+                    .add(account);
+        }
+
+        // List to store the final GroupedUserAccount objects
+        List<GroupedUserAccount> groupedAccountsWithoutLevel1Amounts = new ArrayList<>();
+        // Map to track level 1 totals
+        Map<String, BigDecimal> level1Amounts = new HashMap<>();
+
+        // Calculate level 2 totals, create GroupedUserAccount objects
+        for (Map.Entry<String, Map<String, List<UserAccount>>> level1Entry : groupedAccounts.entrySet()) {
+            String level1Title = level1Entry.getKey();
+            BigDecimal level1Total = BigDecimal.ZERO;
+
+            for (Map.Entry<String, List<UserAccount>> level2Entry : level1Entry.getValue().entrySet()) {
+                String level2Title = level2Entry.getKey();
+                List<UserAccount> userAccountList = level2Entry.getValue();
+                BigDecimal level2Total = BigDecimal.ZERO;
+
+                // Sum up balances for level_2 total
+                for (UserAccount account : userAccountList) {
+                    level2Total = level2Total.add(account.latestBalance() != null ? account.latestBalance() : BigDecimal.ZERO);
+                }
+
+                // Add to level_1 total
+                level1Total = level1Total.add(level2Total);
+
+                // Get the date from the first account
+                String date = userAccountList.isEmpty() ? null : userAccountList.get(0).latestBalanceDate();
+
+                // Create a GroupedUserAccount for this level_2 group
+                GroupedUserAccount groupedAccount = GroupedUserAccount.builder()
+                        .level1Title(level1Title)
+                        .level2Title(level2Title)
+                        .level2Amount(level2Total)
+                        .date(date)
+                        .userAccounts(userAccountList)
+                        .build();
+
+                groupedAccountsWithoutLevel1Amounts.add(groupedAccount);
+            }
+
+            // Store level1Title total for updating later
+            level1Amounts.put(level1Title, level1Total);
+        }
+
+        // Update level_1_amount with correct totals
+        List<GroupedUserAccount> result = new ArrayList<>();
+        for (GroupedUserAccount account : groupedAccountsWithoutLevel1Amounts) {
+            result.add(
+                    GroupedUserAccount.builder()
+                            .level1Title(account.level1Title())
+                            .level1Amount(level1Amounts.get(account.level1Title()))
+                            .level2Title(account.level2Title())
+                            .level2Amount(account.level2Amount())
+                            .date(account.date())
+                            .userAccounts(account.userAccounts())
+                            .build()
+            );
+        }
+
+        return result;
+    }
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/config/PostgresConfig.java
+
+package com.finance.manager.account_service.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import javax.sql.DataSource;
+
+@Configuration
+public class PostgresConfig {
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+    // You can also configure additional beans like NamedParameterJdbcTemplate
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/dao/AccountPostgresDao.java
+
+package com.finance.manager.account_service.dao;
+
+import com.finance.manager.account_service.dto.Account;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public class AccountPostgresDao implements AccountDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(AccountPostgresDao.class);
+
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    public AccountPostgresDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        logger.info("Getting all accounts from postgres");
+
+        String sql = """
+                select
+                    a.id as account_id,
+                    a.name as account_name,
+                    a.type_id as account_type_id,
+                    ai.icon as icon,
+                    at.type_1 as account_type_1,
+                    at.type_2 as account_type_2,
+                    at.type_3 as account_type_3,
+                    string_agg(DISTINCT as_ext.extension, ',') as statement_file_extensions
+                from
+                    account a
+                join account_type at on
+                    at.id = a.type_id
+                join account_icon ai on
+                    a.icon_id = ai.id
+                left join account_statement as_ext on
+                    a.id = as_ext.account_id
+                group by
+                    a.id,
+                    a.name,
+                    a.type_id,
+                    ai.icon,
+                    at.type_1,
+                    at.type_2,
+                    at.type_3
+                """;
+
+        List<Account> accounts = namedParameterJdbcTemplate.query(sql, (rs, rowNum) ->
+            Account.builder()
+                .accountId(rs.getInt("account_id"))
+                .accountName(rs.getString("account_name"))
+                .accountTypeId(rs.getInt("account_type_id"))
+                .statementFileExtensions(rs.getString("statement_file_extensions"))
+                .icon(rs.getString("icon"))
+                .accountType1(rs.getString("account_type_1"))
+                .accountType2(rs.getString("account_type_2"))
+                .accountType3(rs.getString("account_type_3"))
+                .build()
+        );
+
+        logger.info("Retrieved {} accounts from postgres", accounts.size());
+        return accounts;
+    }
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/dao/UserAccountDao.java
+
+
+package com.finance.manager.account_service.dao;
+
+import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
+
+import java.util.List;
+
+public interface UserAccountDao {
+    List<UserAccount> getAllAccounts(List<Integer> userIds);
+    
+    /**
+     * Creates a new user account entry
+     * 
+     * @param request The user account creation request
+     * @return The ID of the newly created user account
+     */
+    int saveUserAccount(UserAccountSaveRequest request);
+
+    /**
+     * Deletes a user account by its ID
+     * 
+     * @param userAccountId The ID of the user account to delete
+     */
+    void deleteUserAccount(int userAccountId);
+
+    /**
+     * Updates the name of a user account
+     * 
+     * @param request The request containing the user account ID and the new name
+     */
+    void editUserAccountName(UserAccountEditRequest request);
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/dao/UserAccountPostgresDao.java
+
+
+package com.finance.manager.account_service.dao;
+
+import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+
+@Repository
+public class UserAccountPostgresDao implements UserAccountDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserAccountPostgresDao.class);
+
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    public UserAccountPostgresDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    @Override
+    public List<UserAccount> getAllAccounts(List<Integer> userIds) {
+        logger.info("Getting user accounts for user_ids: {} from postgres", userIds);
+
+        String sql = """
+                select  user_account_id,
+                        account_id,
+                        user_id,
+                        user_account_name,
+                        account_type_id,
+                        icon,
+                        account_name,
+                        account_type_1,
+                        account_type_2,
+                        account_type_3,
+                        closing_balance,
+                        closing_balance_date,
+                        statement_file_extensions
+                from
+                    (
+                    select
+                        ua.id as user_account_id,
+                        ua.account_id as account_id,
+                        ua.user_id as user_id,
+                        ua.user_account_name as user_account_name,
+                        type_id as account_type_id,
+                        ai.icon as icon,
+                        a.name as account_name,
+                        type_1 as account_type_1,
+                        type_2 as account_type_2,
+                        type_3 as account_type_3,
+                        t.closing_balance as closing_balance,
+                        t.date as closing_balance_date,
+                        string_agg(DISTINCT as_ext.extension, ',') as statement_file_extensions,
+                        row_number() over(partition by t.user_account_id order by date desc) as user_account_id_rank,
+                        (case when t.user_account_id is not null then true else false end) as has_transactions
+                    from
+                        user_account ua
+                    join account a on
+                        ua.account_id = a.id
+                    join account_type at2 on
+                        at2.id = a.type_id
+                    join account_icon ai on
+                        a.icon_id = ai.id
+                    left join transaction t on
+                        ua.id = t.user_account_id
+                    left join account_statement as_ext on
+                        a.id = as_ext.account_id
+                    where
+                        user_id in (:userIds)
+                    group by
+                        ua.id,
+                        ua.account_id,
+                        ua.user_id,
+                        ua.user_account_name,
+                        type_id,
+                        ai.icon,
+                        a.name,
+                        type_1,
+                        type_2,
+                        type_3,
+                        t.closing_balance,
+                        t.date,
+                        t.user_account_id
+                    ) where has_transactions = false or user_account_id_rank = 1
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userIds", userIds);
+
+        List<UserAccount> userAccounts = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            BigDecimal balance = rs.getObject("closing_balance") != null ?
+                    rs.getBigDecimal("closing_balance") : BigDecimal.ZERO;
+
+            String balanceDate = rs.getObject("closing_balance_date") != null ?
+                    rs.getDate("closing_balance_date").toString() : null;
+
+            return UserAccount.builder()
+                    .userAccountId(rs.getInt("user_account_id"))
+                    .accountId(rs.getInt("account_id"))
+                    .userId(rs.getInt("user_id"))
+                    .userAccountName(rs.getString("user_account_name"))
+                    .accountTypeId(rs.getInt("account_type_id"))
+                    .accountName(rs.getString("account_name"))
+                    .statementFileExtensions(rs.getString("statement_file_extensions"))
+                    .icon(rs.getString("icon"))
+                    .accountType1(rs.getString("account_type_1"))
+                    .accountType2(rs.getString("account_type_2"))
+                    .accountType3(rs.getString("account_type_3"))
+                    .latestBalance(balance)
+                    .latestBalanceDate(balanceDate)
+                    .build();
+        });
+
+        logger.info("Retrieved {} user accounts for user_ids: {} from postgres", userAccounts.size(), userIds);
+        return userAccounts;
+    }
+    
+    @Override
+    public int saveUserAccount(UserAccountSaveRequest request) {
+        logger.info("Creating new user account for user_id: {}, account_id: {}", request.userId(), request.accountId());
+        
+        String sql = """
+                INSERT INTO user_account (user_id, account_id, user_account_name)
+                VALUES (:userId, :accountId, :userAccountName)
+                RETURNING id
+                """;
+                
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", request.userId());
+        params.addValue("accountId", request.accountId());
+        params.addValue("userAccountName", request.userAccountName());
+        
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        
+        namedParameterJdbcTemplate.update(sql, params, keyHolder);
+        
+        int newUserAccountId = Objects.requireNonNull(keyHolder.getKey()).intValue();
+        logger.info("Created new user account with id: {}", newUserAccountId);
+        
+        return newUserAccountId;
+    }
+
+    @Override
+    public void deleteUserAccount(int userAccountId) {
+        logger.info("Deleting user account with ID: {}", userAccountId);
+        
+        String sql = "DELETE FROM user_account WHERE id = :userAccountId";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", userAccountId);
+        
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        
+        if (rowsAffected == 0) {
+            logger.warn("No user account found with ID: {}", userAccountId);
+        } else {
+            logger.info("Successfully deleted user account with ID: {}", userAccountId);
+        }
+    }
+
+    @Override
+    public void editUserAccountName(UserAccountEditRequest request) {
+        logger.info("Updating name for user account with ID: {} to: {}", 
+                request.userAccountId(), request.newUserAccountName());
+        
+        String sql = "UPDATE user_account SET user_account_name = :newUserAccountName WHERE id = :userAccountId";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userAccountId", request.userAccountId());
+        params.addValue("newUserAccountName", request.newUserAccountName());
+        
+        int rowsAffected = namedParameterJdbcTemplate.update(sql, params);
+        
+        if (rowsAffected == 0) {
+            logger.warn("No user account found with ID: {}", request.userAccountId());
+        } else {
+            logger.info("Successfully updated name for user account with ID: {}", request.userAccountId());
+        }
+    }
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/dao/AccountDao.java
+
+package com.finance.manager.account_service.dao;
+
+import com.finance.manager.account_service.dto.Account;
+
+import java.util.List;
+
+public interface AccountDao {
+    List<Account> getAllAccounts();
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/controller/UserAccountController.java
+
+
+package com.finance.manager.account_service.controller;
+
+import com.finance.manager.account_service.dto.GroupedUserAccount;
+import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
+import com.finance.manager.account_service.service.UserAccountService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+@RestController
+@RequestMapping("/user_account")
+@CrossOrigin
+@RequiredArgsConstructor
+public class UserAccountController {
+
+    private static final Logger logger = Logger.getLogger(UserAccountController.class.getName());
+
+    private final UserAccountService service;
+
+
+    @GetMapping("/v1/healthcheck")
+    public String healthcheck() {
+        return "Account API is up and running!";
+    }
+
+    @GetMapping("/v1/fetch_all")
+    public List<UserAccount> fetchAllAccountsByUserIds(@RequestParam(value = "user_ids") List<Integer> userIds) {
+        validateUserIds(userIds);
+        logger.info("Received request to fetch accounts for user ids " + userIds);
+        return service.getAllAccounts(userIds);
+    }
+
+    @GetMapping("/v1/fetch_all/grouped")
+    public List<GroupedUserAccount> fetchAllGroupedAccountsByUserIds(@RequestParam(value = "user_ids") List<Integer> userIds) {
+        validateUserIds(userIds);
+        logger.info("Received request to fetch grouped accounts for user ids " + userIds);
+        return service.getAllGroupedAccounts(userIds);
+    }
+    
+    @PostMapping("/v1/save")
+    public ResponseEntity<Integer> saveUserAccount(@RequestBody UserAccountSaveRequest request) {
+        validateUserAccountSaveRequest(request);
+        logger.info("Received request to create user account for user ID: " + request.userId());
+        int userAccountId = service.saveUserAccount(request);
+        return ResponseEntity.ok(userAccountId);
+    }
+
+    @DeleteMapping("/v1/delete")
+    public ResponseEntity<Void> deleteUserAccount(@RequestParam(value = "user_account_id") int userAccountId) {
+        validateUserAccountId(userAccountId);
+        logger.info("Received request to delete user account with ID: " + userAccountId);
+        service.deleteUserAccount(userAccountId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/v1/edit")
+    public ResponseEntity<Void> editUserAccountName(@RequestBody UserAccountEditRequest request) {
+        validateUserAccountEditRequest(request);
+        logger.info("Received request to edit user account name for account ID: " + request.userAccountId());
+        service.editUserAccountName(request);
+        return ResponseEntity.ok().build();
+    }
+
+    private void validateUserIds(List<Integer> userIdsList) {
+        if (userIdsList == null || userIdsList.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass user_account_ids in request");
+        }
+    }
+    
+    private void validateUserAccountSaveRequest(UserAccountSaveRequest request) {
+        if (request.userId() <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "User ID must be a positive integer");
+        }
+        
+        if (request.accountId() <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Account ID must be a positive integer");
+        }
+        
+        if (request.userAccountName() == null || request.userAccountName().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Account userAccountName is required");
+        }
+    }
+
+    private void validateUserAccountId(int userAccountId) {
+        if (userAccountId <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "User account ID must be a positive integer");
+        }
+    }
+
+    private void validateUserAccountEditRequest(UserAccountEditRequest request) {
+        if (request.userAccountId() <= 0) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "User account ID must be a positive integer");
+        }
+        
+        if (request.newUserAccountName() == null || request.newUserAccountName().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "New account name is required");
+        }
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/controller/AccountController.java
+
+package com.finance.manager.account_service.controller;
+
+import com.finance.manager.account_service.dto.Account;
+import com.finance.manager.account_service.dto.GroupedAccount;
+import com.finance.manager.account_service.service.AccountService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+@RestController
+@RequestMapping("/account")
+@CrossOrigin
+@RequiredArgsConstructor
+public class AccountController {
+
+    private static final Logger logger = Logger.getLogger(AccountController.class.getName());
+
+    private final AccountService service;
+
+    @GetMapping("/v1/healthcheck")
+    public String healthcheck() {
+        return "Account API is up and running!";
+    }
+
+    @GetMapping("/v1/fetch_all")
+    public List<Account> fetchAllAccounts() {
+        logger.info("Received request to fetch all accounts");
+        return service.getAllAccounts();
+    }
+
+    @GetMapping("/v1/fetch_all/grouped")
+    public List<GroupedAccount> fetchAllGroupedAccounts() {
+        logger.info("Received request to fetch all grouped accounts");
+        return service.getAllGroupedAccounts();
+    }
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/service/AccountService.java
+
+package com.finance.manager.account_service.service;
+
+import com.finance.manager.account_service.dto.Account;
+import com.finance.manager.account_service.dto.GroupedAccount;
+
+import java.util.List;
+
+public interface AccountService {
+    List<Account> getAllAccounts();
+    List<GroupedAccount> getAllGroupedAccounts();
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/service/UserAccountServiceImpl.java
+
+
+package com.finance.manager.account_service.service;
+
+import com.finance.manager.account_service.dao.UserAccountDao;
+import com.finance.manager.account_service.dto.GroupedUserAccount;
+import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
+import com.finance.manager.account_service.util.AccountGrouper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserAccountServiceImpl implements UserAccountService {
+
+    private final UserAccountDao dao;
+
+    @Override
+    public List<UserAccount> getAllAccounts(List<Integer> userIds) {
+        return dao.getAllAccounts(userIds);
+    }
+
+    @Override
+    public List<GroupedUserAccount> getAllGroupedAccounts(List<Integer> userIds) {
+        List<UserAccount> accounts = getAllAccounts(userIds);
+        return AccountGrouper.groupUserAccounts(accounts);
+    }
+    
+    @Override
+    public int saveUserAccount(UserAccountSaveRequest request) {
+        return dao.saveUserAccount(request);
+    }
+
+    @Override
+    public void deleteUserAccount(int userAccountId) {
+        dao.deleteUserAccount(userAccountId);
+    }
+
+    @Override
+    public void editUserAccountName(UserAccountEditRequest request) {
+        dao.editUserAccountName(request);
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/service/AccountServiceImpl.java
+
+package com.finance.manager.account_service.service;
+
+import com.finance.manager.account_service.dao.AccountDao;
+import com.finance.manager.account_service.dto.Account;
+import com.finance.manager.account_service.dto.GroupedAccount;
+import com.finance.manager.account_service.util.AccountGrouper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class AccountServiceImpl implements AccountService {
+
+    private final AccountDao dao;
+
+    @Override
+    public List<Account> getAllAccounts() {
+        return dao.getAllAccounts();
+    }
+
+    @Override
+    public List<GroupedAccount> getAllGroupedAccounts() {
+        List<Account> accounts = getAllAccounts();
+        return AccountGrouper.groupAccounts(accounts);
+    }
+}
+
+# FILE: src/main/java/com/finance/manager/account_service/service/UserAccountService.java
+
+
+package com.finance.manager.account_service.service;
+
+import com.finance.manager.account_service.dto.GroupedUserAccount;
+import com.finance.manager.account_service.dto.UserAccount;
+import com.finance.manager.account_service.dto.UserAccountEditRequest;
+import com.finance.manager.account_service.dto.UserAccountSaveRequest;
+
+import java.util.List;
+
+public interface UserAccountService {
+    List<UserAccount> getAllAccounts(List<Integer> userIds);
+
+    List<GroupedUserAccount> getAllGroupedAccounts(List<Integer> userIds);
+    
+    /**
+     * Creates a new user account
+     * 
+     * @param request The user account creation request
+     * @return The ID of the newly created user account
+     */
+    int saveUserAccount(UserAccountSaveRequest request);
+
+    /**
+     * Deletes a user account by its ID
+     * 
+     * @param userAccountId The ID of the user account to delete
+     */
+    void deleteUserAccount(int userAccountId);
+
+    /**
+     * Updates the name of a user account
+     * 
+     * @param request The request containing the user account ID and the new name
+     */
+    void editUserAccountName(UserAccountEditRequest request);
+}
+
+
+# FILE: src/main/java/com/finance/manager/account_service/exception/handler/GlobalExceptionHandler.java
+
+package com.finance.manager.account_service.exception.handler;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                ex.getStatusCode().value(),
+                ex.getStatusCode().toString(),
+                ex.getReason()
+        );
+
+        return new ResponseEntity<>(errorResponse, ex.getStatusCode());
+    }
+
+    // Additional handler for standard Spring exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    // Error response model
+    @Getter
+    @AllArgsConstructor
+    public static class ErrorResponse {
+        private int errorCode;
+        private String errorTitle;
+        private String errorDescription;
+    }
+}
+
+
+# FILE: src/main/resources/application-local.properties
+
+# PostgreSQL Connection Properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/finance_manager
+spring.datasource.username=postgres
+spring.datasource.password=
+
+# Connection Pool Properties
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.idle-timeout=600000
+spring.datasource.hikari.connection-timeout=30000
+spring.datasource.hikari.max-lifetime=1800000
+
+# server config
+server.port=5003
+
+# FILE: src/main/resources/application.properties
+
+spring.application.name=account_service
+
+
+# FILE: HELP.md
+
+# Getting Started
+
+### Reference Documentation
+For further reference, please consider the following sections:
+
+* [Official Gradle documentation](https://docs.gradle.org)
+* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/gradle-plugin)
+* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/gradle-plugin/packaging-oci-image.html)
+* [JDBC API](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/reference/data/sql.html)
+
+### Guides
+The following guides illustrate how to use some features concretely:
+
+* [Accessing Relational Data using JDBC with Spring](https://spring.io/guides/gs/relational-data-access/)
+* [Managing Transactions](https://spring.io/guides/gs/managing-transactions/)
+
+### Additional Links
+These additional references should also help you:
+
+* [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
+
+
+
+# FILE: README.md
+
+# account-service
+APIs to read and write user accounts
+
+
+# FILE: gradle/wrapper/gradle-wrapper.properties
+
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+
+
+# FILE: src/test/java/com/finance/manager/account_service/UserAccountServiceApplicationTests.java
+
+package com.finance.manager.account_service;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class UserAccountServiceApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

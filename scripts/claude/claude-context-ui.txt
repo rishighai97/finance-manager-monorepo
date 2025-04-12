@@ -1,0 +1,5908 @@
+# Context for ui
+# App Type: ionic
+# Generated: claude_get_context.py
+# Number of files: 39
+
+
+
+# FILE: index.html
+
+<!DOCTYPE html>
+<html lang="en" mode="ios">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ionic App</title>
+
+    <base href="/" />
+
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+
+    <!-- add to homescreen for ios -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  </head>
+
+  <body>
+    <app-root></app-root>
+  </body>
+</html>
+
+
+# FILE: main.ts
+
+import { bootstrapApplication } from "@angular/platform-browser";
+import {
+  RouteReuseStrategy,
+  provideRouter,
+  withPreloading,
+  PreloadAllModules,
+} from "@angular/router";
+import {
+  IonicRouteStrategy,
+  provideIonicAngular,
+} from "@ionic/angular/standalone";
+
+import { routes } from "./app/app.routes";
+import { AppComponent } from "./app/app.component";
+import { provideHttpClient } from "@angular/common/http";
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    provideIonicAngular(),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
+    provideHttpClient(),
+  ],
+});
+
+
+# FILE: global.scss
+
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import '@ionic/angular/css/palettes/dark.system.css';
+
+.refreshing {
+    animation: rotate 1s linear;
+  }
+  
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+# FILE: polyfills.ts
+
+/**
+ * This file includes polyfills needed by Angular and is loaded before the app.
+ * You can add your own extra polyfills to this file.
+ *
+ * This file is divided into 2 sections:
+ *   1. Browser polyfills. These are applied before loading ZoneJS and are sorted by browsers.
+ *   2. Application imports. Files imported after ZoneJS that should be loaded before your main
+ *      file.
+ *
+ * The current setup is for so-called "evergreen" browsers; the last versions of browsers that
+ * automatically update themselves. This includes recent versions of Safari, Chrome (including
+ * Opera), Edge on the desktop, and iOS and Chrome on mobile.
+ *
+ * Learn more in https://angular.io/guide/browser-support
+ */
+
+/***************************************************************************************************
+ * BROWSER POLYFILLS
+ */
+
+/**
+ * By default, zone.js will patch all possible macroTask and DomEvents
+ * user can disable parts of macroTask/DomEvents patch by setting following flags
+ * because those flags need to be set before `zone.js` being loaded, and webpack
+ * will put import in the top of bundle, so user need to create a separate file
+ * in this directory (for example: zone-flags.ts), and put the following flags
+ * into that file, and then add the following code before importing zone.js.
+ * import './zone-flags';
+ *
+ * The flags allowed in zone-flags.ts are listed here.
+ *
+ * The following flags will work for all browsers.
+ *
+ * (window as any).__Zone_disable_requestAnimationFrame = true; // disable patch requestAnimationFrame
+ * (window as any).__Zone_disable_on_property = true; // disable patch onProperty such as onclick
+ * (window as any).__zone_symbol__UNPATCHED_EVENTS = ['scroll', 'mousemove']; // disable patch specified eventNames
+ *
+ *  in IE/Edge developer tools, the addEventListener will also be wrapped by zone.js
+ *  with the following flag, it will bypass `zone.js` patch for IE/Edge
+ *
+ *  (window as any).__Zone_enable_cross_context_check = true;
+ *
+ */
+
+import './zone-flags';
+
+/***************************************************************************************************
+ * Zone JS is required by default for Angular itself.
+ */
+import 'zone.js';  // Included with Angular CLI.
+
+
+/***************************************************************************************************
+ * APPLICATION IMPORTS
+ */
+
+
+# FILE: app/app.component.html
+
+<ion-app>
+  <ion-router-outlet></ion-router-outlet>
+</ion-app>
+
+
+# FILE: app/app.component.scss
+
+
+
+# FILE: app/app.routes.ts
+
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  {
+    path: '',
+    loadChildren: () => import('./tabs/tabs.routes').then((m) => m.routes),
+  },
+];
+
+
+# FILE: app/app.component.ts
+
+
+import { Component } from "@angular/core";
+import { IonApp, IonRouterOutlet } from "@ionic/angular/standalone";
+import { UserAccountService } from "src/service/user.account.service";
+import { AccountService } from "src/service/account.service";
+import { CategoryService } from "src/service/category.service";
+import { environment } from "src/environments/environment";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "app.component.html",
+  imports: [IonApp, IonRouterOutlet],
+})
+export class AppComponent {
+  currentEnvironment: string = environment.name;
+
+  constructor(
+    private userAccountService: UserAccountService,
+    private accountService: AccountService,
+    private categoryService: CategoryService
+  ) {
+    console.log(`App started in ${this.currentEnvironment} environment`);
+
+    this.userAccountService.loadGroupedUserAccounts();
+    this.accountService.loadGroupedAccounts();
+    this.categoryService.loadUserCategories();
+  }
+}
+
+
+# FILE: app/tabs/tabs.page.scss
+
+
+ion-tab-button {
+    transition: transform 0.3s ease-in-out;
+  }
+
+
+# FILE: app/tabs/tabs.routes.ts
+
+import { Routes } from "@angular/router";
+import { TabsPage } from "./tabs.page";
+
+export const routes: Routes = [
+  {
+    path: "tabs",
+    component: TabsPage,
+    children: [
+      {
+        path: "tab1",
+        loadComponent: () =>
+          import("../account-list/account-list.component").then(
+            (m) => m.AccountListComponent
+          ),
+      },
+      {
+        path: "transactions",
+        loadComponent: () =>
+          import("../transaction-list/transaction-list.component").then(
+            (m) => m.TransactionListComponent
+          ),
+      },
+      {
+        path: "statement-uploader",
+        loadComponent: () =>
+          import("../statement-uploader/statement-uploader.component").then(
+            (m) => m.StatementUploaderComponent
+          ),
+      },
+      {
+        path: "categories",
+        loadComponent: () =>
+          import("../category-list/category-list.component").then(
+            (m) => m.CategoryListComponent
+          ),
+      },
+      {
+        path: "tab2",
+        loadComponent: () =>
+          import("../tab2/tab2.page").then((m) => m.Tab2Page),
+      },
+      {
+        path: "tab3",
+        loadComponent: () =>
+          import("../tab3/tab3.page").then((m) => m.Tab3Page),
+      },
+      {
+        path: "",
+        redirectTo: "/tabs/tab1",
+        pathMatch: "full",
+      },
+    ],
+  },
+  {
+    path: "",
+    redirectTo: "/tabs/tab1",
+    pathMatch: "full",
+  },
+];
+
+# FILE: app/tabs/tabs.page.html
+
+<ion-tabs>
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="tab1" href="/tabs/tab1">
+      <ion-icon aria-hidden="true" name="wallet-outline"></ion-icon>
+      <ion-label>Accounts</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="statement-uploader" href="/tabs/statement-uploader">
+      <ion-icon aria-hidden="true" name="cloud-upload-outline"></ion-icon>
+      <ion-label>Upload statements</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="transactions" href="/tabs/transactions">
+      <ion-icon aria-hidden="true" name="cash-outline"></ion-icon>
+      <ion-label>Transactions</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="categories" href="/tabs/categories">
+      <ion-icon aria-hidden="true" name="folder-outline"></ion-icon>
+      <ion-label>Categories</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>
+
+
+# FILE: app/transaction-list/transaction-list.component.scss
+
+
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Search container styling (Moved below summary)
+.search-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px 0;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+
+  ion-searchbar {
+    padding: 0;
+    --border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .search-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .add-cat-btn, .save-cat-btn {
+      font-size: 12px;
+      height: 32px;
+      --border-radius: 16px;
+    }
+  }
+}
+
+// Category changes container
+.category-changes-container {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 8px;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+
+  ion-button {
+    margin: 0;
+    font-size: 12px;
+    --border-radius: 16px;
+  }
+}
+
+// Validation message for no account selected
+.validation-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  background-color: rgba(var(--ion-color-warning-rgb), 0.1);
+  color: var(--ion-color-warning-shade);
+  margin: 0 16px 8px;
+  border-radius: 8px;
+  
+  ion-icon {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Date filter container
+.date-filter-container {
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .date-picker-item,
+  .account-selector-item,
+  .category-selector-item {
+    flex: 1;
+    --background: transparent;
+    --padding-start: 0;
+    margin-right: 8px;
+
+    ion-label {
+      color: #555;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    ion-input {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      --background: #f5f7fa;
+      --border-radius: 8px;
+      --placeholder-color: #999;
+      font-size: 14px;
+    }
+  }
+
+  .account-selector-item,
+  .category-selector-item {
+    flex: 1; // Equal flex for both selectors
+
+    ion-input {
+      cursor: pointer;
+    }
+  }
+
+  .refresh-button {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    height: 38px;
+    margin: 0;
+    --border-radius: 8px;
+  }
+}
+
+// Color classes
+.danger {
+  color: #ff4961;
+}
+
+.success {
+  color: #2dd36f;
+  background: none;
+}
+
+.warning {
+  color: #ffc409;
+}
+
+// Amount container styling for consistent alignment
+.amount-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 85px; // Reduced min-width
+  background: none;
+
+  ion-chip {
+    margin: 0;
+    padding: 0 6px;
+    height: 24px;
+    background: none;
+
+    ion-label {
+      font-size: 13px;
+      white-space: nowrap;
+    }
+  }
+}
+
+// Category container styling
+.category-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 60px; // Increased width to accommodate category badges
+  margin-right: 10px;
+  align-items: center;
+
+  .category-id {
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    color: #555;
+  }
+
+  .category-type {
+    font-size: 11px;
+    color: #999;
+    margin: 2px 0 0 0;
+  }
+
+  .add-category-btn {
+    height: 28px;
+    width: 28px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --border-radius: 50%;
+    --color: #3880ff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    span {
+      display: none; // Hide the text
+    }
+  }
+}
+
+// Updated Category pills styling
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+
+  .category-pill {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    color: var(--ion-color-primary);
+    border: 1px solid var(--ion-color-primary);
+    border-radius: 16px;
+    padding: 3px 10px 3px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+
+    .remove-category-btn {
+      --padding-start: 2px;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      height: 18px;
+      margin: 0 -3px 0 4px;
+
+      ion-icon {
+        font-size: 14px;
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  .add-category-btn-small {
+    height: 24px;
+    width: 24px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 18px;
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Transaction items styling
+.transaction-item {
+  margin: 4px auto;
+  --background: #ffffff;
+  --border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+
+  // Edited item styling (orange background)
+  &.edited-item {
+    --background: rgba(255, 180, 0, 0.05);
+    border-left: 3px solid #ffb400;
+  }
+
+  &:last-of-type {
+    margin-bottom: 8px; // Add extra margin to last item
+  }
+
+  // Updated transaction content layout
+  ion-item {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --inner-padding-end: 8px;
+    width: 100%;
+
+    ion-avatar {
+      margin-right: 12px;
+    }
+
+    ion-label {
+      overflow: visible;
+      white-space: normal;
+      --min-width: 0;
+      width: 100%;
+      margin-left: 4px;
+      margin-right: 4px;
+
+      h4 {
+        font-size: 15px;
+        font-weight: 500;
+        margin: 10px 0;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: 100%;
+        line-height: 1.5;
+        letter-spacing: 0.2px;
+        padding-right: 8px;
+      }
+
+      // Add category button
+      .add-category-btn {
+        height: 28px;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        margin: 4px 0;
+        font-size: 12px;
+
+        ion-icon {
+          margin-right: 4px;
+          font-size: 14px;
+        }
+      }
+
+      // Transaction category display
+      .transaction-category {
+        font-size: 12px;
+        color: var(--ion-color-primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  // New styling for transaction date
+  .transaction-date {
+    font-size: 12px;
+    color: #5b6772;
+    background-color: #f0f4f9;
+    border-radius: 4px;
+    padding: 2px 5px;
+    display: inline-block;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    margin-bottom: 6px;
+  }
+
+  // New styling for account name
+  .account-name {
+    font-size: 12px;
+    color: #3880ff;
+    font-weight: 600;
+    border-left: 3px solid #3880ff;
+    padding-left: 5px;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}
+
+p {
+  font-size: 12px;
+  color: #777;
+  margin: 3px 0;
+}
+
+ion-chip {
+  font-size: 13px;
+  font-weight: 500;
+  height: 24px;
+  padding: 0 8px;
+}
+
+// Fix layout issues on small screens
+@media (max-width: 360px) {
+  .transaction-item {
+    ion-item {
+      --padding-start: 4px;
+      --padding-end: 4px;
+
+      ion-avatar {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        margin-right: 8px;
+      }
+
+      ion-label {
+        h4 {
+          font-size: 14px;
+          margin: 8px 0;
+        }
+      }
+    }
+
+    .transaction-date,
+    .account-name {
+      font-size: 11px;
+    }
+
+    .amount-container {
+      min-width: 70px;
+
+      ion-chip {
+        padding: 0 4px;
+        height: 22px;
+
+        ion-label {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .category-container {
+    min-width: 32px;
+    margin-right: 6px;
+  }
+
+  .date-filter-container {
+    flex-wrap: wrap;
+
+    .date-picker-item {
+      flex: 0 0 calc(50% - 8px);
+    }
+
+    .account-selector-item,
+    .category-selector-item {
+      flex: 0 0 calc(50% - 8px);
+      margin-top: 8px;
+    }
+
+    .refresh-button {
+      margin-top: 8px;
+    }
+  }
+}
+
+ion-list {
+  background: transparent;
+  padding-bottom: 16px; // Add padding to the bottom of the list
+}
+
+ion-content {
+  --background: #f5f7fa;
+  --padding-top: 12px; // Added top padding to the content area
+  --padding-bottom: 16px; // Add padding to the bottom of the content
+}
+
+// Summary container styling
+.summary-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 8px;
+  background-color: #ffffff;
+  margin-bottom: 0; // Changed to 0 since search container follows immediately
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 0 4px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &:not(:last-child) {
+      border-right: 1px solid #eee;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 4px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .summary-amount {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+
+      &.danger {
+        color: #ff4961;
+      }
+
+      &.success {
+        color: #2dd36f;
+      }
+
+      &.neutral {
+        color: #92949c;
+      }
+    }
+  }
+}
+
+// Add bottom spacer style
+.bottom-spacer {
+  height: 80px; // Adjust this value as needed
+  width: 100%;
+}
+
+// Account modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+
+  ion-header {
+    padding-top: 8px;
+  }
+
+  ion-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+
+  ion-item {
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    --min-height: 56px;
+
+    ion-avatar {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+    }
+
+    ion-label {
+      font-size: 14px;
+      margin-left: 8px;
+    }
+  }
+}
+
+// Add Category Modal Styling
+.modal-info {
+  padding: 16px;
+  text-align: center;
+
+  .transaction-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin-bottom: 4px;
+  }
+
+  .category-limit-info {
+    font-size: 13px;
+    .transaction-title {
+
+
+# FILE: app/transaction-list/transaction-list.component.html
+
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <!-- <ion-buttons slot="start">
+      <ion-button (click)="backToAccounts()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons> -->
+    <ion-title>Transactions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light" class="ion-no-padding">
+  <!-- Date Filter Row -->
+  <div class="date-filter-container">
+    <ion-item lines="none" class="date-picker-item">
+      <ion-label position="stacked">From</ion-label>
+      <ion-input
+        type="date"
+        [(ngModel)]="startDateInput"
+        (ionChange)="onStartDateChange()"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item lines="none" class="date-picker-item">
+      <ion-label position="stacked">To</ion-label>
+      <ion-input
+        type="date"
+        [(ngModel)]="endDateInput"
+        (ionChange)="onEndDateChange()"
+      ></ion-input>
+    </ion-item>
+
+    <!-- Account Selector (Custom) -->
+    <ion-item
+      lines="none"
+      class="account-selector-item"
+      (click)="openAccountSelector()"
+    >
+      <ion-label position="stacked">Accounts</ion-label>
+      <ion-input
+        readonly
+        [value]="getSelectedAccountsText()"
+        placeholder="Select accounts"
+      ></ion-input>
+    </ion-item>
+
+    <!-- Category Selector -->
+    <ion-item
+      lines="none"
+      class="category-selector-item"
+      (click)="openCategorySelector()"
+    >
+      <ion-label position="stacked">Category</ion-label>
+      <ion-input
+        readonly
+        [value]="getSelectedCategoriesText()"
+        placeholder="Select categories"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button class="refresh-button" (click)="refreshTransactions()">
+      <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Summary Row -->
+  <div class="summary-container">
+    <div class="summary-item">
+      <div class="summary-label">Opening</div>
+      <div class="summary-amount neutral">
+        {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Debit</div>
+      <div class="summary-amount danger">
+        {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Credit</div>
+      <div class="summary-amount success">
+        {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Closing</div>
+      <div
+        class="summary-amount"
+        [ngClass]="{
+          success: closingBalance && closingBalance > 0,
+          danger: closingBalance && closingBalance < 0,
+          neutral: !closingBalance || closingBalance === 0
+        }"
+      >
+        {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar and Category Actions (Moved below summary) -->
+  <div class="search-container">
+    <ion-searchbar
+      placeholder="Search transactions"
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange($event)"
+      animated
+      debounce="300"
+      showCancelButton="focus"
+      cancelButtonText="Clear"
+    >
+    </ion-searchbar>
+
+    <div class="search-actions">
+      <ion-button
+        fill="outline"
+        size="small"
+        (click)="openBatchAddCategories()"
+        class="add-cat-btn"
+      >
+        <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+        Bulk Update Categories
+      </ion-button>
+
+      <ion-button
+        *ngIf="hasCategoryChanges"
+        fill="solid"
+        color="warning"
+        size="small"
+        (click)="saveAllCategoryChanges()"
+        [disabled]="isSaving"
+        class="save-cat-btn"
+      >
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        Update Categories
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Category Changes Actions -->
+  <div class="category-changes-container" *ngIf="hasCategoryChanges">
+    <ion-button
+      fill="outline"
+      color="medium"
+      size="small"
+      (click)="resetCategoryChanges()"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Reset Changes
+    </ion-button>
+  </div>
+
+  <!-- Validation Message for no account selected -->
+  <div class="validation-message" *ngIf="selectedAccountIds.length === 0">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>Please select at least one account</p>
+  </div>
+
+  <ion-list [inset]="true" lines="none">
+    @if (getTransactions().length > 0) { @for (transaction of getTransactions();
+    track transaction.transaction_id) {
+    <ion-item
+      class="transaction-item"
+      [ngClass]="{ 'edited-item': hasTransactionCategoryChanges(transaction) }"
+    >
+      <div class="category-container">
+        <ion-avatar slot="start">
+          <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
+        </ion-avatar>
+      </div>
+
+      <ion-label>
+        <p class="transaction-date">
+          {{ transaction.date | date : "mediumDate" }}
+        </p>
+        <h4>
+          ({{ accountMap.get(transaction.user_account_id)?.user_account_name }})
+          {{ transaction.title }}
+        </h4>
+
+        <!-- Display user categories as pills -->
+        @if (getUserCategoryTitles(transaction).length > 0) {
+        <div class="category-pills">
+          @for (categoryTitle of getUserCategoryTitles(transaction); track
+          categoryTitle) {
+          <div class="category-pill">
+            {{ categoryTitle }}
+            <ion-button
+              fill="clear"
+              class="remove-category-btn"
+              (click)="removeCategory(transaction, categoryTitle, $event)"
+            >
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </ion-button>
+          </div>
+          }
+          <ion-button
+            fill="clear"
+            size="small"
+            class="add-category-btn-small"
+            (click)="addCategory(transaction, $event)"
+            *ngIf="getUserCategoryTitles(transaction).length < 5"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </ion-button>
+        </div>
+        } @else {
+        <ion-button
+          fill="clear"
+          size="small"
+          class="add-category-btn"
+          (click)="addCategory(transaction, $event)"
+        >
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Add Category</span>
+        </ion-button>
+        }
+
+        <!-- Display category -->
+        @if (transaction.category_id) {
+        <p class="transaction-category">
+          <ion-icon name="pricetags-outline"></ion-icon>
+          {{ getCategoryTitle(transaction) }}
+        </p>
+        }
+      </ion-label>
+
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: isDebit(transaction),
+            success: !isDebit(transaction)
+          }"
+        >
+          <ion-label>{{
+            transaction.debit_or_credit_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+    }
+    <div class="bottom-spacer"></div>
+    } @else if (isLoading && selectedAccountIds.length > 0) {
+    <ion-item>
+      <ion-label>Loading transactions...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else if (loadingError) {
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>Unable to fetch transactions</h2>
+      <p>Please try again later</p>
+      <ion-button expand="block" (click)="refreshTransactions()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+    } @else {
+    <div class="empty-state">
+      <ion-icon
+        name="cash-outline"
+        class="empty-icon"
+        (click)="navigateToStatementUploader()"
+      ></ion-icon>
+      <h2>No transactions exist</h2>
+      <p>Go to Statement Uploader to upload some transactions</p>
+      <ion-button expand="block" (click)="navigateToStatementUploader()">
+        <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+        Upload Statements
+      </ion-button>
+    </div>
+    }
+  </ion-list>
+</ion-content>
+
+<!-- Account Selector Modal -->
+<ion-modal
+  #accountModal
+  [isOpen]="isAccountModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeAccountSelector()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Select Accounts</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeAccountSelector()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        @for (group of groupedAccounts; track group) {
+        <ion-item-divider>
+          {{ group.level_1_title }}
+        </ion-item-divider>
+
+        @for (account of group.user_accounts; track account) {
+        <ion-item (click)="toggleAccountSelection(account.account_id)">
+          <ion-avatar slot="start">
+            <img [src]="account.icon" [alt]="account.user_account_name" />
+          </ion-avatar>
+          <ion-label>{{ account.user_account_name }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isAccountSelected(account.account_id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Category Selector Modal -->
+<ion-modal
+  #categoryModal
+  [isOpen]="isCategoryModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeCategorySelector()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Select Categories</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeCategorySelector()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        @if (userCategories.length === 0) {
+        <ion-item>
+          <ion-label class="ion-text-center">
+            No categories available. Add categories from the Categories tab.
+          </ion-label>
+        </ion-item>
+        } @else { @for (category of userCategories; track category.id) {
+        <ion-item (click)="toggleCategorySelection(category.id)">
+          <ion-icon
+            name="pricetags-outline"
+            slot="start"
+            color="primary"
+          ></ion-icon>
+          <ion-label>{{ category.category_title }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isCategorySelected(category.id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Add Category Modal (New) -->
+<ion-modal
+  #addCategoryModal
+  [isOpen]="isAddCategoryModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeAddCategoryModal()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="closeAddCategoryModal()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>
+          {{
+            selectedTransaction
+              ? "Edit Transaction Categories"
+              : "Add Category to All"
+          }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="saveSelectedCategories()"> Save </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="modal-info">
+        @if (selectedTransaction) {
+        <p class="transaction-title">{{ selectedTransaction.title }}</p>
+        <p class="category-limit-info">
+          Select up to 5 categories for this transaction
+        </p>
+        } @else {
+        <p class="batch-info">
+          Add selected categories to all visible transactions
+        </p>
+        }
+      </div>
+
+      <ion-list>
+        @if (userCategories.length === 0) {
+        <ion-item>
+          <ion-label class="ion-text-center">
+            No categories available. Add categories from the Categories tab.
+          </ion-label>
+        </ion-item>
+        } @else { @for (category of userCategories; track category.id) {
+        <ion-item (click)="toggleAddCategorySelection(category.id)">
+          <ion-icon
+            name="pricetags-outline"
+            slot="start"
+            color="primary"
+          ></ion-icon>
+          <ion-label>{{ category.category_title }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isAddCategorySelected(category.id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+
+# FILE: app/transaction-list/transaction-list.component.ts
+
+// Updated transaction-list.component.ts
+
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import {
+  Component,
+  Input,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  Output,
+  EventEmitter,
+  ViewChild,
+} from "@angular/core";
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonIcon,
+  IonChip,
+  IonSpinner,
+  IonButtons,
+  IonButton,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonAvatar,
+  IonItemDivider,
+  IonModal,
+  IonCheckbox,
+  IonRow,
+  IonCol,
+  IonBadge,
+  IonPopover,
+  IonSearchbar,
+  IonRadioGroup,
+  IonRadio,
+  AlertController,
+} from "@ionic/angular/standalone";
+import { addIcons } from "ionicons";
+import {
+  refreshOutline,
+  addCircleOutline,
+  arrowBackOutline,
+  walletOutline,
+  pricetagsOutline,
+  filterOutline,
+  checkmarkOutline,
+  closeOutline,
+  closeCircleOutline,
+  searchOutline,
+  saveOutline,
+  addOutline,
+  ellipsisVerticalOutline,
+  alertCircleOutline,
+} from "ionicons/icons";
+import { Transaction } from "src/model/transaction";
+import { TransactionService } from "src/service/transaction.service";
+import { GroupedUserAccount } from "src/model/grouped-user-account";
+import { UserAccount } from "src/model/user-account";
+import { ActivatedRoute, Router } from "@angular/router";
+import { UserAccountService } from "src/service/user.account.service";
+import { CategoryService } from "src/service/category.service";
+import { UserCategory } from "src/model/user-category";
+import {
+  TransactionUserCategory,
+  TransactionUserCategoryAction,
+} from "src/model/transaction-user-category";
+import { ToastService } from "src/service/toast.service";
+
+@Component({
+  selector: "app-transaction-list",
+  templateUrl: "./transaction-list.component.html",
+  styleUrls: ["./transaction-list.component.scss"],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonIcon,
+    IonChip,
+    IonSpinner,
+    IonButtons,
+    IonButton,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonAvatar,
+    IonItemDivider,
+    IonModal,
+    IonCheckbox,
+    IonRow,
+    IonCol,
+    IonBadge,
+    IonPopover,
+    IonSearchbar,
+    IonRadioGroup,
+    IonRadio,
+  ],
+})
+export class TransactionListComponent implements OnInit, OnChanges {
+  @Input() accountId: number | null = null;
+  @Input() groupedAccounts: GroupedUserAccount[] = [];
+  @Input() startDate: string = "";
+  @Input() endDate: string = "";
+  @Output() backClicked = new EventEmitter<void>();
+  @ViewChild("accountModal") accountModal!: IonModal;
+  @ViewChild("categoryModal") categoryModal!: IonModal;
+  @ViewChild("addCategoryModal") addCategoryModal!: IonModal;
+
+  selectedAccountIds: number[] = [];
+  isAccountModalOpen: boolean = false;
+  isCategoryModalOpen: boolean = false;
+  isAddCategoryModalOpen: boolean = false;
+  accountMap: Map<number, UserAccount> = new Map();
+
+  // Transaction search
+  searchTerm: string = "";
+  filteredTransactions: Transaction[] = [];
+
+  // New properties for date inputs
+  startDateInput: string = "";
+  endDateInput: string = "";
+
+  // New properties for category filter
+  userCategories: UserCategory[] = [];
+  selectedCategoryIds: number[] = [];
+  categoryMap: Map<number, UserCategory> = new Map();
+
+  // New properties for category management
+  selectedTransaction: Transaction | null = null;
+  selectedCategories: number[] = [];
+  catInsertMap: Map<string, TransactionUserCategory[]> = new Map();
+  catDeleteMap: Map<string, TransactionUserCategory[]> = new Map();
+  hasCategoryChanges: boolean = false;
+  batchAddCategories: number[] = [];
+
+  // New property to track if no accounts are selected
+  noAccountsSelected: boolean = true;
+
+  private transactions: Transaction[] = [];
+  isLoading: boolean = false;
+  isSaving: boolean = false;
+
+  openingBalance?: number;
+  totalDebit?: number;
+  totalCredit?: number;
+  closingBalance?: number;
+
+  private accountSelectionChanged = false;
+  private categorySelectionChanged = false;
+
+  constructor(
+    private transactionService: TransactionService,
+    private route: ActivatedRoute,
+    private userAccountService: UserAccountService,
+    private categoryService: CategoryService,
+    private router: Router,
+    private toastService: ToastService,
+    private alertController: AlertController
+  ) {
+    addIcons({
+      refreshOutline,
+      addCircleOutline,
+      arrowBackOutline,
+      walletOutline,
+      pricetagsOutline,
+      filterOutline,
+      checkmarkOutline,
+      closeOutline,
+      closeCircleOutline,
+      searchOutline,
+      saveOutline,
+      addOutline,
+      ellipsisVerticalOutline,
+      alertCircleOutline,
+    });
+  }
+
+  ngOnInit() {
+    console.log("transaction list component ngOnInit called");
+
+    // Set default financial year dates
+    this.setFinancialYearDates();
+
+    // Subscribe to accounts
+    this.userAccountService.groupedUserAccounts$.subscribe(
+      (accounts: GroupedUserAccount[]) => {
+        this.groupedAccounts = accounts;
+        this.processAccountIcons();
+        this.createAccountMap();
+      }
+    );
+
+    // Subscribe to categories
+    this.categoryService.userCategories$.subscribe(
+      (categories: UserCategory[]) => {
+        this.userCategories = categories;
+        this.createCategoryMap();
+      }
+    );
+
+    // Subscribe to query params
+    this.route.queryParams.subscribe((params) => {
+      let accountId = Number(params["accountId"]);
+
+      // If no account ID in params, use first available account
+      if (!accountId || isNaN(accountId)) {
+        accountId = this.userAccountService.getFirstAccountId() || 0;
+      }
+
+      if (accountId) {
+        this.accountId = accountId;
+        this.selectedAccountIds = [accountId];
+        this.noAccountsSelected = false; // Set flag to false since we have an account
+        this.loadTransactions();
+      }
+
+      // Only override default dates if provided in params
+      if (params["startDate"]) {
+        this.startDate = params["startDate"];
+        this.startDateInput = params["startDate"];
+      }
+      if (params["endDate"]) {
+        this.endDate = params["endDate"];
+        this.endDateInput = params["endDate"];
+      }
+    });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes["groupedAccounts"]) {
+      this.processAccountIcons();
+      this.createAccountMap();
+    }
+    // Update local date inputs when parent inputs change
+    if (changes["startDate"]) {
+      this.startDateInput = this.startDate;
+    }
+    if (changes["endDate"]) {
+      this.endDateInput = this.endDate;
+    }
+
+    // Only reload on accountId change for initial load
+    if (changes["accountId"]) {
+      this.loadTransactions();
+    }
+  }
+
+  openAccountSelector() {
+    this.isAccountModalOpen = true;
+  }
+
+  closeAccountSelector() {
+    if (this.accountSelectionChanged) {
+      // Only clear if selection changed
+      this.clearTransactions();
+      this.accountSelectionChanged = false; // Reset the flag
+    }
+    this.isAccountModalOpen = false;
+
+    // Update the noAccountsSelected flag
+    this.noAccountsSelected = this.selectedAccountIds.length === 0;
+  }
+
+  // New methods for category selector
+  openCategorySelector() {
+    this.isCategoryModalOpen = true;
+  }
+
+  closeCategorySelector() {
+    if (this.categorySelectionChanged) {
+      // Only clear if selection changed
+      this.clearTransactions();
+      this.categorySelectionChanged = false; // Reset the flag
+    }
+    this.isCategoryModalOpen = false;
+  }
+
+  toggleAccountSelection(accountId: number) {
+    const index = this.selectedAccountIds.indexOf(accountId);
+    if (index > -1) {
+      this.selectedAccountIds.splice(index, 1);
+    } else {
+      this.selectedAccountIds.push(accountId);
+    }
+    this.accountSelectionChanged = true; // Set flag when selection changes
+  }
+
+  // Method to toggle category selection
+  toggleCategorySelection(categoryId: number) {
+    const index = this.selectedCategoryIds.indexOf(categoryId);
+    if (index > -1) {
+      this.selectedCategoryIds.splice(index, 1);
+    } else {
+      this.selectedCategoryIds.push(categoryId);
+    }
+    this.categorySelectionChanged = true; // Set flag when selection changes
+  }
+
+  isAccountSelected(accountId: number): boolean {
+    return this.selectedAccountIds.includes(accountId);
+  }
+
+  // Method to check if a category is selected
+  isCategorySelected(categoryId: number): boolean {
+    return this.selectedCategoryIds.includes(categoryId);
+  }
+
+  getSelectedAccountsText(): string {
+    if (this.selectedAccountIds.length === 0) return "Select accounts";
+    if (this.selectedAccountIds.length === 1) {
+      const account = this.accountMap.get(this.selectedAccountIds[0]);
+      return account ? account.user_account_name : "One account selected";
+    }
+    return `${this.selectedAccountIds.length} accounts selected`;
+  }
+
+  // Method to get selected categories text
+  getSelectedCategoriesText(): string {
+    if (this.selectedCategoryIds.length === 0) return "Select categories";
+    if (this.selectedCategoryIds.length === 1) {
+      const category = this.categoryMap.get(this.selectedCategoryIds[0]);
+      return category ? category.category_title : "One category selected";
+    }
+    return `${this.selectedCategoryIds.length} categories selected`;
+  }
+
+  // Update the refreshTransactions method in transaction-list.component.ts
+
+refreshTransactions() {
+  if (this.startDateInput && this.endDateInput) {
+    this.startDate = this.startDateInput;
+    this.endDate = this.endDateInput;
+
+    // Refresh user accounts first
+    this.userAccountService.refreshAccounts();
+    
+    // After a short delay to allow accounts to load
+    setTimeout(() => {
+      // If no accounts were previously selected or refresh was clicked
+      if (this.selectedAccountIds.length === 0) {
+        // Get the first account ID from the service
+        const firstAccountId = this.userAccountService.getFirstAccountId();
+        if (firstAccountId) {
+          this.selectedAccountIds = [firstAccountId];
+          this.noAccountsSelected = false;
+        } else {
+          this.noAccountsSelected = true;
+          this.toastService.showError("No accounts available");
+          return;
+        }
+      }
+
+      this.noAccountsSelected = false;
+      // Load transactions with either the selected accounts or first account
+      this.loadTransactions();
+
+      // Clear category changes when refreshing
+      this.resetCategoryChanges();
+    }, 300); // Short delay to allow accounts to refresh
+  }
+}
+
+  // Search transactions
+  onSearchChange(event: any) {
+    this.searchTerm = event.detail.value || "";
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (!this.searchTerm) {
+      this.filteredTransactions = [...this.transactions];
+    } else {
+      const searchLower = this.searchTerm.toLowerCase();
+      this.filteredTransactions = this.transactions.filter(
+        (transaction) =>
+          transaction.title.toLowerCase().includes(searchLower) ||
+          this.accountMap
+            .get(transaction.user_account_id)
+            ?.user_account_name.toLowerCase()
+            .includes(searchLower) ||
+          this.getUserCategoryTitles(transaction).some((title) =>
+            title.toLowerCase().includes(searchLower)
+          )
+      );
+    }
+  }
+
+  // Open add category modal for a specific transaction
+  addCategory(transaction: Transaction, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    this.selectedTransaction = transaction;
+    this.selectedCategories = Array.from(transaction.user_category_ids || []);
+    this.isAddCategoryModalOpen = true;
+  }
+
+  // Open add category modal to batch add categories to all visible transactions
+  openBatchAddCategories() {
+    this.selectedTransaction = null;
+    this.batchAddCategories = [];
+    this.isAddCategoryModalOpen = true;
+  }
+
+  // Close add category modal
+  closeAddCategoryModal() {
+    this.isAddCategoryModalOpen = false;
+    this.selectedTransaction = null;
+    this.selectedCategories = [];
+    this.batchAddCategories = [];
+  }
+
+  // Toggle category selection in add category modal
+  toggleAddCategorySelection(categoryId: number) {
+    if (this.selectedTransaction) {
+      const index = this.selectedCategories.indexOf(categoryId);
+      if (index > -1) {
+        this.selectedCategories.splice(index, 1);
+      } else {
+        // Check if we're at the maximum of 5 categories
+        if (this.selectedCategories.length >= 5) {
+          this.toastService.showError(
+            "Maximum 5 categories allowed per transaction"
+          );
+          return;
+        }
+        this.selectedCategories.push(categoryId);
+      }
+    } else {
+      // Batch add mode
+      const index = this.batchAddCategories.indexOf(categoryId);
+      if (index > -1) {
+        this.batchAddCategories.splice(index, 1);
+      } else {
+        // No limit on batch selection
+        this.batchAddCategories.push(categoryId);
+      }
+    }
+  }
+
+  // Check if a category is selected in the add category modal
+  isAddCategorySelected(categoryId: number): boolean {
+    if (this.selectedTransaction) {
+      return this.selectedCategories.includes(categoryId);
+    } else {
+      return this.batchAddCategories.includes(categoryId);
+    }
+  }
+
+  // Save selected categories for a transaction
+  saveSelectedCategories() {
+    if (this.selectedTransaction) {
+      // Single transaction mode
+      const transactionId = this.selectedTransaction.transaction_id;
+      const originalCategories = new Set(
+        this.selectedTransaction.user_category_ids || []
+      );
+
+      // Find categories to add
+      const categoriesToAdd = this.selectedCategories.filter(
+        (catId) => !originalCategories.has(catId)
+      );
+
+      // Find categories to remove
+      const categoriesToRemove = Array.from(originalCategories).filter(
+        (catId) => !this.selectedCategories.includes(catId)
+      );
+
+      // Process additions
+      if (categoriesToAdd.length > 0) {
+        const insertItems = categoriesToAdd.map((catId) => ({
+          transaction_id: transactionId,
+          user_category_id: catId,
+          action: TransactionUserCategoryAction.INSERT,
+        }));
+
+        let currentInserts = this.catInsertMap.get(transactionId) || [];
+        currentInserts = [...currentInserts, ...insertItems];
+        this.catInsertMap.set(transactionId, currentInserts);
+      }
+
+      // Process removals
+      if (categoriesToRemove.length > 0) {
+        const deleteItems = categoriesToRemove.map((catId) => ({
+          transaction_id: transactionId,
+          user_category_id: catId,
+          action: TransactionUserCategoryAction.DELETE,
+        }));
+
+        let currentDeletes = this.catDeleteMap.get(transactionId) || [];
+        currentDeletes = [...currentDeletes, ...deleteItems];
+        this.catDeleteMap.set(transactionId, currentDeletes);
+      }
+
+      // Update the transaction in the view
+      this.updateTransactionCategories(this.selectedTransaction);
+      this.checkCategoryChanges();
+    } else {
+      // Batch add mode - add selected categories to all visible transactions
+      if (this.batchAddCategories.length === 0) {
+        this.toastService.showError("Please select at least one category");
+        return;
+      }
+
+      // Apply to all filtered transactions
+      this.filteredTransactions.forEach((transaction) => {
+        const transactionId = transaction.transaction_id;
+        const originalCategories = new Set(transaction.user_category_ids || []);
+
+        // Only add categories that don't already exist
+        const categoriesToAdd = this.batchAddCategories.filter(
+          (catId) => !originalCategories.has(catId)
+        );
+
+        // Check if adding would exceed 5 categories
+        if (originalCategories.size + categoriesToAdd.length > 5) {
+          // Skip this transaction
+          return;
+        }
+
+        // Process additions
+        if (categoriesToAdd.length > 0) {
+          const insertItems = categoriesToAdd.map((catId) => ({
+            transaction_id: transactionId,
+            user_category_id: catId,
+            action: TransactionUserCategoryAction.INSERT,
+          }));
+
+          let currentInserts = this.catInsertMap.get(transactionId) || [];
+          currentInserts = [...currentInserts, ...insertItems];
+          this.catInsertMap.set(transactionId, currentInserts);
+
+          // Update the transaction in the view
+          this.updateTransactionCategories(transaction);
+        }
+      });
+
+      this.checkCategoryChanges();
+    }
+
+    this.closeAddCategoryModal();
+  }
+
+  // Update a transaction's categories based on pending changes
+  updateTransactionCategories(transaction: Transaction) {
+    const transactionId = transaction.transaction_id;
+    let updatedCategories = new Set(transaction.user_category_ids || []);
+
+    // Apply inserts
+    const insertItems = this.catInsertMap.get(transactionId) || [];
+    insertItems.forEach((item) => {
+      updatedCategories.add(item.user_category_id);
+    });
+
+    // Apply deletes
+    const deleteItems = this.catDeleteMap.get(transactionId) || [];
+    deleteItems.forEach((item) => {
+      updatedCategories.delete(item.user_category_id);
+    });
+
+    // Update the transaction object
+    transaction.user_category_ids = updatedCategories;
+  }
+
+  // Remove a category from a transaction
+  removeCategory(
+    transaction: Transaction,
+    categoryTitle: string,
+    event: Event
+  ) {
+    event.stopPropagation();
+
+    let categoryId: number | undefined = Array.from(
+      transaction.user_category_ids || []
+    ).find((id) => this.categoryMap.get(id));
+
+    // todo handle this condition
+    if (categoryId === undefined) {
+      return;
+    }
+    const transactionId = transaction.transaction_id;
+
+    // Create a DELETE action for this category
+    const deleteItem: TransactionUserCategory = {
+      transaction_id: transactionId,
+      user_category_id: categoryId,
+      action: TransactionUserCategoryAction.DELETE,
+    };
+
+    // Add to delete map
+    let currentDeletes = this.catDeleteMap.get(transactionId) || [];
+    currentDeletes = [...currentDeletes, deleteItem];
+    this.catDeleteMap.set(transactionId, currentDeletes);
+
+    // Check if we need to remove from insert map
+    let currentInserts = this.catInsertMap.get(transactionId) || [];
+    const insertIndex = currentInserts.findIndex(
+      (item) =>
+        item.user_category_id === categoryId &&
+        item.action === TransactionUserCategoryAction.INSERT
+    );
+
+    if (insertIndex !== -1) {
+      // If it's in the insert map, just remove it from there
+      currentInserts.splice(insertIndex, 1);
+      if (currentInserts.length === 0) {
+        this.catInsertMap.delete(transactionId);
+      } else {
+        this.catInsertMap.set(transactionId, currentInserts);
+      }
+
+      // And remove from delete map too since it was never actually saved
+      const deleteIndex = currentDeletes.findIndex(
+        (item) =>
+          item.user_category_id === categoryId &&
+          item.action === TransactionUserCategoryAction.DELETE
+      );
+      if (deleteIndex !== -1) {
+        currentDeletes.splice(deleteIndex, 1);
+        if (currentDeletes.length === 0) {
+          this.catDeleteMap.delete(transactionId);
+        } else {
+          this.catDeleteMap.set(transactionId, currentDeletes);
+        }
+      }
+    }
+
+    // Update the transaction in the view
+    this.updateTransactionCategories(transaction);
+    this.checkCategoryChanges();
+  }
+
+  // Check if there are pending category changes
+  checkCategoryChanges() {
+    this.hasCategoryChanges =
+      this.catInsertMap.size > 0 || this.catDeleteMap.size > 0;
+  }
+
+  // Reset all category changes
+  resetCategoryChanges() {
+    this.catInsertMap.clear();
+    this.catDeleteMap.clear();
+    this.hasCategoryChanges = false;
+
+    // Reset transactions to original state by reloading
+    this.loadTransactions();
+  }
+
+  // Save all category changes
+  saveAllCategoryChanges() {
+    if (!this.hasCategoryChanges) return;
+
+    this.isSaving = true;
+
+    // Create list of all changes
+    const allChanges: TransactionUserCategory[] = [];
+
+    // Add all inserts
+    this.catInsertMap.forEach((items) => {
+      allChanges.push(...items);
+    });
+
+    // Add all deletes
+    this.catDeleteMap.forEach((items) => {
+      allChanges.push(...items);
+    });
+
+    // Call the API
+    this.categoryService.editTransactionCategories(allChanges).subscribe(
+      () => {
+        this.toastService.showSuccess("Categories updated successfully");
+        this.catInsertMap.clear();
+        this.catDeleteMap.clear();
+        this.hasCategoryChanges = false;
+        this.isSaving = false;
+
+        // Reload transactions to get fresh data
+        this.loadTransactions();
+      },
+      (error) => {
+        console.error("Error updating categories:", error);
+        this.toastService.showError("Failed to update categories");
+        this.isSaving = false;
+      }
+    );
+  }
+
+  // Check if transaction has category changes
+  hasTransactionCategoryChanges(transaction: Transaction): boolean {
+    const transactionId = transaction.transaction_id;
+    return (
+      this.catInsertMap.has(transactionId) ||
+      this.catDeleteMap.has(transactionId)
+    );
+  }
+
+  // Get category title for a transaction
+  getCategoryTitle(transaction: Transaction): string {
+    if (
+      transaction.category_id &&
+      this.categoryMap.has(transaction.category_id)
+    ) {
+      return (
+        this.categoryMap.get(transaction.category_id)?.category_title || ""
+      );
+    }
+    return "";
+  }
+
+  // Get user category titles for a transaction
+  getUserCategoryTitles(transaction: Transaction): string[] {
+    // First, create a "working copy" of the transaction's categories
+    // by applying pending changes
+    let effectiveCategories = new Set(transaction.user_category_ids || []);
+
+    // Apply inserts
+    const inserts = this.catInsertMap.get(transaction.transaction_id) || [];
+    inserts.forEach((item) => effectiveCategories.add(item.user_category_id));
+
+    // Apply deletes
+    const deletes = this.catDeleteMap.get(transaction.transaction_id) || [];
+    deletes.forEach((item) =>
+      effectiveCategories.delete(item.user_category_id)
+    );
+
+    // Get titles
+    return Array.from(effectiveCategories)
+      .map((id) => this.categoryMap.get(id)?.category_title || "")
+      .filter((title) => title !== "");
+  }
+
+  private loadTransactions() {
+    if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
+      this.isLoading = true;
+      this.noAccountsSelected = false;
+
+      this.transactionService
+        .fetchAllTransactions(
+          this.selectedAccountIds,
+          this.startDate,
+          this.endDate,
+          this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : null
+        )
+        .subscribe(
+          (transactions) => {
+            this.openingBalance = transactions.opening_balance;
+            this.closingBalance = transactions.closing_balance;
+            this.totalDebit = transactions.total_debit;
+            this.totalCredit = transactions.total_credit;
+            this.transactions = transactions.transactions;
+            this.filteredTransactions = [...this.transactions]; // Initialize filtered transactions
+            this.isLoading = false;
+          },
+          (error) => {
+            console.error("Error fetching transactions:", error);
+            this.isLoading = false;
+          }
+        );
+    } else if (this.selectedAccountIds.length === 0) {
+      // Set noAccountsSelected flag if no accounts are selected
+      this.noAccountsSelected = true;
+      this.clearTransactions();
+    }
+  }
+
+  // Check if a transaction is a debit (expense)
+  isDebit(transaction: Transaction): boolean {
+    return transaction.is_debit_or_credit === "DR";
+  }
+
+  // Get all transactions
+  getTransactions(): Transaction[] {
+    return this.filteredTransactions;
+  }
+
+  // Go back to accounts
+  backToAccounts(): void {
+    // This can be removed or modified based on your needs
+  }
+
+  // Add this new method to process icons
+  private processAccountIcons() {
+    this.groupedAccounts.forEach((group) => {
+      group.user_accounts.forEach((account) => {
+        if (account.icon && !account.icon.startsWith("data:")) {
+          account.icon = `data:image/png;base64,${account.icon}`;
+        }
+      });
+    });
+  }
+
+  // Create a map of account IDs to account objects for easier lookup
+  private createAccountMap() {
+    this.accountMap.clear();
+    this.groupedAccounts.forEach((group) => {
+      group.user_accounts.forEach((account) => {
+        this.accountMap.set(account.account_id, account);
+      });
+    });
+  }
+
+  // Create a map of category IDs to category objects for easier lookup
+  private createCategoryMap() {
+    this.categoryMap.clear();
+    this.userCategories.forEach((category) => {
+      this.categoryMap.set(category.id, category);
+    });
+  }
+
+  // Add method to clear transactions
+  private clearTransactions() {
+    this.transactions = [];
+    this.filteredTransactions = [];
+    this.totalDebit = 0;
+    this.totalCredit = 0;
+    this.closingBalance = 0;
+  }
+
+  // Update date change handlers
+  onStartDateChange() {
+    this.clearTransactions();
+  }
+
+  onEndDateChange() {
+    this.clearTransactions();
+  }
+
+  // Add method to set financial year dates
+  private setFinancialYearDates() {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // If current month is Jan-Mar, financial year is previous year to current year
+    // If current month is Apr-Dec, financial year is current year to next year
+    const isJanToMar = currentMonth < 3;
+    const fyStartYear = isJanToMar ? currentYear - 1 : currentYear;
+
+    this.startDate = `${fyStartYear}-04-01`;
+    this.endDate = `${fyStartYear + 1}-03-31`;
+    this.startDateInput = this.startDate;
+    this.endDateInput = this.endDate;
+  }
+
+  navigateToStatementUploader() {
+    this.router.navigateByUrl("/tabs/statement-uploader", {
+      state: { openUploadModal: true },
+    });
+  }
+
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest("ion-button");
+    const icon = button.querySelector("ion-icon") || button; // Fallback if icon not found
+    icon.classList.add("refreshing");
+    
+    // Refresh accounts first
+    this.userAccountService.refreshAccounts();
+    
+    // After a short delay, refresh transactions
+    setTimeout(() => {
+      this.refreshTransactions();
+      
+      // Remove the animation class after animation completes
+      setTimeout(() => {
+        icon.classList.remove("refreshing");
+      }, 1000);
+    }, 300);
+  }
+}
+
+
+# FILE: app/explore-container/explore-container.component.ts
+
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-explore-container',
+  templateUrl: './explore-container.component.html',
+  styleUrls: ['./explore-container.component.scss'],
+})
+export class ExploreContainerComponent {
+  @Input() name?: string;
+}
+
+
+# FILE: app/explore-container/explore-container.component.html
+
+<div id="container">
+  <strong>{{ name }}</strong>
+  <p>
+    Explore
+    <a
+      target="_blank"
+      rel="noopener noreferrer"
+      href="https://ionicframework.com/docs/components"
+      >UI Components</a
+    >
+  </p>
+</div>
+
+
+# FILE: app/explore-container/explore-container.component.scss
+
+#container {
+  text-align: center;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#container strong {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+#container p {
+  font-size: 16px;
+  line-height: 22px;
+
+  color: #8c8c8c;
+
+  margin: 0;
+}
+
+#container a {
+  text-decoration: none;
+}
+
+# FILE: app/statement-uploader/statement-uploader.component.ts
+
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import {
+  IonHeader,
+  IonRow,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonButton,
+  IonIcon,
+  IonFab,
+  IonFabButton,
+  IonModal,
+  IonAvatar,
+  IonButtons,
+  IonChip,
+  IonCheckbox,
+  IonItemDivider,
+  IonInput,
+  IonRadio,
+  IonRadioGroup,
+  IonSpinner,
+} from "@ionic/angular/standalone";
+import { addIcons } from "ionicons";
+import {
+  addOutline,
+  documentOutline,
+  cloudUploadOutline,
+  trashOutline,
+  createOutline,
+  arrowBackOutline,
+  closeCircle,
+  checkmarkCircle,
+  refreshOutline,
+  alertCircleOutline,
+} from "ionicons/icons";
+import { GroupedUserAccount } from "src/model/grouped-user-account";
+import { UserAccount } from "src/model/user-account";
+import { UserAccountService } from "src/service/user.account.service";
+import { Statement, UploadResult } from "../../model/statement";
+import { Router } from "@angular/router";
+import * as uuid from "uuid";
+import { ToastService } from "src/service/toast.service";
+import { StatementUploadService } from "src/service/statement-upload.service";
+
+@Component({
+  selector: "app-statement-uploader",
+  templateUrl: "./statement-uploader.component.html",
+  styleUrls: ["./statement-uploader.component.scss"],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonList,
+    IonRow,
+    IonItem,
+    IonLabel,
+    IonButton,
+    IonIcon,
+    IonFab,
+    IonFabButton,
+    IonModal,
+    IonAvatar,
+    IonButtons,
+    IonChip,
+    IonCheckbox,
+    IonItemDivider,
+    IonInput,
+    IonRadio,
+    IonRadioGroup,
+    IonSpinner,
+  ],
+})
+export class StatementUploaderComponent implements OnInit {
+  @ViewChild("accountModal") accountModal!: IonModal;
+
+  groupedAccounts: GroupedUserAccount[] = [];
+  statementsToBeUploaded: Statement[] = [];
+
+  // Upload form variables
+  isUploadModalOpen = false;
+  selectedAccount: UserAccount | null = null;
+  selectedFile: File | null = null;
+  fileTypeError = false;
+
+  // Account selection
+  isAccountModalOpen = false;
+
+  // Upload results tracking
+  uploadResults: UploadResult[] = [];
+  isUploading = false;
+
+  constructor(
+    private userAccountService: UserAccountService,
+    private statementUploadService: StatementUploadService,
+    private router: Router,
+    private toastService: ToastService
+  ) {
+    addIcons({
+      addOutline,
+      documentOutline,
+      cloudUploadOutline,
+      trashOutline,
+      createOutline,
+      arrowBackOutline,
+      closeCircle,
+      checkmarkCircle,
+      refreshOutline,
+      alertCircleOutline,
+    });
+  }
+
+  ngOnInit() {
+    this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
+      this.groupedAccounts = accounts;
+    });
+
+    // Check if we should open the upload modal automatically
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state?.["openUploadModal"]) {
+      // Open the modal after a short delay to ensure the component is fully initialized
+      setTimeout(() => {
+        this.isUploadModalOpen = true;
+      }, 300);
+    }
+  }
+
+  // Account Selection Methods
+  openAccountSelector() {
+    this.isAccountModalOpen = true;
+  }
+
+  closeAccountSelector() {
+    this.isAccountModalOpen = false;
+    if (this.selectedAccount && this.selectedFile) {
+      this.validateFileType();
+    }
+  }
+
+  selectAccount(account: UserAccount) {
+    this.selectedAccount = account;
+    this.closeAccountSelector();
+  }
+
+  // File Upload Methods
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      // Validate file type if account is already selected
+      if (this.selectedAccount) {
+        this.validateFileType();
+      }
+    }
+  }
+
+  // Validate file type against account's supported extensions
+  validateFileType() {
+    this.fileTypeError = false;
+
+    if (this.selectedAccount && this.selectedFile) {
+      const file_name = this.selectedFile.name;
+      const fileExt = file_name.split(".").pop()?.toLowerCase() || "";
+
+      // Get supported extensions from account
+      const supportedExtensions = this.selectedAccount.statement_file_extensions
+        .split(",")
+        .map((ext) => ext.trim().toLowerCase());
+
+      // Check if file extension is supported
+      if (!supportedExtensions.includes(fileExt)) {
+        this.fileTypeError = true;
+      }
+    }
+  }
+
+  // Add Statement to List
+  addStatement() {
+    if (this.selectedAccount && this.selectedFile && !this.fileTypeError) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const fileExt =
+          this.selectedFile!.name.split(".").pop()?.toLowerCase() || "";
+
+        const statement: Statement = {
+          account_id: this.selectedAccount!.account_id,
+          user_account_id: this.selectedAccount!.user_account_id,
+          user_id: this.selectedAccount!.user_id,
+          file_name: this.selectedFile!.name,
+          file_extension: fileExt as any, // Type assertion to satisfy the model
+          file: e.target.result.split(",")[1], // Base64 without data URL prefix
+          request_id: uuid.v4(),
+        };
+
+        this.statementsToBeUploaded.push(statement);
+        this.resetUploadForm();
+      };
+      reader.readAsDataURL(this.selectedFile);
+    }
+  }
+
+  // Upload all statements to the API
+  uploadAllStatements() {
+    if (this.statementsToBeUploaded.length === 0) {
+      this.toastService.showError("No statements to upload");
+      return;
+    }
+
+    this.isUploading = true;
+    this.uploadResults = []; // Clear previous results
+
+    // Create a map of request_id to statement for easy lookup
+    const statementMap = new Map<string, Statement>();
+    this.statementsToBeUploaded.forEach((statement) => {
+      statementMap.set(statement.request_id, statement);
+    });
+
+    // Send all statements in a single API call
+    this.statementUploadService
+      .uploadAllStatements(this.statementsToBeUploaded)
+      .subscribe(
+        (responses) => {
+          this.isUploading = false;
+
+          // Process each response and match with the corresponding statement
+          this.uploadResults = responses.map((response) => {
+            const statement = statementMap.get(response.request_id);
+            return {
+              statement: statement!,
+              response: response,
+            };
+          });
+
+          // Count successful uploads
+          const successCount = responses.filter((r) => r.status).length;
+
+          // Remove successfully uploaded statements from the list
+          this.statementsToBeUploaded = this.statementsToBeUploaded.filter(
+            (statement) => {
+              // Find the response for this statement
+              const response = responses.find(
+                (r) => r.request_id === statement.request_id
+              );
+              // Keep only failed statements
+              return response ? !response.status : true;
+            }
+          );
+
+          // Show appropriate toast message
+          if (successCount === responses.length) {
+            this.toastService.showSuccess(
+              `All ${successCount} statements uploaded successfully`
+            );
+          } else {
+            this.toastService.showSuccess(
+              `${successCount} of ${responses.length} statements uploaded successfully`
+            );
+          }
+        },
+        (error) => {
+          console.error("Error uploading statements:", error);
+
+          // Create failed responses for all statements
+          this.uploadResults = this.statementsToBeUploaded.map((statement) => ({
+            statement,
+            response: {
+              status: false,
+              request_id: statement.request_id,
+              transaction_count: 0,
+              error_messages: ["Network or server error occurred"],
+            },
+          }));
+
+          this.isUploading = false;
+          this.toastService.showError("Failed to upload statements");
+        }
+      );
+  }
+
+  // Reset Upload Form
+  resetUploadForm() {
+    this.selectedAccount = null;
+    this.selectedFile = null;
+    this.fileTypeError = false;
+    this.isUploadModalOpen = false;
+    this.uploadResults = []; // Clear upload results
+  }
+
+  // Delete Statement
+  deleteStatement(index: number) {
+    this.statementsToBeUploaded.splice(index, 1);
+  }
+
+  // Edit Statement (Open Upload Modal with Existing Data)
+  editStatement(statement: Statement, index: number) {
+    this.selectedAccount = this.getUserAccountById(statement.user_account_id);
+    this.isUploadModalOpen = true;
+    // Remove the existing statement to replace it
+    this.statementsToBeUploaded.splice(index, 1);
+  }
+
+  // Clear All Statements
+  clearAllStatements() {
+    this.statementsToBeUploaded = [];
+    this.uploadResults = []; // Also clear upload results
+  }
+
+  // Reset uploader completely
+  resetUploader() {
+    this.statementsToBeUploaded = [];
+    this.uploadResults = [];
+    this.resetUploadForm();
+  }
+
+  // Helper method to get account by ID
+  getUserAccountById(user_account_id: number): UserAccount | null {
+    for (const group of this.groupedAccounts) {
+      const account = group.user_accounts.find(
+        (a) => a.user_account_id === user_account_id
+      );
+      if (account) return account;
+    }
+    return null;
+  }
+
+  // Helper method to convert comma-separated extensions to array
+  getFileExtensionsArray(extensions: string): string[] {
+    if (!extensions) return [];
+    return extensions.split(",").map((ext) => ext.trim().toLowerCase());
+  }
+
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest('ion-button');
+    const icon = button.querySelector('ion-icon') || button; // Fallback if icon not found
+    icon.classList.add('refreshing');
+    
+    // Call the actual refresh method
+    this.resetUploader();
+    
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove('refreshing');
+      this.toastService.showSuccess("Statement uploader reset");
+    }, 1000);
+  }
+}
+
+
+# FILE: app/statement-uploader/statement-uploader.component.html
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Statement Uploader</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshWithAnimation($event)">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- No Statements Placeholder -->
+  @if (statementsToBeUploaded.length === 0 && uploadResults.length === 0) {
+  <div class="empty-state">
+    <ion-icon name="document-outline" class="empty-icon"></ion-icon>
+    <h2>No Statements Uploaded</h2>
+    <p>Click the plus button to start uploading bank statements</p>
+  </div>
+  }
+
+  <!-- Statements List -->
+  @if (statementsToBeUploaded.length > 0) {
+  <ion-list>
+    @for (statement of statementsToBeUploaded; track statement) {
+    <ion-item class="statement-item">
+      <ion-avatar slot="start">
+        <img [src]="getUserAccountById(statement.user_account_id)?.icon" />
+      </ion-avatar>
+
+      <ion-label>
+        {{ statement.file_name }}
+      </ion-label>
+
+      <div slot="end" class="statement-actions">
+        <ion-button
+          fill="clear"
+          color="primary"
+          (click)="
+            editStatement(statement, statementsToBeUploaded.indexOf(statement))
+          "
+        >
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button
+          fill="clear"
+          color="danger"
+          (click)="deleteStatement(statementsToBeUploaded.indexOf(statement))"
+        >
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-item>
+    }
+  </ion-list>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <ion-button expand="block" color="danger" (click)="clearAllStatements()">
+      <ion-icon name="trash-outline" slot="start"></ion-icon>
+      Clear All Statements
+    </ion-button>
+
+    <ion-button expand="block" color="primary" (click)="uploadAllStatements()">
+      <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+      Upload Statements
+    </ion-button>
+  </div>
+  }
+
+  <!-- Upload Results List -->
+  <div class="upload-results-container" *ngIf="uploadResults.length > 0">
+    <div class="section-title">
+      <h4>Statement Upload Summary</h4>
+    </div>
+
+    <ion-list>
+      <ion-item
+        *ngFor="let result of uploadResults"
+        class="result-item"
+        [ngClass]="{
+          'success-result': result.response.status,
+          'error-result': !result.response.status
+        }"
+      >
+        <ion-avatar slot="start">
+          <img
+            [src]="getUserAccountById(result.statement.user_account_id)?.icon"
+          />
+        </ion-avatar>
+
+        <ion-label>
+          <h2>{{ result.statement.file_name }}</h2>
+          <p *ngIf="result.response.status">
+            Transactions: {{ result.response.transaction_count }}
+          </p>
+          <div *ngIf="!result.response.status" class="error-messages">
+            <p class="error-message">
+              <ion-icon name="alert-circle-outline"></ion-icon> Failed to upload
+              statement
+            </p>
+          </div>
+        </ion-label>
+
+        <div slot="end" class="status-indicator">
+          <ion-icon
+            *ngIf="result.response.status"
+            name="checkmark-circle"
+            color="success"
+          ></ion-icon>
+          <ion-icon
+            *ngIf="!result.response.status"
+            name="close-circle"
+            color="danger"
+          ></ion-icon>
+        </div>
+      </ion-item>
+    </ion-list>
+
+    <ion-button
+      expand="block"
+      color="medium"
+      (click)="resetUploader()"
+      class="reset-button"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Clear All & Start Over
+    </ion-button>
+  </div>
+
+  <!-- Loading indicator during upload -->
+  <div class="loading-container" *ngIf="isUploading">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Uploading statements...</p>
+  </div>
+
+  <!-- Upload Modal -->
+  <ion-modal [isOpen]="isUploadModalOpen" (didDismiss)="resetUploadForm()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="resetUploadForm()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Upload Statement</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="addStatement()"
+              [disabled]="!selectedAccount || !selectedFile || fileTypeError"
+            >
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Selector -->
+        <ion-item button (click)="openAccountSelector()" detail="true">
+          <ion-label>
+            <h2>Select Account</h2>
+            <p>
+              @if (selectedAccount) {
+              {{ selectedAccount.user_account_name }}
+              } @else { Choose an account }
+            </p>
+          </ion-label>
+        </ion-item>
+
+        <!-- File Upload -->
+        <ion-item button (click)="fileInput.click()">
+          <ion-label>
+            <h2>Upload Statement</h2>
+            <p>
+              @if (selectedFile) {
+              {{ selectedFile.name }}
+              } @else { Choose a file to upload }
+            </p>
+          </ion-label>
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            style="display: none"
+            #fileInput
+          />
+          @if (selectedFile && selectedAccount) { @if (fileTypeError) {
+          <ion-icon
+            name="close-circle"
+            color="danger"
+            class="validation-icon"
+          ></ion-icon>
+          } @else {
+          <ion-icon
+            name="checkmark-circle"
+            color="success"
+            class="validation-icon"
+          ></ion-icon>
+          } }
+          <ion-icon name="cloud-upload-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <!-- File Type Error Message -->
+        @if (fileTypeError) {
+        <ion-item lines="none" class="error-message-item">
+          <ion-icon name="alert-circle" color="danger" slot="start"></ion-icon>
+          <ion-label>
+            File type not supported for this account. Please upload a file with
+            one of the supported extensions.
+          </ion-label>
+        </ion-item>
+        }
+
+        <!-- Supported File Types -->
+        @if (selectedAccount) {
+        <div class="supported-files-container">
+          <h4>Supported File Types</h4>
+          <div class="extension-chips">
+            @for (ext of
+            getFileExtensionsArray(selectedAccount.statement_file_extensions);
+            track ext) {
+            <span class="extension-chip">{{ ext }}</span>
+            }
+          </div>
+        </div>
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal for Account Selection -->
+  <ion-modal
+    #accountModal
+    [isOpen]="isAccountModalOpen"
+    (didDismiss)="closeAccountSelector()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Select Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAccountSelector()">Done</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <ion-radio-group [(ngModel)]="selectedAccount">
+          <ion-list>
+            @for (group of groupedAccounts; track group) {
+            <ion-item-divider>
+              {{ group.level_1_title }}
+            </ion-item-divider>
+
+            @for (account of group.user_accounts; track account) {
+            <ion-item button (click)="selectAccount(account)">
+              <ion-avatar slot="start">
+                <img [src]="account.icon" [alt]="account.user_account_name" />
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ account.user_account_name }}</h2>
+                <p>
+                  Supported files: @for (ext of
+                  getFileExtensionsArray(account.statement_file_extensions);
+                  track ext) {
+                  <span class="file-extensions-badge">{{ ext }}</span>
+                  }
+                </p>
+              </ion-label>
+              <ion-radio slot="end" [value]="account"></ion-radio>
+            </ion-item>
+            } }
+          </ion-list>
+        </ion-radio-group>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Floating Action Button -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="isUploadModalOpen = true">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
+
+# FILE: app/statement-uploader/statement-uploader.component.scss
+
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Add validation icon styling
+.validation-icon {
+  font-size: 22px;
+  margin-right: 8px;
+}
+
+// Error message styling
+.error-message-item {
+  margin: 10px 0;
+  --background: rgba(var(--ion-color-danger-rgb), 0.05);
+  --border-radius: 8px;
+  
+  ion-icon {
+    font-size: 24px;
+    margin-right: 8px;
+  }
+  
+  ion-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 0;
+    line-height: 1.5;
+    white-space: normal;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 56px); // Adjust for header height
+  text-align: center;
+  padding: 20px;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    font-size: 100px;
+    color: var(--ion-color-light-shade);
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+  }
+}
+
+// Action buttons styling
+.action-buttons {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  ion-button {
+    margin: 0;
+    --border-radius: 12px;
+    height: 48px;
+  }
+}
+
+// Match transaction item styling
+ion-list {
+  background: transparent;
+  padding: 0 16px;
+}
+
+ion-item.statement-item {
+  margin: 4px auto;
+  --background: #ffffff;
+  --border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+
+  &:last-of-type {
+    margin-bottom: 8px;
+  }
+
+  ion-avatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+  }
+
+  ion-label {
+    margin-left: 4px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .statement-actions {
+    display: flex;
+    align-items: center;
+
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 32px;
+      margin: 0;
+    }
+  }
+}
+
+// Upload results container
+.upload-results-container {
+  margin-top: 16px;
+  padding: 0 16px 16px;
+  
+  .section-title {
+    margin-bottom: 10px;
+    
+    h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+      padding: 16px 0 8px;
+    }
+  }
+  
+  .result-item {
+    margin: 4px auto;
+    --background: #ffffff;
+    --border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid transparent;
+    
+    &.success-result {
+      border-left-color: var(--ion-color-success);
+    }
+    
+    &.error-result {
+      border-left-color: var(--ion-color-danger);
+    }
+    
+    ion-avatar {
+      width: 40px;
+      height: 40px;
+      margin-right: 12px;
+    }
+    
+    ion-label {
+      h2 {
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+      
+      p {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        margin: 0;
+      }
+      
+      .error-messages {
+        margin-top: 4px;
+        
+        .error-message {
+          color: var(--ion-color-danger);
+          font-size: 12px;
+          margin: 3px 0;
+          display: flex;
+          align-items: center;
+          
+          ion-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+  }
+  
+  .reset-button {
+    margin-top: 16px;
+    --border-radius: 12px;
+    height: 48px;
+  }
+}
+
+// Modal styling to match transactions page
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+
+  ion-content {
+    --background: #f5f7fa;
+  }
+
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+
+  ion-item {
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    --min-height: 56px;
+
+    ion-avatar {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+    }
+
+    ion-label {
+      font-size: 14px;
+      margin-left: 8px;
+
+      // Style for supported file types
+      &:has(h2:contains("Supported File Types")) {
+        h2 {
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 4px;
+        }
+        
+        p {
+          font-size: 13px;
+          color: var(--ion-color-medium);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+
+      // Style for error message
+      &[color="danger"] {
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.4;
+        font-font-family: 'Nunito', sans-serif;
+        
+        // Improved error message styling to match app theme
+        padding: 12px 16px;
+        margin: -12px -16px;
+        background-color: rgba(var(--ion-color-danger-rgb), 0.05);
+        border-left: 3px solid var(--ion-color-danger);
+        border-radius: 0 4px 4px 0;
+      }
+    }
+  }
+}
+
+// Account list modal item styling for file extensions
+ion-radio-group {
+  ion-item {
+    ion-label {
+      h2 {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      
+      p {
+        font-size: 12px;
+        color: var(--ion-color-medium);
+        white-space: normal;
+      }
+    }
+  }
+}
+
+// File extension badges on account selection
+.file-extensions-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  margin-right: 4px;
+  margin-top: 4px;
+  background: transparent;
+  color: var(--ion-color-primary);
+  border: 1px solid var(--ion-color-primary);
+  border-radius: 16px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+// Supported file types container
+.supported-files-container {
+  background: transparent;
+  border-radius: 8px;
+  margin: 8px 16px;
+  padding: 12px 16px;
+  
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    margin: 0 0 6px 0;
+  }
+  
+  .extension-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    
+    .extension-chip {
+      font-size: 12px;
+      background: transparent;
+      color: var(--ion-color-primary);
+      padding: 4px 10px;
+      border: 1px solid var(--ion-color-primary);
+      border-radius: 16px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+  }
+}
+
+// Floating Action Button styling
+// ion-fab-button {
+//   --border-radius: 50%;
+//   --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+// }
+
+ion-fab {
+  margin-bottom: 16px;
+  margin-right: 16px;
+  
+  ion-fab-button {
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Content background
+ion-content {
+  --background: #f5f7fa;
+  --padding-top: 12px;
+  --padding-bottom: 16px;
+}
+
+// Loading container
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  
+  ion-spinner {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+# FILE: app/tab2/tab2.page.html
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Tab 2
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tab 2</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <app-explore-container name="Tab 2 page"></app-explore-container>
+</ion-content>
+
+
+# FILE: app/tab2/tab2.page.scss
+
+
+
+# FILE: app/category-list/category-list.component.html
+
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Categories</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshWithAnimation($event)">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light">
+  <!-- Search bar with typeahead -->
+  <ion-searchbar
+    placeholder="Search categories"
+    [(ngModel)]="searchTerm"
+    (ionInput)="onSearchChange($event)"
+    animated
+    debounce="300"
+    showCancelButton="focus"
+    cancelButtonText="Clear"
+  ></ion-searchbar>
+  
+  <!-- Action buttons container -->
+  <div class="action-buttons-container" *ngIf="hasPendingChanges">
+    <ion-button fill="outline" color="medium" size="small" (click)="resetChanges()">
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Reset All
+    </ion-button>
+    
+    <ion-button fill="solid" color="primary" size="small" (click)="saveChanges()" [disabled]="isSaving">
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      Save Changes
+    </ion-button>
+  </div>
+
+  <!-- Loading indicator -->
+  <div class="loading-container" *ngIf="isLoading">
+    <ion-spinner name="circular"></ion-spinner>
+    <p>Loading categories...</p>
+  </div>
+
+  <!-- Categories list -->
+  <ion-list [inset]="true" lines="none" *ngIf="!isLoading">
+    <ng-container *ngIf="filteredCategories.length > 0; else noCategories">
+      <ion-item 
+        class="category-item" 
+        *ngFor="let category of filteredCategories"
+        [class.delete-item]="category.delete"
+        [class.edit-item]="category.new_title && !category.delete">
+        
+        <!-- Category Info -->
+        <div class="category-info">
+          <ion-label>
+            <h2>{{ category.category_title }}</h2>
+            <p *ngIf="category.new_title && !category.delete" class="new-title">
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+              {{ category.new_title }}
+            </p>
+          </ion-label>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div slot="end" class="action-buttons">
+          <!-- For items marked for deletion -->
+          <ng-container *ngIf="category.delete">
+            <div class="status-container status-danger" [class.active]="statusActive" (click)="toggleStatusActive()">
+              <ion-button fill="clear" color="danger" class="compact-button" (click)="toggleDelete(category); $event.stopPropagation()">
+                <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-text color="danger">Will be deleted</ion-text>
+            </div>
+          </ng-container>
+          
+          <!-- For items being renamed -->
+          <ng-container *ngIf="category.new_title && !category.delete">
+            <div class="status-container status-primary" [class.active]="statusActive" (click)="toggleStatusActive()">
+              <ion-button fill="clear" color="primary" class="compact-button" (click)="cancelRename(category); $event.stopPropagation()">
+                <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-text color="primary">Will be renamed</ion-text>
+            </div>
+          </ng-container>
+          
+          <!-- For items with no pending changes -->
+          <ng-container *ngIf="!category.delete && !category.new_title">
+            <ion-button fill="outline" color="primary" size="small" class="action-button" (click)="renameCategory(category)">
+              <ion-icon name="create-outline" slot="start"></ion-icon>
+              Rename
+            </ion-button>
+            
+            <ion-button fill="outline" color="danger" size="small" class="action-button" (click)="toggleDelete(category)">
+              <ion-icon name="trash-outline" slot="start"></ion-icon>
+              Delete
+            </ion-button>
+          </ng-container>
+        </div>
+      </ion-item>
+    </ng-container>
+    
+    <!-- Empty state -->
+    <ng-template #noCategories>
+      <div class="empty-state">
+        <ion-icon name="information-circle-outline" class="empty-icon"></ion-icon>
+        <h2>No Categories Found</h2>
+        <p *ngIf="searchTerm">No categories match your search criteria</p>
+        <p *ngIf="!searchTerm">You don't have any categories yet</p>
+        <ion-button (click)="refreshCategories()" fill="outline">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          Refresh
+        </ion-button>
+      </div>
+    </ng-template>
+  </ion-list>
+  
+  <!-- Add New Category Modal -->
+  <ion-modal [isOpen]="isAddCategoryModalOpen" (didDismiss)="closeAddCategoryModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeAddCategoryModal()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Add New Category</ion-title>
+          <ion-buttons slot="end">
+            <ion-button 
+              (click)="saveNewCategory()" 
+              [disabled]="!newCategoryName.trim()">
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content>
+        <div class="form-group">
+          <ion-item lines="none" class="name-input-item">
+            <ion-label position="stacked">Category Name (Max 50 characters)</ion-label>
+            <ion-input 
+              [(ngModel)]="newCategoryName" 
+              placeholder="Enter category name"
+              maxlength="50"
+              required="true">
+            </ion-input>
+          </ion-item>
+          
+          @if (newCategoryName && newCategoryName.length > 50) {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon name="alert-circle" color="danger" slot="start"></ion-icon>
+            <ion-label color="danger">
+              Category name cannot exceed 50 characters
+            </ion-label>
+          </ion-item>
+          } @if (!newCategoryName.trim() && newCategoryName !== '') {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon name="alert-circle" color="danger" slot="start"></ion-icon>
+            <ion-label color="danger">
+              Category name cannot be empty
+            </ion-label>
+          </ion-item>
+          }
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+  
+  <!-- Floating Action Button to Add New Category -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openAddCategoryModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
+
+# FILE: app/category-list/category-list.component.scss
+
+
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Loading container
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+
+  ion-spinner {
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// Category item styling
+.category-item {
+  margin: 4px auto;
+  --background: #ffffff;
+  --border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  overflow: visible;
+
+  &.delete-item {
+    --background: rgba(var(--ion-color-danger-rgb), 0.05);
+    border-left: 4px solid var(--ion-color-danger);
+  }
+
+  &.edit-item {
+    --background: rgba(var(--ion-color-primary-rgb), 0.05);
+    border-left: 4px solid var(--ion-color-primary);
+  }
+
+  .category-info {
+    flex: 1;
+
+    ion-label {
+      h2 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .new-title {
+        color: var(--ion-color-primary);
+        font-weight: 500;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        
+        ion-icon {
+          margin: 0 4px;
+        }
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .action-button {
+      --padding-start: 10px;
+      --padding-end: 10px;
+      height: 32px;
+      font-size: 12px;
+      text-transform: none;
+    }
+
+    ion-text {
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+// Reset button container
+.reset-container {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+// Empty state
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 80px;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+  }
+}
+
+// Content styles
+ion-content {
+  --background: #f5f7fa;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+// Ion-list styles
+ion-list {
+  background: transparent;
+  padding: 0 16px;
+}
+
+// Search bar styling
+ion-searchbar {
+  padding: 0 16px;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 0.7;
+  margin-bottom: 16px;
+}
+
+// Action buttons container
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 16px;
+}
+
+// Status container for actions
+.status-container {
+  display: flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 16px;
+  margin-left: 8px;
+  
+  &.status-danger {
+    background-color: white;
+    border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
+    
+    &.active {
+      background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+    }
+  }
+  
+  &.status-primary {
+    background-color: white;
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
+    
+    &.active {
+      background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+    }
+  }
+  
+  .compact-button {
+    --padding-start: 0;
+    --padding-end: 4px;
+    margin: 0;
+    height: 24px;
+    
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+  
+  ion-text {
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+}
+
+// Floating Action Button styling
+ion-fab {
+  margin-bottom: 16px;
+  margin-right: 16px;
+  
+  ion-fab-button {
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+  
+  ion-header {
+    --background: var(--ion-background-color);
+  }
+  
+  ion-content {
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+  }
+  
+  .form-group {
+    margin: 16px;
+    
+    .name-input-item {
+      --background: #f8f9fa;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      margin-bottom: 8px;
+      
+      ion-label {
+        color: var(--ion-color-medium);
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      
+      ion-input {
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+        --padding-start: 0;
+        font-size: 16px;
+      }
+    }
+  }
+  
+  .error-message-item {
+    margin-top: 4px;
+    --background: rgba(var(--ion-color-danger-rgb), 0.05);
+    --border-radius: 8px;
+    
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+    
+    ion-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+  }
+}
+
+
+# FILE: app/category-list/category-list.component.ts
+
+
+import { Component, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonSearchbar,
+  IonButton,
+  IonIcon,
+  IonChip,
+  IonSpinner,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonButtons,
+  IonBadge,
+  IonAlert,
+  IonCard,
+  IonCardContent,
+  IonToggle,
+  IonInput,
+  IonText,
+  AlertController,
+  ToastController,
+  IonFab,
+  IonFabButton,
+  IonModal
+} from "@ionic/angular/standalone";
+import { addIcons } from "ionicons";
+import {
+  createOutline,
+  trashOutline,
+  saveOutline,
+  refreshOutline,
+  closeCircleOutline,
+  checkmarkCircleOutline,
+  informationCircleOutline,
+  arrowForwardOutline,
+  pricetagsOutline,
+  listOutline,
+  addOutline,
+  arrowBackOutline,
+  alertCircle
+} from "ionicons/icons";
+import { CategoryService } from "src/service/category.service";
+import { UserCategory } from "src/model/user-category";
+import { ToastService } from "src/service/toast.service";
+
+@Component({
+  selector: "app-category-list",
+  templateUrl: "./category-list.component.html",
+  styleUrls: ["./category-list.component.scss"],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonSearchbar,
+    IonButton,
+    IonIcon,
+    IonChip,
+    IonSpinner,
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
+    IonButtons,
+    IonBadge,
+    IonAlert,
+    IonCard,
+    IonCardContent,
+    IonToggle,
+    IonInput,
+    IonText,
+    IonFab,
+    IonFabButton,
+    IonModal
+  ],
+})
+export class CategoryListComponent implements OnInit {
+  categories: UserCategory[] = [];
+  filteredCategories: UserCategory[] = [];
+  searchTerm: string = "";
+  isLoading: boolean = true;
+  hasPendingChanges: boolean = false;
+  isSaving: boolean = false;
+  statusActive: boolean = false;
+  
+  // Properties for Add Category Modal
+  isAddCategoryModalOpen: boolean = false;
+  newCategoryName: string = "";
+
+  constructor(
+    private categoryService: CategoryService,
+    private toastService: ToastService,
+    private alertController: AlertController
+  ) {
+    addIcons({
+      createOutline,
+      trashOutline,
+      saveOutline,
+      refreshOutline,
+      closeCircleOutline,
+      checkmarkCircleOutline,
+      informationCircleOutline,
+      arrowForwardOutline,
+      pricetagsOutline,
+      listOutline,
+      addOutline,
+      arrowBackOutline,
+      alertCircle
+    });
+  }
+
+  ngOnInit() {
+    // Subscribe to category updates
+    this.categoryService.userCategories$.subscribe((categories) => {
+      this.categories = [...categories];
+      this.applyFilter();
+      this.sortCategories();
+      this.isLoading = false;
+      this.checkPendingChanges();
+    });
+
+    // Load categories on init
+    this.categoryService.loadUserCategories();
+  }
+
+  /**
+   * Filter categories based on search term
+   */
+  applyFilter() {
+    if (!this.searchTerm) {
+      this.filteredCategories = [...this.categories];
+    } else {
+      const searchLower = this.searchTerm.toLowerCase();
+      this.filteredCategories = this.categories.filter(
+        (category) => category.category_title.toLowerCase().includes(searchLower)
+      );
+    }
+    this.sortCategories();
+  }
+
+  /**
+   * Sort categories by deletion status, edit status, and then title
+   */
+  sortCategories() {
+    this.filteredCategories.sort((a, b) => {
+      // First sort by deletion status (deleted first)
+      if (a.delete && !b.delete) return -1;
+      if (!a.delete && b.delete) return 1;
+      
+      // Then sort by edit status (edited next)
+      if (a.new_title && !b.new_title) return -1;
+      if (!a.new_title && b.new_title) return 1;
+      
+      // Finally sort by title alphabetically
+      return a.category_title.localeCompare(b.category_title);
+    });
+  }
+
+  /**
+   * Handle search input changes in real-time (typeahead)
+   */
+  onSearchChange(event: any) {
+    this.searchTerm = event.detail.value || '';
+    this.applyFilter();
+  }
+
+  /**
+   * Mark a category for renaming
+   */
+  renameCategory(category: UserCategory) {
+    this.promptForNewTitle(category);
+  }
+
+  /**
+   * Toggle deletion status of a category
+   */
+  toggleDelete(category: UserCategory) {
+    category.delete = !category.delete;
+    // If marked for deletion, remove any pending rename
+    if (category.delete) {
+      category.new_title = undefined;
+    }
+    this.checkPendingChanges();
+    this.sortCategories();
+  }
+
+  /**
+   * Cancel a pending rename
+   */
+  cancelRename(category: UserCategory) {
+    category.new_title = undefined;
+    this.checkPendingChanges();
+    this.sortCategories();
+  }
+
+  /**
+   * Check if there are any pending changes
+   */
+  checkPendingChanges() {
+    this.hasPendingChanges = this.categories.some(
+      (category) => category.delete || category.new_title
+    );
+  }
+
+  /**
+   * Save all pending changes
+   */
+  saveChanges() {
+    this.isSaving = true;
+    this.categoryService.applyPendingChanges().subscribe(
+      () => {
+        this.toastService.showSuccess("Categories updated successfully");
+        this.isSaving = false;
+      },
+      (error) => {
+        this.toastService.showError("Failed to update categories");
+        console.error("Error saving category changes:", error);
+        this.isSaving = false;
+      }
+    );
+  }
+
+  /**
+   * Prompt for a new category title
+   */
+  async promptForNewTitle(category: UserCategory) {
+    const alert = await this.alertController.create({
+      header: 'Rename Category',
+      inputs: [
+        {
+          name: 'newTitle',
+          type: 'text',
+          value: category.category_title,
+          placeholder: 'Enter new category name'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Rename',
+          handler: (data) => {
+            if (data.newTitle && data.newTitle.trim() !== category.category_title) {
+              category.new_title = data.newTitle.trim();
+              this.checkPendingChanges();
+              this.sortCategories();
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  /**
+   * Reset all pending changes
+   */
+  resetChanges() {
+    this.categories.forEach(category => {
+      category.delete = false;
+      category.new_title = undefined;
+    });
+    this.checkPendingChanges();
+    this.sortCategories();
+  }
+
+  /**
+   * Refresh categories from server
+   */
+  refreshCategories() {
+    this.isLoading = true;
+    this.categoryService.refreshCategories();
+  }
+  
+  /**
+   * Toggle active status for styling
+   */
+  toggleStatusActive() {
+    this.statusActive = !this.statusActive;
+  }
+  
+  /**
+   * Open the modal to add a new category
+   */
+  openAddCategoryModal() {
+    this.isAddCategoryModalOpen = true;
+    this.newCategoryName = '';
+  }
+  
+  /**
+   * Close the add category modal
+   */
+  closeAddCategoryModal() {
+    this.isAddCategoryModalOpen = false;
+  }
+  
+  /**
+   * Save a new category
+   */
+  saveNewCategory() {
+    if (!this.newCategoryName.trim()) {
+      this.toastService.showError("Please enter a valid category name");
+      return;
+    }
+    
+    if (this.newCategoryName.length > 50) {
+      this.toastService.showError("Category name cannot exceed 50 characters");
+      return;
+    }
+    
+    const newCategory: UserCategory = {
+      id: 0, // Will be ignored by the API
+      user_id: 1, // Assuming user ID 1 as in other services
+      category_title: this.newCategoryName.trim()
+    };
+    
+    this.categoryService.addNewCategory(newCategory).subscribe(
+      () => {
+        this.toastService.showSuccess("New category added successfully");
+        this.closeAddCategoryModal();
+        this.refreshCategories();
+      },
+      (error) => {
+        this.toastService.showError("Failed to add new category");
+        console.error("Error adding new category:", error);
+      }
+    );
+  }
+  
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest('ion-button');
+    const icon = button.querySelector('ion-icon') || button; // Fallback if icon not found
+    icon.classList.add('refreshing');
+    
+    // Call the actual refresh method
+    this.refreshCategories();
+    
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove('refreshing');
+    }, 1000);
+  }
+}
+
+
+# FILE: app/tab3/tab3.page.html
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Tab 3
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tab 3</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <app-explore-container name="Tab 3 page"></app-explore-container>
+</ion-content>
+
+
+# FILE: app/tab3/tab3.page.scss
+
+
+
+# FILE: app/account-list/account-list.component.ts
+
+import { CommonModule } from "@angular/common";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonIcon,
+  IonTabButton,
+  IonCard,
+  IonCardHeader,
+  IonAvatar,
+  IonCardContent,
+  IonChip,
+  IonSpinner,
+  IonBackButton,
+  IonButtons,
+  IonButton,
+  IonFab,
+  IonFabButton,
+  IonModal,
+  IonRadio,
+  IonRadioGroup,
+  IonInput,
+  IonItemDivider,
+  IonActionSheet,
+  ToastController,
+  AlertController,
+  IonAlert,
+} from "@ionic/angular/standalone";
+import { addIcons } from "ionicons";
+import {
+  walletOutline,
+  chevronDownOutline,
+  chevronUpOutline,
+  arrowBackOutline,
+  addOutline,
+  pencilOutline,
+  createOutline,
+  trashOutline,
+  documentTextOutline,
+  refreshOutline,
+} from "ionicons/icons";
+import { UserAccount } from "src/model/user-account";
+import { GroupedUserAccount } from "src/model/grouped-user-account";
+import { UserAccountService } from "src/service/user.account.service";
+import { AccountService } from "src/service/account.service";
+import { TransactionListComponent } from "../transaction-list/transaction-list.component";
+import { Router } from "@angular/router";
+import { Account } from "src/model/account";
+import { GroupedAccount } from "src/model/grouped-account";
+import { UserAccountSaveRequest } from "src/model/user-account-save-request";
+import { UserAccountEditRequest } from "src/model/user-account-edit-request";
+import { ToastService } from "src/service/toast.service";
+
+interface Level1Group {
+  title: string;
+  amount: number;
+  isExpanded: boolean;
+}
+
+@Component({
+  selector: "app-account-list",
+  templateUrl: "./account-list.component.html",
+  styleUrls: ["./account-list.component.scss"],
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonIcon,
+    IonTabButton,
+    IonLabel,
+    IonCard,
+    IonCardHeader,
+    IonAvatar,
+    IonCardContent,
+    IonChip,
+    IonSpinner,
+    IonBackButton,
+    IonButtons,
+    IonButton,
+    CommonModule,
+    TransactionListComponent,
+    IonFab,
+    IonFabButton,
+    IonModal,
+    IonRadio,
+    IonRadioGroup,
+    FormsModule,
+    IonInput,
+    IonItemDivider,
+    IonAlert,
+  ],
+})
+export class AccountListComponent implements OnInit {
+  @ViewChild("accountModal") accountModal!: IonModal;
+  @ViewChild("editAccountModal") editAccountModal!: IonModal;
+
+  private userAccounts: UserAccount[] = [];
+  private groupedAccounts: GroupedUserAccount[] = [];
+  private level1Groups: Level1Group[] = [];
+  isLoading: boolean = true;
+  showTransactions: boolean = false;
+  selectedAccountId: number | null = null;
+  selectedAccountName: string = "";
+
+  // Account selection modal
+  isAccountModalOpen = false;
+  selectedAccount: Account | null = null;
+  newUserAccountName: string = "";
+  accounts: GroupedAccount[] = [];
+
+  // Edit account modal
+  isEditAccountModalOpen = false;
+  editingAccount: UserAccount | null = null;
+  newEditAccountName: string = "";
+
+  // Delete account alert
+  isDeleteAccountAlertOpen = false;
+  accountToDelete: UserAccount | null = null;
+
+  // delete account buttons
+  // Add this property to the AccountListComponent class
+  deleteAccountButtons = [
+    {
+      text: "Cancel",
+      role: "cancel",
+      handler: () => {
+        this.cancelDeleteAccount();
+      },
+    },
+    {
+      text: "Delete",
+      role: "destructive",
+      handler: () => {
+        this.deleteAccount();
+      },
+    },
+  ];
+  constructor(
+    private userAccountService: UserAccountService,
+    private accountService: AccountService,
+    private router: Router,
+    private toastService: ToastService,
+    private alertController: AlertController
+  ) {
+    addIcons({
+      walletOutline,
+      chevronDownOutline,
+      chevronUpOutline,
+      arrowBackOutline,
+      addOutline,
+      pencilOutline,
+      createOutline,
+      trashOutline,
+      documentTextOutline,
+      refreshOutline,
+    });
+  }
+
+  ngOnInit() {
+    // Subscribe to user accounts
+    this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
+      this.groupedAccounts = accounts;
+      this.isLoading = false;
+      this.generateLevel1Groups();
+    });
+
+    // Subscribe to available accounts
+    this.accountService.groupedAccounts$.subscribe((accounts) => {
+      this.accounts = accounts;
+    });
+  }
+
+  // Generate Level 1 groups from grouped accounts
+  private generateLevel1Groups() {
+    // Create a map to accumulate level 1 amounts
+    const level1Map = new Map<string, number>();
+
+    // Calculate total amounts for each level 1
+    this.groupedAccounts.forEach((group) => {
+      const currentAmount = level1Map.get(group.level_1_title) || 0;
+      level1Map.set(group.level_1_title, currentAmount + group.level_2_amount);
+    });
+
+    // Convert map to Level1Group array
+    this.level1Groups = Array.from(level1Map.entries()).map(
+      ([title, amount]) => ({
+        title,
+        amount,
+        isExpanded: false, // Default to collapsed
+      })
+    );
+  }
+
+  // Toggle expansion state of Level 1 group
+  toggleLevel1Group(title: string) {
+    const group = this.level1Groups.find((g) => g.title === title);
+    if (group) {
+      group.isExpanded = !group.isExpanded;
+    }
+  }
+
+  // Check if a Level 1 group is expanded
+  isLevel1Expanded(title: string): boolean {
+    const group = this.level1Groups.find((g) => g.title === title);
+    return group ? group.isExpanded : false;
+  }
+
+  // Get all Level 1 groups
+  getLevel1Groups(): Level1Group[] {
+    return this.level1Groups;
+  }
+
+  // Get grouped accounts for a specific Level 1 title
+  getGroupedAccountsForLevel1(level1Title: string): GroupedUserAccount[] {
+    return this.groupedAccounts.filter(
+      (ga) => ga.level_1_title === level1Title
+    );
+  }
+
+  // Get all user accounts
+  getUserAccounts(): UserAccount[] {
+    return this.userAccounts;
+  }
+
+  // Get all grouped accounts
+  getGroupedAccounts(): GroupedUserAccount[] {
+    return this.groupedAccounts;
+  }
+
+  // Navigate to transactions for a specific account
+  onAccountClick(accountId: number) {
+    this.router.navigate(["/tabs/transactions"], {
+      queryParams: { accountId: accountId },
+    });
+  }
+
+  // Show context menu for long press or click on edit icon
+  async showAccountOptions(account: UserAccount, event: Event) {
+    event.stopPropagation(); // Prevent navigating to transactions
+
+    const actionSheet = await this.alertController.create({
+      header: account.user_account_name,
+      buttons: [
+        {
+          text: "Transactions",
+          // icon: "document-text-outline",
+          handler: () => {
+            this.onAccountClick(account.account_id);
+          },
+        },
+        {
+          text: "Rename",
+          // icon: "create-outline",
+          handler: () => {
+            this.openEditAccountModal(account);
+          },
+        },
+        {
+          text: "Delete",
+          // icon: "trash-outline",
+          role: "destructive",
+          handler: () => {
+            this.confirmDeleteAccount(account);
+          },
+        },
+        {
+          text: "Cancel",
+          role: "cancel",
+        },
+      ],
+    });
+
+    await actionSheet.present();
+  }
+
+  // Open the new account modal
+  openAccountModal() {
+    this.isAccountModalOpen = true;
+    this.selectedAccount = null;
+    this.newUserAccountName = "";
+  }
+
+  // Close the new account modal
+  closeAccountModal() {
+    this.isAccountModalOpen = false;
+  }
+
+  // Select an account from the list
+  selectAccount(account: Account) {
+    this.selectedAccount = account;
+    this.newUserAccountName = account.account_name; // Set default name
+  }
+
+  // Save a new user account
+  saveUserAccount() {
+    if (!this.selectedAccount || !this.newUserAccountName.trim()) {
+      this.toastService.showError("Please select an account and enter a name");
+      return;
+    }
+
+    if (this.newUserAccountName.length > 50) {
+      this.toastService.showError("Account name cannot exceed 50 characters");
+      return;
+    }
+
+    const request: UserAccountSaveRequest = {
+      user_id: 1, // Assuming user ID 1 as in other places
+      account_id: this.selectedAccount.account_id,
+      user_account_name: this.newUserAccountName,
+    };
+
+    this.userAccountService.saveUserAccount(request).subscribe(
+      (accountId) => {
+        this.toastService.showSuccess(
+          `Account ${this.newUserAccountName} created successfully`
+        );
+        this.userAccountService.refreshAccounts(); // Refresh accounts list
+        this.closeAccountModal();
+      },
+      (error) => {
+        this.toastService.showError("Unable to create new account");
+        console.error("Error creating account:", error);
+      }
+    );
+  }
+
+  // Open the edit account modal
+  openEditAccountModal(account: UserAccount) {
+    this.editingAccount = account;
+    this.newEditAccountName = account.user_account_name;
+    this.isEditAccountModalOpen = true;
+  }
+
+  // Close the edit account modal
+  closeEditAccountModal() {
+    this.isEditAccountModalOpen = false;
+    this.editingAccount = null;
+  }
+
+  // Save the edited account name
+  saveEditedAccountName() {
+    if (!this.editingAccount || !this.newEditAccountName.trim()) {
+      this.toastService.showError("Please enter a valid account name");
+      return;
+    }
+
+    if (this.newEditAccountName.length > 50) {
+      this.toastService.showError("Account name cannot exceed 50 characters");
+      return;
+    }
+
+    const request: UserAccountEditRequest = {
+      user_account_id: this.editingAccount.user_account_id,
+      new_user_account_name: this.newEditAccountName,
+    };
+
+    this.userAccountService.editUserAccountName(request).subscribe(
+      () => {
+        this.toastService.showSuccess(`Account name updated successfully`);
+        this.userAccountService.refreshAccounts(); // Refresh accounts list
+        this.closeEditAccountModal();
+      },
+      (error) => {
+        this.toastService.showError("Unable to update account name");
+        console.error("Error updating account name:", error);
+      }
+    );
+  }
+
+  // Confirm deleting an account
+  confirmDeleteAccount(account: UserAccount) {
+    this.accountToDelete = account;
+    this.isDeleteAccountAlertOpen = true;
+  }
+
+  // Cancel account deletion
+  cancelDeleteAccount() {
+    this.isDeleteAccountAlertOpen = false;
+    this.accountToDelete = null;
+  }
+
+  // Delete the account after confirmation
+  deleteAccount() {
+    if (!this.accountToDelete) return;
+
+    this.userAccountService
+      .deleteUserAccount(this.accountToDelete.user_account_id)
+      .subscribe(
+        () => {
+          this.toastService.showSuccess(`Account deleted successfully`);
+
+          // Use proper method to refresh accounts
+          this.userAccountService.refreshAccounts();
+
+          // Also refresh available account types
+          this.accountService.loadGroupedAccounts();
+
+          // Reset UI state
+          this.isDeleteAccountAlertOpen = false;
+          this.accountToDelete = null;
+
+          // Force re-generation of level1Groups after a short delay to ensure data is loaded
+          setTimeout(() => {
+            this.generateLevel1Groups();
+          }, 500);
+        },
+        (error) => {
+          this.toastService.showError("Unable to delete account");
+          console.error("Error deleting account:", error);
+          this.isDeleteAccountAlertOpen = false;
+          this.accountToDelete = null;
+        }
+      );
+  }
+
+  // For backward compatibility
+  backFromTransactions() {
+    this.showTransactions = false;
+    this.selectedAccountId = null;
+    this.selectedAccountName = "";
+  }
+
+  refreshWithAnimation(event: any) {
+    const button = event.target.closest("ion-button");
+    const icon = button.querySelector("ion-icon") || button; // Fallback if icon not found
+    icon.classList.add("refreshing");
+
+    // Call the actual refresh method
+    this.refreshAccounts();
+
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      icon.classList.remove("refreshing");
+    }, 1000);
+  }
+
+  refreshAccounts() {
+    this.isLoading = true;
+    this.userAccountService.refreshAccounts();
+    this.accountService.loadGroupedAccounts();
+    setTimeout(() => {
+      this.generateLevel1Groups();
+      this.isLoading = false;
+      this.toastService.showSuccess("Accounts refreshed successfully");
+    }, 500);
+  }
+}
+
+
+# FILE: app/account-list/account-list.component.scss
+
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Color classes
+.danger {
+  color: #ff4961;
+}
+
+.success {
+  color: #2dd36f;
+  background: none;
+}
+
+.warning {
+  color: #ffc409;
+}
+
+// Amount container styling for consistent alignment
+.amount-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 100px;
+  background: none;
+
+  ion-chip {
+    margin-right: 0;
+    margin-left: auto;
+    background: none;
+  }
+}
+
+// Level 1 items styling
+.level1-item {
+  margin: 16px auto 8px;
+  --border-radius: 12px;
+  // --background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  .level1-label {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    padding-left: 8px;
+  }
+
+  ion-chip {
+    font-weight: 600;
+  }
+}
+
+// Level 2 items styling
+.level2-item {
+  margin: 4px auto 0 16px;
+  --background: transparent;
+  --border-radius: 8px;
+
+  .level2-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+    padding-left: 8px;
+  }
+
+  ion-chip {
+    font-weight: 500;
+  }
+}
+
+
+.account-item {
+  margin: 4px auto 4px 40px;
+  --background: #ffffff;
+  --border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative;
+
+  h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  p {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 6px;
+  }
+  
+  .edit-options-button {
+    margin-top: 6px;
+    --border-radius: 16px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    height: 26px;
+  }
+}
+
+/* Responsive styles to ensure buttons stay on one line */
+@media (max-width: 400px) {
+  .account-item {
+    .action-buttons {
+      max-width: 180px;
+      
+      ion-button {
+        height: 22px;
+        
+        .btn-text {
+          font-size: 8px;
+        }
+        
+        ion-icon {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 340px) {
+  .account-item {
+    .action-buttons {
+      max-width: 150px;
+      
+      ion-button {
+        height: 20px;
+        --padding-start: 2px;
+        --padding-end: 2px;
+        
+        .btn-text {
+          font-size: 7px;
+        }
+        
+        ion-icon {
+          font-size: 9px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 300px) {
+  .account-item {
+    .action-buttons {
+      ion-button {
+        padding: 0;
+        
+        .btn-text {
+          display: none;
+        }
+        
+        ion-icon {
+          margin: 0 auto;
+        }
+      }
+    }
+  }
+}
+
+ion-list {
+  background: transparent;
+}
+
+ion-content {
+  --background: #f5f7fa;
+}
+
+// Empty state styling (NEW)
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 100px);
+  text-align: center;
+  padding: 20px;
+  color: var(--ion-color-medium);
+  margin-top: 30px;
+
+  .empty-icon {
+    font-size: 100px;
+    color: var(--ion-color-light-shade);
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  h2 {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  ion-button {
+    max-width: 200px;
+    --border-radius: 12px;
+    height: 48px;
+  }
+}
+
+// Modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+  
+  ion-header {
+    --background: var(--ion-background-color);
+  }
+  
+  ion-content {
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+  }
+  
+  .form-group {
+    margin: 16px;
+    
+    .name-input-item {
+      --background: #f8f9fa;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      margin-bottom: 8px;
+      
+      ion-label {
+        color: var(--ion-color-medium);
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      
+      ion-input {
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+        --padding-start: 0;
+        font-size: 16px;
+      }
+    }
+  }
+  
+  .error-message-item {
+    margin-top: 4px;
+    --background: rgba(var(--ion-color-danger-rgb), 0.05);
+    --border-radius: 8px;
+    
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+    
+    ion-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+  }
+  
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+  
+  ion-radio-group {
+    ion-item {
+      --padding-start: 16px;
+      --inner-padding-end: 16px;
+      
+      ion-avatar {
+        width: 32px;
+        height: 32px;
+        margin-right: 12px;
+      }
+      
+      ion-label {
+        h2 {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 2px;
+        }
+        
+        p {
+          font-size: 12px;
+          color: var(--ion-color-medium);
+        }
+      }
+    }
+  }
+}
+
+// Floating Action Button styling
+ion-fab {
+  margin-bottom: 16px;
+  margin-right: 16px;
+  
+  ion-fab-button {
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Toast styling
+.toast-success {
+  --background: var(--ion-color-success);
+  --color: white;
+  --border-radius: 4px;
+  --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+}
+
+.toast-error {
+  --background: var(--ion-color-danger);
+  --color: white;
+  --border-radius: 4px;
+  --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+}
+
+
+.account-item {
+  // Keep your existing styles for the item itself
+  
+  // Action buttons container
+  .action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    
+    ion-button {
+      --padding-start: 10px;
+      --padding-end: 10px;
+      height: 28px;
+      margin: 0;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: none;
+      
+      &.view-button {
+        --border-color: var(--ion-color-primary);
+        --color: var(--ion-color-primary);
+      }
+      
+      &.edit-button {
+        --border-color: #ff9800;
+        --color: #ff9800;
+      }
+      
+      &.delete-button {
+        --border-color: var(--ion-color-danger);
+        --color: var(--ion-color-danger);
+      }
+    }
+  }
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 0 16px 12px 72px; // Left padding aligns with content after avatar
+  margin-top: -4px;
+  margin-bottom: 8px;
+  
+  ion-button {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    height: 28px;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: none;
+    
+    &.view-button {
+      --border-color: var(--ion-color-primary);
+      --color: var(--ion-color-primary);
+    }
+    
+    &.edit-button {
+      --border-color: #ff9800;
+      --color: #ff9800;
+    }
+    
+    &.delete-button {
+      --border-color: var(--ion-color-danger);
+      --color: var(--ion-color-danger);
+    }
+  }
+}
+
+# FILE: app/account-list/account-list.component.html
+
+@if (!showTransactions) {
+
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-title>Accounts</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="refreshWithAnimation($event)">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+}
+
+<ion-content [fullscreen]="true" color="light">
+  @if (!showTransactions) {
+  <ion-list [inset]="true" lines="none">
+    @if (getGroupedAccounts().length > 0) {
+    <!-- Level 1 Groups -->
+    @for (level1Group of getLevel1Groups(); track level1Group.title) {
+    <ion-item class="level1-item">
+      <ion-label class="level1-label">
+        {{ level1Group.title }}
+      </ion-label>
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: level1Group.amount < 0,
+            success: level1Group.amount > 0
+          }"
+        >
+          <ion-label>{{ level1Group.amount | currency : "INR" }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+
+    <!-- Level 2 accounts (always visible now) -->
+    @for (groupedAccount of getGroupedAccountsForLevel1(level1Group.title);
+    track groupedAccount) {
+    <ion-item class="level2-item">
+      <ion-label class="level2-title">
+        {{ groupedAccount.level_2_title }}
+      </ion-label>
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: groupedAccount.level_2_amount < 0,
+            success: groupedAccount.level_2_amount > 0
+          }"
+        >
+          <ion-label>{{
+            groupedAccount.level_2_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+
+    @for (account of groupedAccount.user_accounts; track account) {
+    <ion-item
+      class="account-item"
+      (click)="onAccountClick(account.account_id)"
+      button="true"
+      lines="none"
+    >
+      <ion-avatar slot="start">
+        <img alt="Account Icon" [src]="account.icon" />
+      </ion-avatar>
+      <ion-label>
+        <h4>{{ account.user_account_name }}</h4>
+        @if (account.latest_balance_date) {
+        <p>{{ account.latest_balance_date | date : "mediumDate" }}</p>
+        }
+        <ion-button
+          size="small"
+          fill="outline"
+          color="primary"
+          class="edit-options-button"
+          (click)="showAccountOptions(account, $event)"
+        >
+          Settings
+        </ion-button>
+      </ion-label>
+
+      <div slot="end" class="amount-container">
+        @if (account.latest_balance != null && account.latest_balance != 0) {
+        <ion-chip
+          [ngClass]="{
+            danger: account.latest_balance < 0,
+            success: account.latest_balance > 0
+          }"
+        >
+          <ion-label>{{ account.latest_balance | currency : "INR" }}</ion-label>
+        </ion-chip>
+        }
+      </div>
+    </ion-item>
+    }} } } @else if (isLoading) {
+    <ion-item>
+      <ion-label>Loading accounts...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else {
+    <!-- Empty state when no accounts are available -->
+    <div class="empty-state">
+      <ion-icon name="wallet-outline" class="empty-icon"></ion-icon>
+      <h2>No Accounts Available</h2>
+      <p>Click the plus button below to add your first account</p>
+    </div>
+    }
+  </ion-list>
+
+  <!-- Floating Action Button to Add New Account -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openAccountModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- New Account Modal -->
+  <ion-modal [isOpen]="isAccountModalOpen" (didDismiss)="closeAccountModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeAccountModal()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Add New Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="saveUserAccount()"
+              [disabled]="!selectedAccount || !newUserAccountName.trim()"
+            >
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Name Input - Improved Version -->
+        <div class="input-container">
+          <div class="title-section">
+            <h4>Enter Account Name</h4>
+            <p>This name will be displayed in your accounts list</p>
+          </div>
+
+          <div class="input-field">
+            <ion-input
+              [(ngModel)]="newUserAccountName"
+              placeholder="Enter account name"
+              maxlength="50"
+              class="custom-input"
+              fill="solid"
+              label="Account Name"
+              label-placement="floating"
+              helper-text="Max 50 characters"
+              counter="true"
+            ></ion-input>
+          </div>
+        </div>
+
+        <!-- Select Account Type -->
+        <div class="section-title">
+          <h4>Choose Account Type</h4>
+        </div>
+
+        <ion-list class="account-list">
+          <ion-radio-group [(ngModel)]="selectedAccount">
+            @for (group of accounts; track group) {
+            <ion-item-divider>
+              {{ group.level_1_title }}
+            </ion-item-divider>
+
+            @for (account of group.accounts; track account) {
+            <ion-item
+              button
+              (click)="selectAccount(account)"
+              class="account-select-item"
+            >
+              <ion-avatar slot="start">
+                <img [src]="account.icon" [alt]="account.account_name" />
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ account.account_name }}</h2>
+                <p>{{ account.account_type_2 }}</p>
+              </ion-label>
+              <ion-radio slot="end" [value]="account"></ion-radio>
+            </ion-item>
+            } }
+          </ion-radio-group>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Edit Account Modal -->
+  <ion-modal
+    [isOpen]="isEditAccountModalOpen"
+    (didDismiss)="closeEditAccountModal()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeEditAccountModal()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Edit Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="saveEditedAccountName()"
+              [disabled]="!newEditAccountName.trim()"
+            >
+              Save
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Name Input -->
+        <div class="form-group">
+          <ion-item lines="none" class="name-input-item">
+            <ion-label position="stacked"
+              >Account Name (Max 50 characters)</ion-label
+            >
+            <ion-input
+              [(ngModel)]="newEditAccountName"
+              placeholder="Enter account name"
+              maxlength="50"
+              required="true"
+            ></ion-input>
+          </ion-item>
+
+          @if (newEditAccountName && newEditAccountName.length > 50) {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon
+              name="alert-circle"
+              color="danger"
+              slot="start"
+            ></ion-icon>
+            <ion-label color="danger">
+              Account name cannot exceed 50 characters
+            </ion-label>
+          </ion-item>
+          } @if (!newEditAccountName.trim() && newEditAccountName !== '') {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon
+              name="alert-circle"
+              color="danger"
+              slot="start"
+            ></ion-icon>
+            <ion-label color="danger"> Account name cannot be empty </ion-label>
+          </ion-item>
+          }
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Delete Account Alert -->
+  <ion-alert
+    [isOpen]="isDeleteAccountAlertOpen"
+    header="Delete Account"
+    [subHeader]="accountToDelete?.user_account_name"
+    message="This account will be deleted permanently. This action cannot be undone."
+    [buttons]="deleteAccountButtons"
+  ></ion-alert>
+
+  } @else {
+  <app-transaction-list
+    [accountId]="selectedAccountId"
+    [groupedAccounts]="getGroupedAccounts()"
+    (backClicked)="backFromTransactions()"
+  >
+  </app-transaction-list>
+  }
+</ion-content>
+
+
+# FILE: environments/environment.ts
+
+
+export const environment = {
+  production: false,
+  name: 'local',
+  apiEndpoints: {
+    accountService: "http://192.168.29.183:5003",
+    transactionService: "http://192.168.29.183:5004",
+    statementUploaderService: "http://192.168.29.183:5002",
+  }
+};
+
+
+# FILE: theme/variables.scss
+
+// For information on how to create your own theme, please see:
+// http://ionicframework.com/docs/theming/
+
+
+# FILE: model/transactions.ts
+
+import { Transaction } from "./transaction";
+
+export interface Transactions {
+    start_date: string;
+    end_date: string;
+    opening_balance: number;
+    closing_balance: number;
+    total_credit: number;
+    total_debit: number;
+    transactions: Transaction[];
+  }
+  
+
+# FILE: service/transaction.service.ts
+
+
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { Transactions } from "src/model/transactions";
+import { environment } from "src/environments/environment";
+
+@Injectable({
+  providedIn: "root",
+})
+export class TransactionService {
+  private apiUrl = `${environment.apiEndpoints.transactionService}/transaction`;
+
+  constructor(private http: HttpClient) {}
+
+  // Get transactions for a specific date range
+  fetchAllTransactions(
+    userAccountIds: number[],
+    startDate: string,
+    endDate: string,
+    categoryIds: number[] | null = null
+  ): Observable<Transactions> {
+    const accounts = userAccountIds.join(",");
+    let url = `${this.apiUrl}/v1/fetch_all?user_account_ids=${accounts}&start_date=${startDate}&end_date=${endDate}`;
+
+    // Add category filter if provided
+    if (categoryIds && categoryIds.length > 0) {
+      const categories = categoryIds.join(",");
+      url += `&category_ids=${categories}`;
+    }
+
+    console.log(`Fetching transactions for accounts ${accounts}, dates ${startDate} to ${endDate}${categoryIds ? ', categories ' + categoryIds : ''}`);
+
+    // Send the GET request to the API and return the observable
+    return this.http.get<Transactions>(url);
+  }
+}
+
+
+# FILE: service/toast.service.ts
+
+import { Injectable } from '@angular/core';
+import { ToastController } from '@ionic/angular/standalone';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ToastService {
+  constructor(private toastController: ToastController) {}
+
+  /**
+   * Shows a success toast message
+   * @param message The message to display
+   */
+  async showSuccess(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'top',
+      color: 'success',
+      cssClass: 'toast-success'
+    });
+    await toast.present();
+  }
+
+  /**
+   * Shows an error toast message
+   * @param message The message to display
+   */
+  async showError(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'top',
+      color: 'danger',
+      cssClass: 'toast-error'
+    });
+    await toast.present();
+  }
+}
+
+# FILE: service/statement-upload.service.ts
+
+
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { Statement } from "../model/statement";
+import { environment } from "../environments/environment";
+
+// Response object interface matching the Python class
+export interface AccountStatementUploadResponse {
+  status: boolean;
+  request_id: string;
+  transaction_count: number;
+  error_messages: string[];
+}
+
+@Injectable({
+  providedIn: "root",
+})
+export class StatementUploadService {
+  private apiUrl = `${environment.apiEndpoints.statementUploaderService}/statement`;
+
+  constructor(private http: HttpClient) {}
+
+  /**
+   * Uploads a statement to the API
+   * @param statement The statement to upload
+   * @returns Observable of the upload response
+   */
+  uploadStatement(
+    statement: Statement
+  ): Observable<AccountStatementUploadResponse> {
+    const url = `${this.apiUrl}/upload/v1/`;
+    console.log(`Uploading statement: ${statement.file_name}`);
+    return this.http.post<AccountStatementUploadResponse>(url, statement);
+  }
+
+  /**
+   * Uploads multiple statements to the API in a single request
+   * @param statements Array of statements to upload
+   * @returns Observable of the upload response
+   */
+  uploadAllStatements(
+    statements: Statement[]
+  ): Observable<AccountStatementUploadResponse[]> {
+    const url = `${this.apiUrl}/upload/v1/`;
+    console.log(`Uploading ${statements.length} statements in batch`);
+    return this.http.post<AccountStatementUploadResponse[]>(url, statements);
+  }
+}
+
+
+# FILE: service/category.service.ts
+
+
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { BehaviorSubject, Observable } from "rxjs";
+import { UserCategory } from "../model/user-category";
+import { TransactionUserCategory } from "../model/transaction-user-category";
+import { environment } from "../environments/environment";
+
+@Injectable({
+  providedIn: "root",
+})
+export class CategoryService {
+  private categoryApiUrl = `${environment.apiEndpoints.transactionService}/category`; // API URL
+
+  // BehaviorSubject to store categories
+  private userCategoriesSubject = new BehaviorSubject<UserCategory[]>([]);
+  userCategories$ = this.userCategoriesSubject.asObservable();
+
+  constructor(private http: HttpClient) {}
+
+  /**
+   * Loads all categories for the given user IDs
+   */
+  loadUserCategories(userIds: number[] = [1]) {
+    this.fetchAllCategories(userIds).subscribe(
+      (categories) => {
+        this.userCategoriesSubject.next(categories);
+      },
+      (error) => {
+        console.error("Error fetching categories:", error);
+      }
+    );
+  }
+
+  /**
+   * Fetches all categories for the given user IDs
+   * @param userIds List of user IDs
+   * @returns Observable of UserCategory[]
+   */
+  fetchAllCategories(userIds: number[]): Observable<UserCategory[]> {
+    const userIdsQuery = userIds.join(",");
+    const url = `${this.categoryApiUrl}/v1/fetch_all?user_ids=${userIdsQuery}`;
+    console.log(`Fetching categories for users ${userIdsQuery}`);
+    return this.http.get<UserCategory[]>(url);
+  }
+
+  /**
+   * Deletes categories with the given IDs
+   * @param categories Categories to delete
+   * @returns Observable of void
+   */
+  deleteCategories(categories: UserCategory[]): Observable<void> {
+    const url = `${this.categoryApiUrl}/v1/delete_all`;
+    console.log(`Deleting ${categories.length} categories`);
+    return this.http.delete<void>(url, { body: categories });
+  }
+
+  /**
+   * Updates category titles
+   * @param categories Categories to update
+   * @returns Observable of void
+   */
+  updateCategories(categories: UserCategory[]): Observable<void> {
+    const url = `${this.categoryApiUrl}/v1/edit_all`;
+    console.log(`Updating ${categories.length} categories`);
+    return this.http.put<void>(url, categories);
+  }
+
+  /**
+   * Adds a new category
+   * @param category The new category to add
+   * @returns Observable of void
+   */
+  addNewCategory(category: UserCategory): Observable<void> {
+    const url = `${this.categoryApiUrl}/v1/save_all`;
+    console.log(`Adding new category: ${category.category_title}`);
+    return this.http.post<void>(url, [category]);
+  }
+
+  /**
+   * Edits transaction categories by adding or removing transaction-category links
+   * @param mappings List of transaction-category mappings to edit
+   * @returns Observable of void
+   */
+  editTransactionCategories(mappings: TransactionUserCategory[]): Observable<void> {
+    const url = `${this.categoryApiUrl}/v1/transaction_user_category/edit_all`;
+    console.log(`Editing ${mappings.length} transaction-category mappings`);
+    return this.http.put<void>(url, mappings);
+  }
+
+  /**
+   * Applies pending changes (deletions and updates)
+   * @returns Observable indicating operation completion
+   */
+  applyPendingChanges(): Observable<any> {
+    const categories = this.userCategoriesSubject.value;
+
+    // Find categories to delete
+    const categoriesToDelete = categories.filter(c => c.delete);
+
+    // Find categories to update
+    const categoriesToUpdate = categories.filter(c => c.new_title && !c.delete)
+      .map(c => ({
+        ...c,
+        category_title: c.new_title as string  // Type assertion since we've already filtered for non-null new_title
+      }));
+
+    // If nothing to change, return immediately
+    if (categoriesToDelete.length === 0 && categoriesToUpdate.length === 0) {
+      return new Observable(subscriber => {
+        subscriber.next(true);
+        subscriber.complete();
+      });
+    }
+
+    // Create observable for deletions
+    const deleteObservable = categoriesToDelete.length > 0 ?
+      this.deleteCategories(categoriesToDelete) :
+      new Observable(subscriber => {
+        subscriber.next(true);
+        subscriber.complete();
+      });
+
+    // Create observable for updates
+    const updateObservable = categoriesToUpdate.length > 0 ?
+      this.updateCategories(categoriesToUpdate) :
+      new Observable(subscriber => {
+        subscriber.next(true);
+        subscriber.complete();
+      });
+
+    // Combine both operations
+    return new Observable(subscriber => {
+      deleteObservable.subscribe(
+        () => {
+          updateObservable.subscribe(
+            () => {
+              // Refresh categories after changes
+              this.loadUserCategories();
+              subscriber.next(true);
+              subscriber.complete();
+            },
+            error => {
+              console.error('Error updating categories:', error);
+              subscriber.error(error);
+            }
+          );
+        },
+        error => {
+          console.error('Error deleting categories:', error);
+          subscriber.error(error);
+        }
+      );
+    });
+  }
+
+  /**
+   * Refreshes the categories by fetching the latest data
+   */
+  refreshCategories() {
+    this.fetchAllCategories([1]).subscribe(
+      (categories) => {
+        this.userCategoriesSubject.next(categories);
+      },
+      (error) => {
+        console.error("Error refreshing categories:", error);
+      }
+    );
+  }
+}
+
+
+# FILE: service/account.service.ts
+
+
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { BehaviorSubject, Observable } from "rxjs";
+import { Account } from "../model/account";
+import { GroupedAccount } from "../model/grouped-account";
+import { environment } from "../environments/environment";
+
+@Injectable({
+  providedIn: "root",
+})
+export class AccountService {
+  private accountApiUri = `${environment.apiEndpoints.accountService}/account`; // API URL
+
+  constructor(private http: HttpClient) {}
+
+  private groupedAccountsSubject = new BehaviorSubject<GroupedAccount[]>([]);
+  groupedAccounts$ = this.groupedAccountsSubject.asObservable();
+
+  loadGroupedAccounts() {
+    this.fetchGroupedAccounts().subscribe(
+      (groupedAccounts) => {
+        // Process icons
+        groupedAccounts.forEach((group) => {
+          group.accounts.forEach((acct) => {
+            acct.icon = `data:image/png;base64,${acct.icon}`;
+          });
+        });
+        this.groupedAccountsSubject.next(groupedAccounts);
+      },
+      (error) => {
+        console.error('Error fetching accounts:', error);
+      }
+    );
+  }
+
+  /**
+   * Fetches all accounts.
+   * @returns An observable of Account[].
+   */
+  fetchAccounts(): Observable<Account[]> {
+    const url = `${this.accountApiUri}/v1/fetch_all`;
+    console.log("Fetching all accounts");
+    return this.http.get<Account[]>(url);
+  }
+
+  /**
+   * Fetches grouped accounts.
+   * Accounts are grouped by level_1 and level_2 categories.
+   * @returns An observable of GroupedAccount[].
+   */
+  fetchGroupedAccounts(): Observable<GroupedAccount[]> {
+    const url = `${this.accountApiUri}/v1/fetch_all/grouped`;
+    console.log("Fetching all grouped accounts");
+    return this.http.get<GroupedAccount[]>(url);
+  }
+
+  /**
+   * Gets the first available account ID
+   * @returns The first account ID or null if none available
+   */
+  getFirstAccountId(): number | null {
+    const accounts = this.groupedAccountsSubject.value;
+    if (accounts.length > 0 && accounts[0].accounts.length > 0) {
+      return accounts[0].accounts[0].account_id;
+    }
+    return null;
+  }
+}
+
+
+# FILE: service/user.account.service.ts
+
+
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { BehaviorSubject, Observable } from "rxjs";
+import { UserAccount } from "../model/user-account"; // Import the UserAccount model
+import { GroupedUserAccount } from "src/model/grouped-user-account";
+import { UserAccountSaveRequest } from "src/model/user-account-save-request";
+import { UserAccountEditRequest } from "src/model/user-account-edit-request";
+import { environment } from "../environments/environment";
+
+@Injectable({
+  providedIn: "root",
+})
+export class UserAccountService {
+  private accountApiUri = `${environment.apiEndpoints.accountService}/user_account`; // API URL
+
+  constructor(private http: HttpClient) {}
+
+  private groupedUserAccountsSubject = new BehaviorSubject<
+    GroupedUserAccount[]
+  >([]);
+  groupedUserAccounts$ = this.groupedUserAccountsSubject.asObservable();
+
+  loadGroupedUserAccounts() {
+    this.fetchGroupedUserAccounts([2]).subscribe(
+      (groupedAccounts) => {
+        // Process icons
+        groupedAccounts.forEach((group) => {
+          group.user_accounts.forEach((acct) => {
+            acct.icon = `data:image/png;base64,${acct.icon}`;
+          });
+        });
+        this.groupedUserAccountsSubject.next(groupedAccounts);
+      },
+      (error) => {
+        console.error("Error fetching accounts:", error);
+      }
+    );
+  }
+
+  getFirstAccountId(): number | null {
+    const accounts = this.groupedUserAccountsSubject.value;
+    if (accounts.length > 0 && accounts[0].user_accounts.length > 0) {
+      return accounts[0].user_accounts[0].account_id;
+    }
+    return null;
+  }
+
+  /**
+   * Fetches user accounts for the given list of user IDs.
+   * @param userIds - An array of user IDs.
+   * @returns An observable of UserAccount[].
+   */
+  fetchUserAccounts(userIds: number[]): Observable<UserAccount[]> {
+    // Construct the query string with comma-separated user_ids
+    const userIdsQuery = userIds.join(",");
+    const url = `${this.accountApiUri}/v1/fetch_all?user_ids=${userIdsQuery}`;
+    console.log(`Fetching accounts for users ${userIdsQuery}`);
+    // Send the GET request to the API and return the observable
+    return this.http.get<UserAccount[]>(url);
+  }
+
+  /**
+   * Fetches grouped user accounts for the given list of user IDs.
+   * Accounts are grouped by level_1 and level_2 categories.
+   * @param userIds - An array of user IDs.
+   * @returns An observable of GroupedUserAccount[].
+   */
+  fetchGroupedUserAccounts(
+    userIds: number[]
+  ): Observable<GroupedUserAccount[]> {
+    // Construct the query string with comma-separated user_ids
+    const userIdsQuery = userIds.join(",");
+    const url = `${this.accountApiUri}/v1/fetch_all/grouped?user_ids=${userIdsQuery}`;
+    console.log(`Fetching grouped accounts for users ${userIdsQuery}`);
+    // Send the GET request to the API and return the observable
+    return this.http.get<GroupedUserAccount[]>(url);
+  }
+
+  /**
+   * Creates a new user account with the given details.
+   * @param request - The user account creation request
+   * @returns An observable of the created user account ID
+   */
+  saveUserAccount(request: UserAccountSaveRequest): Observable<number> {
+    const url = `${this.accountApiUri}/v1/save`;
+    console.log(`Creating new user account for user_id: ${request.user_id}`);
+    return this.http.post<number>(url, request);
+  }
+
+  /**
+   * Deletes a user account with the given ID.
+   * @param userAccountId - The ID of the user account to delete
+   * @returns An observable of the void response
+   */
+  deleteUserAccount(userAccountId: number): Observable<void> {
+    const url = `${this.accountApiUri}/v1/delete?user_account_id=${userAccountId}`;
+    console.log(`Deleting user account with ID: ${userAccountId}`);
+    return this.http.delete<void>(url);
+  }
+
+  /**
+   * Updates the name of a user account with the given details.
+   * @param request - The user account edit request
+   * @returns An observable of the void response
+   */
+  editUserAccountName(request: UserAccountEditRequest): Observable<void> {
+    const url = `${this.accountApiUri}/v1/edit`;
+    console.log(
+      `Updating name for user account with ID: ${request.user_account_id}`
+    );
+    return this.http.put<void>(url, request);
+  }
+
+  /**
+   * Refreshes the accounts list by fetching the latest data
+   */
+  refreshAccounts() {
+    // Fetch fresh data with a cache-busting parameter
+    this.fetchGroupedUserAccounts([1]).subscribe(
+      (groupedAccounts) => {
+        // Process icons
+        groupedAccounts.forEach((group) => {
+          group.user_accounts.forEach((acct) => {
+            acct.icon = `data:image/png;base64,${acct.icon}`;
+          });
+        });
+
+        // Update the accounts subject with new data
+        this.groupedUserAccountsSubject.next(groupedAccounts);
+      },
+      (error) => {
+        console.error("Error refreshing accounts:", error);
+      }
+    );
+  }
+}

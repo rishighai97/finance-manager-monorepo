@@ -1,0 +1,1009 @@
+# FILE: app/transaction-list/transaction-list.component.html
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <!-- <ion-buttons slot="start">
+      <ion-button (click)="backToAccounts()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons> -->
+    <ion-title>Transactions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light" class="ion-no-padding">
+  <!-- Date Filter Row -->
+  <div class="date-filter-container">
+    <ion-item lines="none" class="date-picker-item">
+      <ion-label position="stacked">From</ion-label>
+      <ion-input
+        type="date"
+        [(ngModel)]="startDateInput"
+        (ionChange)="onStartDateChange()"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item lines="none" class="date-picker-item">
+      <ion-label position="stacked">To</ion-label>
+      <ion-input
+        type="date"
+        [(ngModel)]="endDateInput"
+        (ionChange)="onEndDateChange()"
+      ></ion-input>
+    </ion-item>
+
+    <!-- Account Selector (Custom) -->
+    <ion-item
+      lines="none"
+      class="account-selector-item"
+      (click)="openAccountSelector()"
+    >
+      <ion-label position="stacked">Accounts</ion-label>
+      <ion-input
+        readonly
+        [value]="getSelectedAccountsText()"
+        placeholder="Select accounts"
+      ></ion-input>
+    </ion-item>
+
+    <!-- Category Selector -->
+    <ion-item
+      lines="none"
+      class="category-selector-item"
+      (click)="openCategorySelector()"
+    >
+      <ion-label position="stacked">Category</ion-label>
+      <ion-input
+        readonly
+        [value]="getSelectedCategoriesText()"
+        placeholder="Select categories"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button class="refresh-button" (click)="refreshTransactions()">
+      <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Summary Row -->
+  <div class="summary-container">
+    <div class="summary-item">
+      <div class="summary-label">Opening</div>
+      <div class="summary-amount neutral">
+        {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Debit</div>
+      <div class="summary-amount danger">
+        {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Credit</div>
+      <div class="summary-amount success">
+        {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Closing</div>
+      <div
+        class="summary-amount"
+        [ngClass]="{
+          success: closingBalance && closingBalance > 0,
+          danger: closingBalance && closingBalance < 0,
+          neutral: !closingBalance || closingBalance === 0
+        }"
+      >
+        {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar and Category Actions (Moved below summary) -->
+  <div class="search-container">
+    <ion-searchbar
+      placeholder="Search transactions"
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange($event)"
+      animated
+      debounce="300"
+      showCancelButton="focus"
+      cancelButtonText="Clear"
+    >
+    </ion-searchbar>
+
+    <div class="search-actions">
+      <ion-button
+        fill="outline"
+        size="small"
+        (click)="openBatchAddCategories()"
+        class="add-cat-btn"
+      >
+        <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+        Bulk Update Categories
+      </ion-button>
+
+      <ion-button
+        *ngIf="hasCategoryChanges"
+        fill="solid"
+        color="warning"
+        size="small"
+        (click)="saveAllCategoryChanges()"
+        [disabled]="isSaving"
+        class="save-cat-btn"
+      >
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        Update Categories
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Category Changes Actions -->
+  <div class="category-changes-container" *ngIf="hasCategoryChanges">
+    <ion-button
+      fill="outline"
+      color="medium"
+      size="small"
+      (click)="resetCategoryChanges()"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Reset Changes
+    </ion-button>
+  </div>
+
+  <!-- Validation Message for no account selected -->
+  <div class="validation-message" *ngIf="selectedAccountIds.length === 0">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>Please select at least one account</p>
+  </div>
+
+  <ion-list [inset]="true" lines="none">
+    @if (getTransactions().length > 0) { @for (transaction of getTransactions();
+    track transaction.transaction_id) {
+    <ion-item
+      class="transaction-item"
+      [ngClass]="{ 'edited-item': hasTransactionCategoryChanges(transaction) }"
+    >
+      <div class="category-container">
+        <ion-avatar slot="start">
+          <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
+        </ion-avatar>
+      </div>
+
+      <ion-label>
+        <p class="transaction-date">
+          {{ transaction.date | date : "mediumDate" }}
+        </p>
+        <h4>
+          ({{ accountMap.get(transaction.user_account_id)?.user_account_name }})
+          {{ transaction.title }}
+        </h4>
+
+        <!-- Display user categories as pills -->
+        @if (getUserCategoryTitles(transaction).length > 0) {
+        <div class="category-pills">
+          @for (categoryTitle of getUserCategoryTitles(transaction); track
+          categoryTitle) {
+          <div class="category-pill">
+            {{ categoryTitle }}
+            <ion-button
+              fill="clear"
+              class="remove-category-btn"
+              (click)="removeCategory(transaction, categoryTitle, $event)"
+            >
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </ion-button>
+          </div>
+          }
+          <ion-button
+            fill="clear"
+            size="small"
+            class="add-category-btn-small"
+            (click)="addCategory(transaction, $event)"
+            *ngIf="getUserCategoryTitles(transaction).length < 5"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </ion-button>
+        </div>
+        } @else {
+        <ion-button
+          fill="clear"
+          size="small"
+          class="add-category-btn"
+          (click)="addCategory(transaction, $event)"
+        >
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Add Category</span>
+        </ion-button>
+        }
+
+        <!-- Display category -->
+        @if (transaction.category_id) {
+        <p class="transaction-category">
+          <ion-icon name="pricetags-outline"></ion-icon>
+          {{ getCategoryTitle(transaction) }}
+        </p>
+        }
+      </ion-label>
+
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: isDebit(transaction),
+            success: !isDebit(transaction)
+          }"
+        >
+          <ion-label>{{
+            transaction.debit_or_credit_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+    }
+    <div class="bottom-spacer"></div>
+    } @else if (isLoading && selectedAccountIds.length > 0) {
+    <ion-item>
+      <ion-label>Loading transactions...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else if (loadingError) {
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>Unable to fetch transactions</h2>
+      <p>Please try again later</p>
+      <ion-button expand="block" (click)="refreshTransactions()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+    } @else {
+    <div class="empty-state">
+      <ion-icon
+        name="cash-outline"
+        class="empty-icon"
+        (click)="navigateToStatementUploader()"
+      ></ion-icon>
+      <h2>No transactions exist</h2>
+      <p>Go to Statement Uploader to upload some transactions</p>
+      <ion-button expand="block" (click)="navigateToStatementUploader()">
+        <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+        Upload Statements
+      </ion-button>
+    </div>
+    }
+  </ion-list>
+</ion-content>
+
+<!-- Account Selector Modal -->
+<ion-modal
+  #accountModal
+  [isOpen]="isAccountModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeAccountSelector()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Select Accounts</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeAccountSelector()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        @for (group of groupedAccounts; track group) {
+        <ion-item-divider>
+          {{ group.level_1_title }}
+        </ion-item-divider>
+
+        @for (account of group.user_accounts; track account) {
+        <ion-item (click)="toggleAccountSelection(account.account_id)">
+          <ion-avatar slot="start">
+            <img [src]="account.icon" [alt]="account.user_account_name" />
+          </ion-avatar>
+          <ion-label>{{ account.user_account_name }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isAccountSelected(account.account_id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Category Selector Modal -->
+<ion-modal
+  #categoryModal
+  [isOpen]="isCategoryModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeCategorySelector()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Select Categories</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeCategorySelector()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        @if (userCategories.length === 0) {
+        <ion-item>
+          <ion-label class="ion-text-center">
+            No categories available. Add categories from the Categories tab.
+          </ion-label>
+        </ion-item>
+        } @else { @for (category of userCategories; track category.id) {
+        <ion-item (click)="toggleCategorySelection(category.id)">
+          <ion-icon
+            name="pricetags-outline"
+            slot="start"
+            color="primary"
+          ></ion-icon>
+          <ion-label>{{ category.category_title }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isCategorySelected(category.id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Add Category Modal (New) -->
+<ion-modal
+  #addCategoryModal
+  [isOpen]="isAddCategoryModalOpen"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  (didDismiss)="closeAddCategoryModal()"
+>
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="closeAddCategoryModal()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>
+          {{
+            selectedTransaction
+              ? "Edit Transaction Categories"
+              : "Add Category to All"
+          }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="saveSelectedCategories()"> Save </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="modal-info">
+        @if (selectedTransaction) {
+        <p class="transaction-title">{{ selectedTransaction.title }}</p>
+        <p class="category-limit-info">
+          Select up to 5 categories for this transaction
+        </p>
+        } @else {
+        <p class="batch-info">
+          Add selected categories to all visible transactions
+        </p>
+        }
+      </div>
+
+      <ion-list>
+        @if (userCategories.length === 0) {
+        <ion-item>
+          <ion-label class="ion-text-center">
+            No categories available. Add categories from the Categories tab.
+          </ion-label>
+        </ion-item>
+        } @else { @for (category of userCategories; track category.id) {
+        <ion-item (click)="toggleAddCategorySelection(category.id)">
+          <ion-icon
+            name="pricetags-outline"
+            slot="start"
+            color="primary"
+          ></ion-icon>
+          <ion-label>{{ category.category_title }}</ion-label>
+          <ion-checkbox
+            slot="end"
+            [checked]="isAddCategorySelected(category.id)"
+          ></ion-checkbox>
+        </ion-item>
+        } }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+# FILE: app/transaction-list/transaction-list.component.scss
+
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Search container styling (Moved below summary)
+.search-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px 0;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+
+  ion-searchbar {
+    padding: 0;
+    --border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .search-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .add-cat-btn, .save-cat-btn {
+      font-size: 12px;
+      height: 32px;
+      --border-radius: 16px;
+    }
+  }
+}
+
+// Category changes container
+.category-changes-container {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 8px;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+
+  ion-button {
+    margin: 0;
+    font-size: 12px;
+    --border-radius: 16px;
+  }
+}
+
+// Validation message for no account selected
+.validation-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  background-color: rgba(var(--ion-color-warning-rgb), 0.1);
+  color: var(--ion-color-warning-shade);
+  margin: 0 16px 8px;
+  border-radius: 8px;
+  
+  ion-icon {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Date filter container
+.date-filter-container {
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .date-picker-item,
+  .account-selector-item,
+  .category-selector-item {
+    flex: 1;
+    --background: transparent;
+    --padding-start: 0;
+    margin-right: 8px;
+
+    ion-label {
+      color: #555;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    ion-input {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      --background: #f5f7fa;
+      --border-radius: 8px;
+      --placeholder-color: #999;
+      font-size: 14px;
+    }
+  }
+
+  .account-selector-item,
+  .category-selector-item {
+    flex: 1; // Equal flex for both selectors
+
+    ion-input {
+      cursor: pointer;
+    }
+  }
+
+  .refresh-button {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    height: 38px;
+    margin: 0;
+    --border-radius: 8px;
+  }
+}
+
+// Color classes
+.danger {
+  color: #ff4961;
+}
+
+.success {
+  color: #2dd36f;
+  background: none;
+}
+
+.warning {
+  color: #ffc409;
+}
+
+// Amount container styling for consistent alignment
+.amount-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 85px; // Reduced min-width
+  background: none;
+
+  ion-chip {
+    margin: 0;
+    padding: 0 6px;
+    height: 24px;
+    background: none;
+
+    ion-label {
+      font-size: 13px;
+      white-space: nowrap;
+    }
+  }
+}
+
+// Category container styling
+.category-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 60px; // Increased width to accommodate category badges
+  margin-right: 10px;
+  align-items: center;
+
+  .category-id {
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    color: #555;
+  }
+
+  .category-type {
+    font-size: 11px;
+    color: #999;
+    margin: 2px 0 0 0;
+  }
+
+  .add-category-btn {
+    height: 28px;
+    width: 28px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --border-radius: 50%;
+    --color: #3880ff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    span {
+      display: none; // Hide the text
+    }
+  }
+}
+
+// Updated Category pills styling
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+
+  .category-pill {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    color: var(--ion-color-primary);
+    border: 1px solid var(--ion-color-primary);
+    border-radius: 16px;
+    padding: 3px 10px 3px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+
+    .remove-category-btn {
+      --padding-start: 2px;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      height: 18px;
+      margin: 0 -3px 0 4px;
+
+      ion-icon {
+        font-size: 14px;
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  .add-category-btn-small {
+    height: 24px;
+    width: 24px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 18px;
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Transaction items styling
+.transaction-item {
+  margin: 4px auto;
+  --background: #ffffff;
+  --border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+
+  // Edited item styling (orange background)
+  &.edited-item {
+    --background: rgba(255, 180, 0, 0.05);
+    border-left: 3px solid #ffb400;
+  }
+
+  &:last-of-type {
+    margin-bottom: 8px; // Add extra margin to last item
+  }
+
+  // Updated transaction content layout
+  ion-item {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --inner-padding-end: 8px;
+    width: 100%;
+
+    ion-avatar {
+      margin-right: 12px;
+    }
+
+    ion-label {
+      overflow: visible;
+      white-space: normal;
+      --min-width: 0;
+      width: 100%;
+      margin-left: 4px;
+      margin-right: 4px;
+
+      h4 {
+        font-size: 15px;
+        font-weight: 500;
+        margin: 10px 0;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: 100%;
+        line-height: 1.5;
+        letter-spacing: 0.2px;
+        padding-right: 8px;
+      }
+
+      // Add category button
+      .add-category-btn {
+        height: 28px;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        margin: 4px 0;
+        font-size: 12px;
+
+        ion-icon {
+          margin-right: 4px;
+          font-size: 14px;
+        }
+      }
+
+      // Transaction category display
+      .transaction-category {
+        font-size: 12px;
+        color: var(--ion-color-primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  // New styling for transaction date
+  .transaction-date {
+    font-size: 12px;
+    color: #5b6772;
+    background-color: #f0f4f9;
+    border-radius: 4px;
+    padding: 2px 5px;
+    display: inline-block;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    margin-bottom: 6px;
+  }
+
+  // New styling for account name
+  .account-name {
+    font-size: 12px;
+    color: #3880ff;
+    font-weight: 600;
+    border-left: 3px solid #3880ff;
+    padding-left: 5px;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}
+
+p {
+  font-size: 12px;
+  color: #777;
+  margin: 3px 0;
+}
+
+ion-chip {
+  font-size: 13px;
+  font-weight: 500;
+  height: 24px;
+  padding: 0 8px;
+}
+
+// Fix layout issues on small screens
+@media (max-width: 360px) {
+  .transaction-item {
+    ion-item {
+      --padding-start: 4px;
+      --padding-end: 4px;
+
+      ion-avatar {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        margin-right: 8px;
+      }
+
+      ion-label {
+        h4 {
+          font-size: 14px;
+          margin: 8px 0;
+        }
+      }
+    }
+
+    .transaction-date,
+    .account-name {
+      font-size: 11px;
+    }
+
+    .amount-container {
+      min-width: 70px;
+
+      ion-chip {
+        padding: 0 4px;
+        height: 22px;
+
+        ion-label {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .category-container {
+    min-width: 32px;
+    margin-right: 6px;
+  }
+
+  .date-filter-container {
+    flex-wrap: wrap;
+
+    .date-picker-item {
+      flex: 0 0 calc(50% - 8px);
+    }
+
+    .account-selector-item,
+    .category-selector-item {
+      flex: 0 0 calc(50% - 8px);
+      margin-top: 8px;
+    }
+
+    .refresh-button {
+      margin-top: 8px;
+    }
+  }
+}
+
+ion-list {
+  background: transparent;
+  padding-bottom: 16px; // Add padding to the bottom of the list
+}
+
+ion-content {
+  --background: #f5f7fa;
+  --padding-top: 12px; // Added top padding to the content area
+  --padding-bottom: 16px; // Add padding to the bottom of the content
+}
+
+// Summary container styling
+.summary-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 8px;
+  background-color: #ffffff;
+  margin-bottom: 0; // Changed to 0 since search container follows immediately
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 0 4px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &:not(:last-child) {
+      border-right: 1px solid #eee;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 4px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .summary-amount {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+
+      &.danger {
+        color: #ff4961;
+      }
+
+      &.success {
+        color: #2dd36f;
+      }
+
+      &.neutral {
+        color: #92949c;
+      }
+    }
+  }
+}
+
+// Add bottom spacer style
+.bottom-spacer {
+  height: 80px; // Adjust this value as needed
+  width: 100%;
+}
+
+// Account modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+
+  ion-header {
+    padding-top: 8px;
+  }
+
+  ion-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+
+  ion-item {
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    --min-height: 56px;
+
+    ion-avatar {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+    }
+
+    ion-label {
+      font-size: 14px;
+      margin-left: 8px;
+    }
+  }
+}
+
+// Add Category Modal Styling
+.modal-info {
+  padding: 16px;
+  text-align: center;
+
+  .transaction-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin-bottom: 4px;
+  }
+
+  .category-limit-info {
+    font-size: 13px;
+    .transaction-title {
