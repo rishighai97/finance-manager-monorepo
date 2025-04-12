@@ -2,6 +2,7 @@ from datetime import datetime
 import re
 
 import pandas as pd
+import math
 import xlrd
 
 from model.account_statement import AccountStatementExtension
@@ -10,6 +11,9 @@ from model.transaction import Transaction
 from service.statement_reader.statement_reader import StatementReader
 from typing import List, override
 from io import StringIO, BytesIO
+
+from utils.data_type_utils import is_null
+
 
 class AxisXlsSavingsAccountStatementReader(StatementReader):
     regex_pattern = r',(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)'
@@ -23,15 +27,17 @@ class AxisXlsSavingsAccountStatementReader(StatementReader):
             if start and (pd.isna(row.iloc[1])):
                 break
             if start:
+                is_credit_amount: bool = is_null(row[4])
+                debit_or_credit_amount: float = float(row.iloc[5]) if is_credit_amount else float(row.iloc[4])
                 transactions.append(
                     Transaction(
                         # transaction_id=str(account_id) + "|" + str(row.iloc[0]) + "|" + row.iloc[1],
                         date=datetime.strptime(row.iloc[1], "%d-%m-%Y"),
                         user_account_id=request.user_account_id,
                         title=row.iloc[3],
-                        debit_or_credit_amount=float(row.iloc[4].strip()) if type(row.iloc[4]) == str and row.iloc[4].strip() != '' else float(row.iloc[5].strip()),
-                        is_credit_amount=type(row.iloc[5]) == str and row.iloc[5].strip() != '',
-                        closing_balance=float(row.iloc[6].strip()),
+                        debit_or_credit_amount=debit_or_credit_amount,
+                        is_credit_amount=is_credit_amount,
+                        closing_balance=float(row.iloc[6]),
                     )
                 )
             if not start and type(row.iloc[0]) == str and "SRL NO" in row.iloc[0].lower().upper():
