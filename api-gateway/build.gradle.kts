@@ -28,8 +28,8 @@ repositories {
 extra["springCloudVersion"] = "2025.0.0-M3"
 
 dependencies {
-//	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+//	implementation("org.springframework.cloud:spring-cloud-starter-gateway")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
