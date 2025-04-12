@@ -320,7 +320,7 @@ export class AccountListComponent implements OnInit {
     }
 
     const request: UserAccountSaveRequest = {
-      user_id: 1, // Assuming user ID 1 as in other places
+      user_id: 2, // Assuming user ID 1 as in other places
       account_id: this.selectedAccount.account_id,
       user_account_name: this.newUserAccountName,
     };
