@@ -117,7 +117,7 @@ export class UserAccountService {
    */
   refreshAccounts() {
     // Fetch fresh data with a cache-busting parameter
-    this.fetchGroupedUserAccounts([1]).subscribe(
+    this.fetchGroupedUserAccounts([2]).subscribe(
       (groupedAccounts) => {
         // Process icons
         groupedAccounts.forEach((group) => {

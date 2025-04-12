@@ -21,7 +21,7 @@ export class CategoryService {
   /**
    * Loads all categories for the given user IDs
    */
-  loadUserCategories(userIds: number[] = [1]) {
+  loadUserCategories(userIds: number[] = [2]) {
     this.fetchAllCategories(userIds).subscribe(
       (categories) => {
         this.userCategoriesSubject.next(categories);
@@ -158,7 +158,7 @@ export class CategoryService {
    * Refreshes the categories by fetching the latest data
    */
   refreshCategories() {
-    this.fetchAllCategories([1]).subscribe(
+    this.fetchAllCategories([2]).subscribe(
       (categories) => {
         this.userCategoriesSubject.next(categories);
       },
