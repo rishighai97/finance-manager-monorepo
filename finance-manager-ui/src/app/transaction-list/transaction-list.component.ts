@@ -807,7 +807,7 @@ refreshTransactions() {
     this.accountMap.clear();
     this.groupedAccounts.forEach((group) => {
       group.user_accounts.forEach((account) => {
-        this.accountMap.set(account.account_id, account);
+        this.accountMap.set(account.user_account_id, account);
       });
     });
   }

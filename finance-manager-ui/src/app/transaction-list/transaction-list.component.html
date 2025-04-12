@@ -298,14 +298,14 @@
         </ion-item-divider>
 
         @for (account of group.user_accounts; track account) {
-        <ion-item (click)="toggleAccountSelection(account.account_id)">
+        <ion-item (click)="toggleAccountSelection(account.user_account_id)">
           <ion-avatar slot="start">
             <img [src]="account.icon" [alt]="account.user_account_name" />
           </ion-avatar>
           <ion-label>{{ account.user_account_name }}</ion-label>
           <ion-checkbox
             slot="end"
-            [checked]="isAccountSelected(account.account_id)"
+            [checked]="isAccountSelected(account.user_account_id)"
           ></ion-checkbox>
         </ion-item>
         } }
