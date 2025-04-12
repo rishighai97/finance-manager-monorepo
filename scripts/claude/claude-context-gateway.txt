@@ -1,0 +1,82 @@
+# Context for gateway
+# App Type: spring
+# Generated: claude_get_context.py
+# Number of files: 5
+
+
+
+# FILE: src/main/java/com/finance/manager/api_gateway/ApiGatewayApplication.java
+
+package com.finance.manager.api_gateway;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ApiGatewayApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ApiGatewayApplication.class, args);
+	}
+
+}
+
+
+# FILE: src/main/resources/application.properties
+
+spring.application.name=api_gateway
+
+
+# FILE: HELP.md
+
+# Getting Started
+
+### Reference Documentation
+For further reference, please consider the following sections:
+
+* [Official Gradle documentation](https://docs.gradle.org)
+* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/gradle-plugin)
+* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/gradle-plugin/packaging-oci-image.html)
+* [Gateway](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-mvc.html)
+* [Spring Web](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/reference/web/servlet.html)
+
+### Guides
+The following guides illustrate how to use some features concretely:
+
+* [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
+* [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
+* [Building REST services with Spring](https://spring.io/guides/tutorials/rest/)
+
+### Additional Links
+These additional references should also help you:
+
+* [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
+
+
+
+# FILE: gradle/wrapper/gradle-wrapper.properties
+
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+
+
+# FILE: src/test/java/com/finance/manager/api_gateway/ApiGatewayApplicationTests.java
+
+package com.finance.manager.api_gateway;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class ApiGatewayApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

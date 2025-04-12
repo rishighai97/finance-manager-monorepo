@@ -7,7 +7,7 @@ import re
 from typing import Dict, List, Tuple, Set
 
 codebase_path = '/Users/rishighai/Desktop/finance-manager-application'
-context_file_base_path = '/Users/rishighai/Desktop/finance-manager-application/statement-loader/resources/claude'
+context_file_base_path = '/Users/rishighai/Desktop/finance-manager-application/scripts/claude'
 
 class AppConfig:
     def __init__(self, codebase_path: str, output_path: str):
@@ -31,6 +31,10 @@ def get_app_configs() -> Dict[str, AppConfig]:
         "ui": AppConfig(
             f"{codebase_path}/finance-manager-ui/src",
             f"{context_file_base_path}/claude-context-ui.txt"
+        ),
+	"gateway": AppConfig(
+            f"{codebase_path}/api-gateway",
+            f"{context_file_base_path}/claude-context-gateway.txt"
         )
         # Add more app configurations as needed
     }

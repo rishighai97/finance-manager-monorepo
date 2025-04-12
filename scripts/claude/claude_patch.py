@@ -8,7 +8,7 @@ import argparse
 from typing import Dict, List, Tuple
 
 codebase_path = '/Users/rishighai/Desktop/finance-manager-application'
-claude_code_output_base_path = '/Users/rishighai/Desktop/finance-manager-application/statement-loader/resources/claude'
+claude_code_output_base_path = '/Users/rishighai/Desktop/finance-manager-application/scripts/claude'
 
 
 class AppConfig:
@@ -33,6 +33,10 @@ def get_app_configs() -> Dict[str, AppConfig]:
         "ui": AppConfig(
             f"{codebase_path}/finance-manager-ui",
             f"{claude_code_output_base_path}/claude-output-ui.txt"
+        ),
+	"gateway": AppConfig(
+            f"{codebase_path}/api-gateway",
+            f"{claude_code_output_base_path}/claude-output-gateway.txt"
         )
         # Add more app configurations as needed
     }
