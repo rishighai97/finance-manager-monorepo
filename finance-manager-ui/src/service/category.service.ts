@@ -1,10 +1,10 @@
-
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
 import { UserCategory } from "../model/user-category";
 import { TransactionUserCategory } from "../model/transaction-user-category";
 import { environment } from "../environments/environment";
+import { UserService } from "./user.service";
 
 @Injectable({
   providedIn: "root",
@@ -16,12 +16,20 @@ export class CategoryService {
   private userCategoriesSubject = new BehaviorSubject<UserCategory[]>([]);
   userCategories$ = this.userCategoriesSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private userService: UserService
+  ) {}
 
   /**
    * Loads all categories for the given user IDs
    */
-  loadUserCategories(userIds: number[] = [2]) {
+  loadUserCategories(userIds?: number[]) {
+    // If no userIds provided, use the current user ID
+    if (!userIds || userIds.length === 0) {
+      userIds = [this.userService.currentUserId];
+    }
+    
     this.fetchAllCategories(userIds).subscribe(
       (categories) => {
         this.userCategoriesSubject.next(categories);
@@ -72,6 +80,11 @@ export class CategoryService {
    * @returns Observable of void
    */
   addNewCategory(category: UserCategory): Observable<void> {
+    // Set the user_id to current user if not already set
+    if (!category.user_id) {
+      category.user_id = this.userService.currentUserId;
+    }
+    
     const url = `${this.categoryApiUrl}/v1/save_all`;
     console.log(`Adding new category: ${category.category_title}`);
     return this.http.post<void>(url, [category]);
@@ -158,7 +171,7 @@ export class CategoryService {
    * Refreshes the categories by fetching the latest data
    */
   refreshCategories() {
-    this.fetchAllCategories([2]).subscribe(
+    this.fetchAllCategories([this.userService.currentUserId]).subscribe(
       (categories) => {
         this.userCategoriesSubject.next(categories);
       },

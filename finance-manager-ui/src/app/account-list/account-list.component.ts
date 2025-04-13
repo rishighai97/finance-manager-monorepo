@@ -59,6 +59,7 @@ import { GroupedAccount } from "src/model/grouped-account";
 import { UserAccountSaveRequest } from "src/model/user-account-save-request";
 import { UserAccountEditRequest } from "src/model/user-account-edit-request";
 import { ToastService } from "src/service/toast.service";
+import { UserService } from "src/service/user.service";
 
 interface Level1Group {
   title: string;
@@ -156,7 +157,8 @@ export class AccountListComponent implements OnInit {
     private accountService: AccountService,
     private router: Router,
     private toastService: ToastService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private userService: UserService
   ) {
     addIcons({
       walletOutline,
@@ -320,7 +322,7 @@ export class AccountListComponent implements OnInit {
     }
 
     const request: UserAccountSaveRequest = {
-      user_id: 2, // Assuming user ID 1 as in other places
+      user_id: this.userService.currentUserId, // Assuming user ID 1 as in other places
       account_id: this.selectedAccount.account_id,
       user_account_name: this.newUserAccountName,
     };

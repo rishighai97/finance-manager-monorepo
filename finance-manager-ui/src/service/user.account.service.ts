@@ -1,4 +1,3 @@
-
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable } from "rxjs";
@@ -7,6 +6,7 @@ import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccountSaveRequest } from "src/model/user-account-save-request";
 import { UserAccountEditRequest } from "src/model/user-account-edit-request";
 import { environment } from "../environments/environment";
+import { UserService } from "./user.service";
 
 @Injectable({
   providedIn: "root",
@@ -14,7 +14,10 @@ import { environment } from "../environments/environment";
 export class UserAccountService {
   private accountApiUri = `${environment.apiEndpoints.accountService}/user_account`; // API URL
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private userService: UserService
+  ) {}
 
   private groupedUserAccountsSubject = new BehaviorSubject<
     GroupedUserAccount[]
@@ -22,7 +25,9 @@ export class UserAccountService {
   groupedUserAccounts$ = this.groupedUserAccountsSubject.asObservable();
 
   loadGroupedUserAccounts() {
-    this.fetchGroupedUserAccounts([2]).subscribe(
+    // Use the current user ID from UserService
+    const userIds = [this.userService.currentUserId];
+    this.fetchGroupedUserAccounts(userIds).subscribe(
       (groupedAccounts) => {
         // Process icons
         groupedAccounts.forEach((group) => {
@@ -83,6 +88,14 @@ export class UserAccountService {
    * @returns An observable of the created user account ID
    */
   saveUserAccount(request: UserAccountSaveRequest): Observable<number> {
+    // Use the current user ID if not specified
+    if (!request.user_id) {
+      request = {
+        ...request,
+        user_id: this.userService.currentUserId
+      };
+    }
+    
     const url = `${this.accountApiUri}/v1/save`;
     console.log(`Creating new user account for user_id: ${request.user_id}`);
     return this.http.post<number>(url, request);
@@ -116,8 +129,9 @@ export class UserAccountService {
    * Refreshes the accounts list by fetching the latest data
    */
   refreshAccounts() {
-    // Fetch fresh data with a cache-busting parameter
-    this.fetchGroupedUserAccounts([2]).subscribe(
+    // Fetch fresh data with current user ID
+    const userIds = [this.userService.currentUserId];
+    this.fetchGroupedUserAccounts(userIds).subscribe(
       (groupedAccounts) => {
         // Process icons
         groupedAccounts.forEach((group) => {

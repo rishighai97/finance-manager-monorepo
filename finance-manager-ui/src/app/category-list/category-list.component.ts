@@ -51,6 +51,7 @@ import {
 import { CategoryService } from "src/service/category.service";
 import { UserCategory } from "src/model/user-category";
 import { ToastService } from "src/service/toast.service";
+import { UserService } from "src/service/user.service";
 
 @Component({
   selector: "app-category-list",
@@ -104,7 +105,8 @@ export class CategoryListComponent implements OnInit {
   constructor(
     private categoryService: CategoryService,
     private toastService: ToastService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private userService: UserService
   ) {
     addIcons({
       createOutline,
@@ -327,7 +329,7 @@ export class CategoryListComponent implements OnInit {
     
     const newCategory: UserCategory = {
       id: 0, // Will be ignored by the API
-      user_id: 2, // Assuming user ID 1 as in other services
+      user_id: this.userService.currentUserId, // Assuming user ID 1 as in other services
       category_title: this.newCategoryName.trim()
     };
     
