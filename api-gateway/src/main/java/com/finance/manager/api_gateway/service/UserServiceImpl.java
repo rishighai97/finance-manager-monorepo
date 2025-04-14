@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         checkParams.addValue("username", request.getUsername());
 
         Integer count = namedParameterJdbcTemplate.queryForObject(checkSql, checkParams, Integer.class);
-        if (count != null && count > 0) {
+        if (count > 0) {
             throw new HttpClientErrorException(HttpStatusCode.valueOf(409));
         }
 
