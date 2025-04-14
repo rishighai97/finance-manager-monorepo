@@ -12,7 +12,8 @@ import {
 
 import { routes } from "./app/app.routes";
 import { AppComponent } from "./app/app.component";
-import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from "@angular/common/http";
+import { AuthInterceptor } from "./service/auth-inteceptor.service";
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -20,5 +21,6 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
 });

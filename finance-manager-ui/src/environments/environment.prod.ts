@@ -6,6 +6,6 @@ export const environment = {
     accountService: "http://192.168.29.115:5003",
     transactionService: "http://192.168.29.115:5004",
     statementUploaderService: "http://192.168.29.115:5002",
-    backendService: "http://192.168.29.115:5001",
+    gatewayService: "http://192.168.29.115:5001",
   }
 };

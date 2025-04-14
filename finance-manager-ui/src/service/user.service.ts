@@ -1,106 +1,150 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs';
 import { User } from '../model/user';
 import { environment } from '../environments/environment';
+
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
+  userId: number;
+  username: string;
+}
+
+interface SignupRequest {
+  username: string;
+  password: string;
+}
+
+interface LoginRequest {
+  username: string;
+  password: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private userApiUrl = `${environment.apiEndpoints.accountService}/user`; // API URL when backend is ready
+  private authApiUrl = `${environment.apiEndpoints.gatewayService}/auth`; // API URL for auth endpoints
   
   // BehaviorSubject to store the current user
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-  currentUser$ = this.currentUserSubject.asObservable();
+  private currentUser = new BehaviorSubject<User | null>(null);
+  currentUser$ = this.currentUser.asObservable();
+  
+  // BehaviorSubject to store authentication state
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   
   // Store the current user ID separately for easier access
-  private userIdSubject = new BehaviorSubject<number>(2); // Default to user ID 2 for now
+  private userIdSubject = new BehaviorSubject<number>(0); // Default to 0 (not authenticated)
   userId$ = this.userIdSubject.asObservable();
+
+  // Store the access token
+  private accessToken: string | null = null;
 
   constructor(private http: HttpClient) {
     // Initialize user from localStorage if available
     this.loadUserFromStorage();
   }
 
+  get currentUserSubject(): BehaviorSubject<User | null> {
+    return this.currentUser;
+  }
+
+
   /**
    * Gets the current user ID
    * @returns The current user ID
    */
   get currentUserId(): number {
-    console.log("user id", this.userIdSubject.value)
     return this.userIdSubject.value;
   }
 
   /**
-   * Sets the current user ID and updates the user
-   * @param userId The user ID to set
+   * Checks if the user is authenticated
+   * @returns True if authenticated, false otherwise
    */
-  setCurrentUserId(userId: number): void {
-    this.userIdSubject.next(userId);
-    this.loadUser(userId);
-    localStorage.setItem('userId', userId.toString());
+  get isAuthenticated(): boolean {
+    return this.isAuthenticatedSubject.value;
   }
 
   /**
-   * Loads the user from localStorage if available
+   * Gets the current access token for API requests
+   * @returns The access token or null
    */
-  private loadUserFromStorage(): void {
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      const userId = parseInt(storedUserId, 10);
-      this.userIdSubject.next(userId);
-      this.loadUser(userId);
-    } else {
-      // If no user in storage, use default (2 for now)
-      this.loadUser(this.userIdSubject.value);
-    }
+  get token(): string | null {
+    return this.accessToken;
   }
 
   /**
-   * Loads a user by ID
-   * @param userId The user ID to load
+   * Sign up a new user
+   * @param username Username
+   * @param password Password
+   * @returns Observable of success status
    */
-  loadUser(userId: number): void {
-    // When the backend API is ready, uncomment this
-    // this.fetchUserById(userId).subscribe(
-    //   (user) => {
-    //     this.currentUserSubject.next(user);
-    //   },
-    //   (error) => {
-    //     console.error('Error fetching user:', error);
-    //     this.currentUserSubject.next(null);
-    //   }
-    // );
-
-    // For now, create a dummy user
-    const dummyUser: User = {
-      id: userId,
-      username: `user${userId}`,
-      email: `user${userId}@example.com`,
-      firstName: 'Demo',
-      lastName: 'User',
-      isActive: true,
-      lastLogin: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  signup(
+    username: string,
+    password: string,
+ 
+  ): Observable<boolean> {
+    const request: SignupRequest = {
+      username,
+      password,
     };
-    
-    this.currentUserSubject.next(dummyUser);
+
+    return this.http.post<User>(`${this.authApiUrl}/signup`, request).pipe(
+      map(user => !!user),
+      catchError(this.handleError)
+    );
   }
 
   /**
-   * Fetches a user by ID from the API
-   * @param userId The user ID to fetch
-   * @returns An observable of the User
+   * Log in a user
+   * @param username Username
+   * @param password Password
+   * @returns Observable of success status
    */
-  fetchUserById(userId: number): Observable<User> {
-    const url = `${this.userApiUrl}/v1/${userId}`;
-    return this.http.get<User>(url);
+  login(username: string, password: string): Observable<boolean> {
+    const request: LoginRequest = { username, password };
+
+    return this.http.post<AuthResponse>(`${this.authApiUrl}/login`, request).pipe(
+      tap(response => this.handleAuthentication(response)),
+      map((response) => true),
+      catchError(this.handleError)
+    );
   }
 
   /**
-   * Gets an array with the current user ID
+   * Logout the current user
+   */
+  logout(): Observable<boolean> {
+    // Clear localStorage
+    localStorage.removeItem('userData');
+    localStorage.removeItem('token');
+    
+    // Reset service state
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
+    this.userIdSubject.next(0);
+    this.accessToken = null;
+    
+    // Call logout API (if token exists)
+    
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.accessToken}`);
+    return this.http.post<void>(`${this.authApiUrl}/logout`, {}, { headers }).pipe(
+      map(() => true),
+      catchError(() => of(true)) // Always consider logout successful
+    );
+    
+    
+    return of(true);
+  }
+
+  /**
+   * Get an array with the current user ID
    * @returns An array containing the current user ID
    */
   getCurrentUserIdArray(): number[] {
@@ -108,19 +152,103 @@ export class UserService {
   }
 
   /**
-   * Logs out the current user
-   */
-  logout(): void {
-    this.currentUserSubject.next(null);
-    localStorage.removeItem('userId');
-    // Default back to user ID 2
-    this.userIdSubject.next(1);
-  }
-
-  /**
    * Refreshes the current user
    */
   refreshCurrentUser(): void {
-    this.loadUser(this.currentUserId);
+    if (this.currentUserId > 0 && this.accessToken) {
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${this.accessToken}`);
+      this.http.get<User>(`${this.authApiUrl}/userinfo`, { headers }).subscribe(
+        (user) => {
+          this.currentUserSubject.next(user);
+        },
+        () => {
+          // If refresh fails, log out
+          this.logout();
+        }
+      );
+    }
+  }
+
+  /**
+   * Get authentication headers for API requests
+   * @returns HttpHeaders with Authorization token
+   */
+  getAuthHeaders(): HttpHeaders {
+    return new HttpHeaders().set('Authorization', `Bearer ${this.accessToken}`);
+  }
+
+  // Private methods
+  private handleAuthentication(response: AuthResponse): void {
+    this.accessToken = response.accessToken;
+    
+    // Create user object
+    const user: User = {
+      id: response.userId,
+      username: response.username,
+      isActive: true,
+      lastLogin: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Update state
+    this.currentUserSubject.next(user);
+    this.userIdSubject.next(user.id);
+    this.isAuthenticatedSubject.next(true);
+    // Save to localStorage
+    localStorage.setItem('userData', JSON.stringify(user));
+    localStorage.setItem('token', response.accessToken);
+
+  }
+
+  private loadUserFromStorage(): void {
+    const storedUser = localStorage.getItem('userData');
+    const storedToken = localStorage.getItem('token');
+    
+    if (storedUser && storedToken) {
+      const user = JSON.parse(storedUser) as User;
+      this.currentUserSubject.next(user);
+      this.userIdSubject.next(user.id);
+      this.isAuthenticatedSubject.next(true);
+      this.accessToken = storedToken;
+    }
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An unknown error occurred';
+    console.log(error);
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Error: ${error.error.message}`;
+    } else if (error.error && typeof error.error === 'object' && 'errorDescription' in error.error) {
+      // Server-side error with errorDescription
+      errorMessage = error.error.errorDescription;
+    } else if (error.status) {
+      // Server-side error with status code
+      switch (error.status) {
+        case 400:
+          errorMessage = 'No account found for this username'
+          break;
+        case 401:
+          errorMessage = 'Unauthorized. Please valdiate username / password.';
+          break;
+        case 403:
+          errorMessage = 'Access denied.';
+          break;
+        case 404:
+          errorMessage = 'Requested resource not found.';
+          break;
+        case 409:
+          errorMessage = 'Username already taken'
+          break;
+        case 500:
+          errorMessage = 'Server error. Please try again later.';
+          break;
+        default:
+          errorMessage = `Server error: ${error.status}`;
+      }
+    }
+    
+    return throwError(() => new Error(errorMessage));
   }
 }
