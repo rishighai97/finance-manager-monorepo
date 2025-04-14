@@ -164,11 +164,11 @@ def setup_user_detail(cursor):
     cursor.execute(create_user_detail)
 
     insert_user_detail = """
-    INSERT INTO user_detail (id, name) VALUES
-    (1, 'Rishi Ghai'),
-    (2, 'Sujata Ghai'),
-    (3, 'Naresh Ghai'),
-    (4, 'Rohan Ghai');
+    INSERT INTO user_detail (id, name, password) VALUES
+    (1, 'Rishi Ghai', 'admin'),
+    (2, 'Sujata Ghai', 'admin'),
+    (3, 'Naresh Ghai', 'admin'),
+    (4, 'Rohan Ghai', 'admin');
     """
     cursor.execute(insert_user_detail)
     cursor.execute("SELECT setval('user_detail_sequence', (SELECT MAX(id) FROM user_detail));")

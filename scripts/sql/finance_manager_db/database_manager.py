@@ -4,7 +4,7 @@ import json
 import os
 import sys
 from typing import List, Dict, Any, Optional, Tuple
-
+from finance_manager_db_config import finance_manager_db_config
 # Try to import psycopg2-binary
 
 try:
@@ -284,7 +284,7 @@ def main() -> None:
     parse_arguments()
 
     # Load table configuration
-    table_configs = load_config()
+    table_configs = finance_manager_db_config
 
     # Execute requested operation
     if Environment.create_all:
