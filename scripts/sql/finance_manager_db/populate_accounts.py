@@ -164,7 +164,7 @@ def setup_user_detail(cursor):
     cursor.execute(create_user_detail)
 
     insert_user_detail = """
-    INSERT INTO user_detail (id, name, password) VALUES
+    INSERT INTO user_detail (id, username, password) VALUES
     (1, 'Rishi Ghai', 'admin'),
     (2, 'Sujata Ghai', 'admin'),
     (3, 'Naresh Ghai', 'admin'),

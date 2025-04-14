@@ -5,6 +5,7 @@ import os
 import sys
 from typing import List, Dict, Any, Optional, Tuple
 from finance_manager_db_config import finance_manager_db_config
+
 # Try to import psycopg2-binary
 
 try:
@@ -29,6 +30,8 @@ class Environment:
     drop_tables = []
     truncate_all = False
     truncate_tables = []
+    insert_all = False
+    insert_tables = []
     cascade = False
 
     # Config file
@@ -52,6 +55,8 @@ def parse_arguments() -> None:
     group.add_argument("--drop", nargs="+", metavar="TABLE", help="Drop specified tables")
     group.add_argument("--truncate-all", action="store_true", help="Truncate all tables")
     group.add_argument("--truncate", nargs="+", metavar="TABLE", help="Truncate specified tables")
+    group.add_argument("--insert-all", action="store_true", help="Insert data into all tables")
+    group.add_argument("--insert", nargs="+", metavar="TABLE", help="Insert data into specified tables")
 
     # Additional options
     parser.add_argument("--cascade", action="store_true", help="Add CASCADE to drop commands")
@@ -69,6 +74,7 @@ def parse_arguments() -> None:
     Environment.create_all = args.create_all
     Environment.drop_all = args.drop_all
     Environment.truncate_all = args.truncate_all
+    Environment.insert_all = args.insert_all
     Environment.cascade = args.cascade
     Environment.config_file = args.config_file
 
@@ -79,6 +85,8 @@ def parse_arguments() -> None:
         Environment.drop_tables = args.drop
     if args.truncate:
         Environment.truncate_tables = args.truncate
+    if args.insert:
+        Environment.insert_tables = args.insert
 
 
 def load_config() -> List[Dict[str, Any]]:
@@ -114,15 +122,24 @@ def get_db_connection(database: str = None) -> Tuple[psycopg2.extensions.connect
 
 
 def execute_query(cursor: psycopg2.extensions.cursor, conn: psycopg2.extensions.connection,
-                  query: str, description: str = None) -> None:
+                  query: str, description: str = None, is_insert: bool = False) -> None:
     """Execute a SQL query and handle errors."""
+    # Skip if query is None or empty (including just whitespace)
+    if not query or not query.strip():
+        if description:
+            print(f"Skipping: {description} (SQL statement is empty)")
+        return
+
     if description:
         print(description)
 
     try:
         cursor.execute(query)
         conn.commit()
-        print("Query executed successfully.")
+        if is_insert:
+            print(f"Data insertion successful.")
+        else:
+            print("Query executed successfully.")
     except psycopg2.Error as e:
         conn.rollback()
         print(f"Error executing query: {e}")
@@ -154,6 +171,11 @@ def create_database_if_not_exists() -> None:
         conn.close()
 
 
+def sort_table_configs_by_priority(table_configs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Sort table configurations based on priority for correct processing order."""
+    return sorted(table_configs, key=lambda x: x.get('priority', 999))
+
+
 def create_tables(table_configs: List[Dict[str, Any]], tables_to_create: List[str] = None) -> None:
     """Create specified tables or all tables based on configuration."""
     create_database_if_not_exists()
@@ -174,19 +196,18 @@ def create_tables(table_configs: List[Dict[str, Any]], tables_to_create: List[st
             # Create all tables
             configs_to_use = table_configs
 
+        # Sort by priority
+        configs_to_use = sort_table_configs_by_priority(configs_to_use)
+
         # Create tables in the correct order
         for config in configs_to_use:
             table_name = config.get('tableName')
             create_seq_sql = config.get('createSeqSql')
             create_table_sql = config.get('createTableSql')
 
-            if create_seq_sql:
-                execute_query(cur, conn, create_seq_sql, f"Creating sequence for table '{table_name}'...")
-
-            if create_table_sql:
-                execute_query(cur, conn, create_table_sql, f"Creating table '{table_name}'...")
-            else:
-                print(f"Warning: No SQL found for creating table '{table_name}'")
+            # Execute even if empty - execute_query will handle skipping
+            execute_query(cur, conn, create_seq_sql, f"Creating sequence for table '{table_name}'...")
+            execute_query(cur, conn, create_table_sql, f"Creating table '{table_name}'...")
 
         print("Table creation complete.")
 
@@ -216,28 +237,31 @@ def drop_tables(table_configs: List[Dict[str, Any]], tables_to_drop: List[str] =
             # Drop all tables
             configs_to_use = table_configs
 
+        # Sort by priority in reverse order (highest priority last)
+        configs_to_use = sorted(sort_table_configs_by_priority(configs_to_use),
+                                key=lambda x: x.get('priority', 0),
+                                reverse=True)
+
         # Drop tables in reverse order to respect dependencies
-        for config in reversed(configs_to_use):
+        for config in configs_to_use:
             table_name = config.get('tableName')
             drop_table_sql = config.get('dropTableSql')
             drop_seq_sql = config.get('dropSeqSql')
 
             # Add CASCADE if specified
-            if Environment.cascade and drop_table_sql:
+            if Environment.cascade and drop_table_sql and drop_table_sql.strip():
                 # Check if CASCADE is already in the SQL
                 if "CASCADE" not in drop_table_sql.upper():
                     drop_table_sql = drop_table_sql.rstrip(';') + " CASCADE;"
 
-            if drop_table_sql:
-                execute_query(cur, conn, drop_table_sql, f"Dropping table '{table_name}'...")
-            else:
-                print(f"Warning: No SQL found for dropping table '{table_name}'")
+            # Execute even if empty - execute_query will handle skipping
+            execute_query(cur, conn, drop_table_sql, f"Dropping table '{table_name}'...")
 
-            if drop_seq_sql:
-                if Environment.cascade and "CASCADE" not in drop_seq_sql.upper():
+            if Environment.cascade and drop_seq_sql and drop_seq_sql.strip():
+                if "CASCADE" not in drop_seq_sql.upper():
                     drop_seq_sql = drop_seq_sql.rstrip(';') + " CASCADE;"
 
-                execute_query(cur, conn, drop_seq_sql, f"Dropping sequence for table '{table_name}'...")
+            execute_query(cur, conn, drop_seq_sql, f"Dropping sequence for table '{table_name}'...")
 
         print("Table dropping complete.")
 
@@ -279,6 +303,55 @@ def truncate_tables(table_configs: List[Dict[str, Any]], tables_to_truncate: Lis
         conn.close()
 
 
+def insert_data(table_configs: List[Dict[str, Any]], tables_to_insert: List[str] = None) -> None:
+    """Insert data into specified tables or all tables based on configuration."""
+    conn, cur = get_db_connection(Environment.db_name)
+
+    try:
+        # Determine which tables to insert data into
+        if tables_to_insert:
+            filtered_configs = [config for config in table_configs
+                                if config.get('tableName') in tables_to_insert]
+
+            if not filtered_configs:
+                print("Error: None of the specified tables found in configuration.")
+                return
+
+            configs_to_use = filtered_configs
+        else:
+            # Insert into all tables
+            configs_to_use = table_configs
+
+        # Sort by priority for proper insertion order
+        configs_to_use = sort_table_configs_by_priority(configs_to_use)
+
+        # Insert data into tables in the correct order
+        for config in configs_to_use:
+            table_name = config.get('tableName')
+            insert_sql = config.get('insertSql')
+
+            # Execute even if empty - execute_query will handle skipping
+            execute_query(cur, conn, insert_sql, f"Inserting data into '{table_name}'...", is_insert=True)
+
+        print("Data insertion complete.")
+
+        # Log summary of inserted tables
+        print("\nSummary of data insertion:")
+        for config in configs_to_use:
+            table_name = config.get('tableName')
+            insert_sql = config.get('insertSql')
+            if insert_sql and insert_sql.strip():
+                print(f"✓ Data inserted into '{table_name}'")
+            else:
+                print(f"⚠ No data inserted into '{table_name}' (SQL statement was empty)")
+
+    except Exception as e:
+        print(f"Error inserting data: {e}")
+    finally:
+        cur.close()
+        conn.close()
+
+
 def main() -> None:
     """Main entry point of the script."""
     parse_arguments()
@@ -299,6 +372,10 @@ def main() -> None:
         truncate_tables(table_configs)
     elif Environment.truncate_tables:
         truncate_tables(table_configs, Environment.truncate_tables)
+    elif Environment.insert_all:
+        insert_data(table_configs)
+    elif Environment.insert_tables:
+        insert_data(table_configs, Environment.insert_tables)
 
 
 if __name__ == "__main__":
