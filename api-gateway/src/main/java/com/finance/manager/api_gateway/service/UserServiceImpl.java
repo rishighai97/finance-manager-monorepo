@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
 
 
         // Update last login time
-        String updateSql = "UPDATE users SET last_login = :now WHERE id = :id";
+        String updateSql = "UPDATE user_detail SET last_login = :now WHERE id = :id";
         MapSqlParameterSource updateParams = new MapSqlParameterSource();
         updateParams.addValue("now", Timestamp.valueOf(LocalDateTime.now()));
         updateParams.addValue("id", userDetails.getId());
