@@ -36,7 +36,7 @@ docker build -t finance-manager-ui .
 To run the UI container:
 
 ```bash
-docker run -d --name finance-manager-ui -p 8101:8101 finance-manager-ui
+cd 
 ```
 
 This will start the Ionic development server on port 8100, accessible at http://localhost:8100.
@@ -50,7 +50,7 @@ The following environment variables can be passed to the container:
 Example with custom API endpoint:
 
 ```bash
-docker run -d --name finance-ui -p 8100:8100 -e API_ENDPOINT=http://your-api-host:5001 finance-manager-ui
+docker run -d --name finance-ui -p 8100:8100 finance-manager-ui
 ```
 
 ## Development Without Docker
