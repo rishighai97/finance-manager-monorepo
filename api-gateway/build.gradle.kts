@@ -3,6 +3,7 @@ plugins {
 	war
 	id("org.springframework.boot") version "3.5.0-SNAPSHOT"
 	id("io.spring.dependency-management") version "1.1.7"
+//	kotlin("jvm")
 }
 
 group = "com.finance.manager"
@@ -10,7 +11,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -63,6 +64,7 @@ dependencies {
 	// Test dependencies
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 //	testImplementation("org.springframework.security:spring-security-test")
+//	implementation(kotlin("stdlib"))
 }
 
 //dependencyManagement {
