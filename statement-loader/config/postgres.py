@@ -18,6 +18,7 @@ class Postgres:
             raise Exception("An exception occurred while querying postgres occurred: ", e)
         finally:
             # Ensure the connection is closed
+            pool.putconn(conn)
             if conn is not None:
                 conn.close()
 
