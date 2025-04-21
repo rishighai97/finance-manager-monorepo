@@ -19,7 +19,7 @@ class Postgres:
         finally:
             # Ensure the connection is closed
             if conn is not None:
-                self.pool.putconn(conn)
+                # self.pool.putconn(conn) # todo fixme give back connection to pool
                 conn.close()
 
     @staticmethod
