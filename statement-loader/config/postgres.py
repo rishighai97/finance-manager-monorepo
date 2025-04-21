@@ -18,8 +18,8 @@ class Postgres:
             raise Exception("An exception occurred while querying postgres occurred: ", e)
         finally:
             # Ensure the connection is closed
-            self.pool.putconn(conn)
             if conn is not None:
+                self.pool.putconn(conn)
                 conn.close()
 
     @staticmethod
