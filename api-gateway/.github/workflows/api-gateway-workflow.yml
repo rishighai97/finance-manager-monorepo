@@ -46,7 +46,7 @@ jobs:
 
       - name: Build Docker image using run.sh
 #        working-directory: ./api-gateway
-        run: ./run.sh prod
+        run: ./gradlew bootBuildImage --imageName finance-manager-application/api-gateway
 
       - name: Tag and push Docker image to GitHub Container Registry
         run: |
