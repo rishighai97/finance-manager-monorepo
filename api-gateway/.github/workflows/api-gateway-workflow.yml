@@ -83,4 +83,4 @@ jobs:
               finance-manager-api-gateway:latest
             
             # Clean up
-            rm /tmp/finance-manager-api-gateway.tar
+            rm /tmp/api-gateway.tar
