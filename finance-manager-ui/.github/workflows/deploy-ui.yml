@@ -62,11 +62,11 @@ jobs:
           docker rm finance-manager-ui || true
           
           # Run the new container
-          docker run -d \
-            --name finance-manager-ui \
-            -p 80:80 -p 8101:8101 -p 8100:8100 \
-            --restart unless-stopped \
-            finance-manager-ui:latest
+         docker run -d \
+          --name finance-manager-ui \
+          -p 8100:8100 \
+          --restart unless-stopped \
+          finance-manager-ui:latest
           
           # Clean up
           rm /tmp/finance-manager-ui.tar
