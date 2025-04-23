@@ -42,4 +42,4 @@ if [ "$DETACH_MODE" = true ]; then
 fi
 
 # Run Docker container
-docker run $DOCKER_RUN_OPTS finance-manager-application/api-gateway:latest --restart=always
+#docker run $DOCKER_RUN_OPTS finance-manager-application/api-gateway:latest --restart=always
