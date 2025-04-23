@@ -3,12 +3,12 @@ name: API Gateway CI/CD
 on:
   push:
     branches: [ main ]
-#    paths:
-#      - 'api-gateway/**'
+  #    paths:
+  #      - 'api-gateway/**'
   pull_request:
     branches: [ main ]
-#    paths:
-#      - 'api-gateway/**'
+  #    paths:
+  #      - 'api-gateway/**'
   workflow_dispatch:
 
 jobs:
@@ -44,29 +44,33 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image using run.sh
-#        working-directory: ./api-gateway
-        run: ./gradlew bootBuildImage --imageName finance-manager-application/api-gateway
+      - name: Build and tag Docker image
+        #        working-directory: ./api-gateway
+        run: ./gradlew bootBuildImage --imageName finance-manager-api-gateway:latest
 
-      - name: Tag and push Docker image to GitHub Container Registry
-        run: |
-          docker tag finance-manager-application/api-gateway:latest ghcr.io/${{ github.repository }}/api-gateway:latest
-          docker push ghcr.io/${{ github.repository }}/api-gateway:latest
-
+      - name: Save Docker image
+        run: docker save finance-manager-api-gateway:latest > api-gateway.tar
+      - name: Copy Docker image to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          source: api-gateway.tar
+          target: /tmp
       - name: Deploy to server
-        if: github.event_name != 'pull_request'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           script: |
-            # Pull the latest image
-            docker pull ghcr.io/${{ github.repository }}/api-gateway:latest
+            # Load the Docker image
+            docker load < /tmp/api-gateway.tar
             
-            # Stop and remove the old container if it exists
-            docker stop api-gateway || true
-            docker rm api-gateway || true
+            # Stop and remove the existing container if it exists
+            docker stop finance-manager-api-gateway || true
+            docker rm finance-manager-api-gateway || true
             
             # Run the new container
             docker run -d --name api-gateway \
@@ -77,3 +81,6 @@ jobs:
               -e SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_DB_PASSWORD }} \
               --restart=always \
               ghcr.io/${{ github.repository }}/api-gateway:latest
+            
+            # Clean up
+            rm /tmp/finance-manager-api-gateway.tar
