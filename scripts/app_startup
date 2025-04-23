@@ -1,0 +1,35 @@
+cd finance-manager-ui
+nohup ionic serve --external > ionic-server.log 2>&1 &
+
+
+docker run --name postgres-finance -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=postgres -p 5432:5432 -v ~/postgres-data:/var/lib/postgresql/data -d postgres
+docker rm
+
+
+export JAVA_HOME=/usr/lib/jvm/zulu21
+export PATH=$JAVA_HOME/bin:$PATH
+cd account-service
+./gradlew clean build
+nohup ./gradlew bootrun --args='--spring.profiles.active=local' > server.log 2>&1 &
+
+
+
+cd transaction-service
+./gradlew clean build
+nohup ./gradlew bootrun --args='--spring.profiles.active=local' > server.log 2>&1 &
+
+
+cd api-gateway
+./gradlew clean build
+nohup ./gradlew bootrun --args='--spring.profiles.active=local' > server.log 2>&1 &
+
+
+source .venv/bin/activate
+cd statement-loader
+nohup python run.py --app-profile local > server.log 2>&1 & </dev/null &
+
+
+cd finance-manager-ui
+nohup ionic serve --external --no-open --no-open > server.log 2>&1 & </dev/null &
+disown
+ionic serve  --no-open --external
