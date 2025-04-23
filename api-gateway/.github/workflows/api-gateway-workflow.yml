@@ -3,12 +3,12 @@ name: API Gateway CI/CD
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'api-gateway/**'
+#    paths:
+#      - 'api-gateway/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'api-gateway/**'
+#    paths:
+#      - 'api-gateway/**'
   workflow_dispatch:
 
 jobs:
