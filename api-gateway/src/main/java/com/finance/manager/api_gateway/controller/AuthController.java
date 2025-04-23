@@ -19,6 +19,11 @@ public class AuthController {
 
     private final UserService userService;
 
+    @GetMapping("/healthcheck")
+    public String healthCheck() {
+        return "API Gateway is up and running";
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<UserDetails> signup(@RequestBody UserSignupRequest request) {
         try {
