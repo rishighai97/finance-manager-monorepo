@@ -80,7 +80,7 @@ jobs:
               -e SPRING_DATASOURCE_USERNAME=${{ secrets.POSTGRES_DB_USERNAME }} \
               -e SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_DB_PASSWORD }} \
               --restart=always \
-              ghcr.io/${{ github.repository }}/api-gateway:latest
+              finance-manager-api-gateway:latest
             
             # Clean up
             rm /tmp/finance-manager-api-gateway.tar
