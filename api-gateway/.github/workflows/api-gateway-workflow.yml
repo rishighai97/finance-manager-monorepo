@@ -46,7 +46,7 @@ jobs:
 
       - name: Build Docker image using run.sh
         working-directory: ./api-gateway
-        run: sh run.sh prod
+        run: ./run.sh prod
 
       - name: Tag and push Docker image to GitHub Container Registry
         run: |
