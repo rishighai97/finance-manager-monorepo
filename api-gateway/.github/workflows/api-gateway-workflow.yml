@@ -75,7 +75,7 @@ jobs:
             # Run the new container
             docker run -d --name api-gateway \
               -p 5001:5001 \
-              -v /finance-manager-application:/finance-manager-application \
+              -v /finance_manager_application:/finance_manager_application \
               -e SPRING_PROFILES_ACTIVE=prod \
               --restart=always \
               finance-manager-api-gateway:latest
