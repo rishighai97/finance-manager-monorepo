@@ -74,7 +74,7 @@ jobs:
             
             # Run the new container
             docker run -d --name account-service \
-              -p 5001:5001 \
+              -p 5003:5003 \
               -v /finance_manager_application:/finance_manager_application \
               -e SPRING_PROFILES_ACTIVE=prod \
               --restart=always \
