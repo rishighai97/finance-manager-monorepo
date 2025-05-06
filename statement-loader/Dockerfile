@@ -1,6 +1,6 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
-WORKDIR /app
+WORKDIR /statement-loader
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
@@ -13,7 +13,7 @@ COPY . .
 RUN mkdir -p /finance_manager_application/logs
 
 # Set permissions for .venv directory
-RUN mkdir -p /.venv && chmod 777 /.venv
+RUN mkdir -p /.venv && chmod -R 777 /.venv
 
 # Expose the application port
 EXPOSE 5002
