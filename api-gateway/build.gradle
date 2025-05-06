@@ -55,7 +55,6 @@ tasks.withType(Test) {
 
 bootBuildImage {
 	environment = ["BP_JVM_VERSION" : "21.0.6"]
-//	ports = ["5001"]
 	tags = ["finance-manager-api-gateway:${project.version}"]
 	environment = [
 			'SPRING_PROFILES_ACTIVE': 'local'
