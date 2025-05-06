@@ -1,0 +1,59 @@
+name: Statement Loader CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Build and push Docker image
+      env:
+        REGISTRY: ghcr.io
+        IMAGE_NAME: ${{ github.repository }}/statement-loader
+      run: |
+        docker build -t $REGISTRY/$IMAGE_NAME:latest .
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push $REGISTRY/$IMAGE_NAME:latest
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        script: |
+          # Pull the latest image
+          docker pull ghcr.io/${{ github.repository }}/statement-loader:latest
+          
+          # Stop and remove existing container if it exists
+          docker stop statement-loader || true
+          docker rm statement-loader || true
+          
+          # Create .venv directory if it doesn't exist
+          mkdir -p /.venv
+          
+          # Run the new container
+          docker run -d \
+            --name statement-loader \
+            --restart always \
+            -p 5002:5002 \
+            -v /.venv:/.venv \
+            -v /finance_manager_application/logs:/finance_manager_application/logs \
+            ghcr.io/${{ github.repository }}/statement-loader:latest
