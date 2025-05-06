@@ -69,8 +69,8 @@ jobs:
             docker load < /tmp/transaction-service.tar
             
             # Stop and remove the existing container if it exists
-            docker stop finance-manager-transaction-service || true
-            docker rm finance-manager-transaction-service || true
+            docker stop transaction-service || true
+            docker rm transaction-service || true
             
             # Run the new container
             docker run -d --name transaction-service \
