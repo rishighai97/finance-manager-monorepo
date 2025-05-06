@@ -4,6 +4,7 @@ mkdir /finance_manager_application/logs
 chmod -R 777 finance_manager_application
 
 # setup python 13 in .venv folder on root
+python3 -m 
 
 # db scripts
 ## copy postgres.sh to /finance_manager_application/postgres and run it

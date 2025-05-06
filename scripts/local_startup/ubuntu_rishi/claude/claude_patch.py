@@ -34,9 +34,13 @@ def get_app_configs() -> Dict[str, AppConfig]:
             f"{codebase_path}/finance-manager-ui",
             f"{claude_code_output_base_path}/claude-output-ui.txt"
         ),
-	"gateway": AppConfig(
+	    "gateway": AppConfig(
             f"{codebase_path}/api-gateway",
             f"{claude_code_output_base_path}/claude-output-gateway.txt"
+        ),
+        "statement": AppConfig(
+            f"{codebase_path}/statement-loader",
+            f"{claude_code_output_base_path}/claude-output-statement.txt"
         )
         # Add more app configurations as needed
     }

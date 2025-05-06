@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple, Set
 codebase_path = '/home/rishi/Desktop/finance-manager-application'
 context_file_base_path = '/home/rishi/Desktop/finance-manager-application/scripts/local_startup/ubuntu_rishi/claude'
 
+
 class AppConfig:
     def __init__(self, codebase_path: str, output_path: str):
         self.codebase_path = codebase_path
@@ -32,9 +33,13 @@ def get_app_configs() -> Dict[str, AppConfig]:
             f"{codebase_path}/finance-manager-ui/src",
             f"{context_file_base_path}/claude-context-ui.txt"
         ),
-	"gateway": AppConfig(
+        "gateway": AppConfig(
             f"{codebase_path}/api-gateway",
             f"{context_file_base_path}/claude-context-gateway.txt"
+        ),
+        "statement": AppConfig(
+            f"{codebase_path}/statement-loader",
+            f"{context_file_base_path}/claude-context-statement.txt"
         )
         # Add more app configurations as needed
     }
@@ -42,11 +47,11 @@ def get_app_configs() -> Dict[str, AppConfig]:
 
 def is_relevant_file(filename: str, app_type: str) -> bool:
     """
-    Determines if a file is relevant based on the app type (ionic or spring boot).
+    Determines if a file is relevant based on the app type (ionic, spring boot, or python).
 
     Args:
         filename: The name of the file to check
-        app_type: Either 'ionic' or 'spring'
+        app_type: Either 'ionic', 'spring', or 'python'
 
     Returns:
         True if the file is relevant, False otherwise
@@ -96,19 +101,51 @@ def is_relevant_file(filename: str, app_type: str) -> bool:
         return any(lowercase_filename.endswith(ext) for ext in [
             '.java', '.kt', '.xml', '.properties', '.yml', '.yaml', '.md', '.txt'
         ])
+    elif app_type == "python":
+        # Python app file extensions
+        is_relevant_ext = any(lowercase_filename.endswith(ext) for ext in [
+            '.py', '.pyi', '.pyx', '.pyd', '.pyw', '.pyc', '.pyo', '.rpy',
+            '.yml', '.yaml', '.json', '.md', '.txt', '.html', '.jinja', '.jinja2',
+            '.ini', '.cfg', '.toml', '.env', '.flaskenv', '.requirements'
+        ])
+
+        # Prioritize important Python/Flask patterns
+        is_python_key_file = any(pattern in lowercase_filename for pattern in [
+            'app.py', 'wsgi.py', 'asgi.py', 'main.py', 'server.py', 'api.py',
+            'routes.py', 'views.py', 'models.py', 'schemas.py', 'forms.py',
+            'config.py', 'settings.py', 'utils.py', 'helpers.py',
+            'exceptions.py', 'decorators.py', 'middleware.py', 'extensions.py',
+            'blueprint.py', 'factory.py', 'services.py', 'controllers.py'
+        ])
+
+        return is_relevant_ext and (
+            # Always include key Python files
+                is_python_key_file or
+                # Include Python files
+                lowercase_filename.endswith('.py') or
+                # Include template files
+                any(lowercase_filename.endswith(ext) for ext in ['.html', '.jinja', '.jinja2']) or
+                # Include important config files
+                any(fname in lowercase_filename for fname in [
+                    'requirements.txt', 'pyproject.toml', 'setup.py', 'setup.cfg',
+                    'manifest.in', 'pytest.ini', 'tox.ini', 'Procfile',
+                    'dockerfile', 'docker-compose.yml', '.flaskenv', '.env',
+                    'config.py', 'settings.py', 'alembic.ini'
+                ])
+        )
 
     return False
 
 
 def detect_app_type(codebase_path: str) -> str:
     """
-    Attempts to detect if the application is an Ionic or Spring Boot app.
+    Attempts to detect if the application is an Ionic, Spring Boot, or Python/Flask app.
 
     Args:
         codebase_path: Path to the code base folder
 
     Returns:
-        'ionic' or 'spring' based on detection, defaults to 'spring' if unsure
+        'ionic', 'spring', or 'python' based on detection, defaults to 'spring' if unsure
     """
     # Check for Ionic/Angular specific files
     ionic_indicators = [
@@ -137,11 +174,36 @@ def detect_app_type(codebase_path: str) -> str:
         'gradlew'
     ]
 
+    # Check for Python/Flask specific files
+    python_indicators = [
+        'requirements.txt',
+        'pyproject.toml',
+        'setup.py',
+        'app.py',
+        'wsgi.py',
+        'main.py',
+        'run.py',
+        'manage.py',
+        'flask_app.py',
+        '.flaskenv',
+        'instance/',
+        'venv/',
+        'env/',
+        'templates/',
+        'static/',
+        'alembic.ini',
+        'migrations/',
+        'config.py'
+    ]
+
     # Count indicators for each type
     ionic_count = sum(1 for indicator in ionic_indicators
                       if os.path.exists(os.path.join(codebase_path, indicator)))
 
     spring_count = sum(1 for indicator in spring_indicators
+                       if os.path.exists(os.path.join(codebase_path, indicator)))
+
+    python_count = sum(1 for indicator in python_indicators
                        if os.path.exists(os.path.join(codebase_path, indicator)))
 
     # Look for Angular component/service patterns as a strong indicator
@@ -156,9 +218,27 @@ def detect_app_type(codebase_path: str) -> str:
         if angular_patterns_found:
             break
 
+    # Look for Flask patterns as a strong indicator
+    flask_patterns_found = False
+    for root, _, files in os.walk(codebase_path):
+        for file in files:
+            if file.lower().endswith('.py'):
+                try:
+                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        if 'from flask import' in content or 'import flask' in content:
+                            flask_patterns_found = True
+                            break
+                except:
+                    pass
+        if flask_patterns_found:
+            break
+
     # Determine app type based on indicator count and patterns
-    if angular_patterns_found or ionic_count > spring_count:
+    if angular_patterns_found or ionic_count > spring_count and ionic_count > python_count:
         return "ionic"
+    elif flask_patterns_found or python_count > spring_count and python_count > ionic_count:
+        return "python"
     else:
         return "spring"
 
@@ -214,7 +294,7 @@ def find_source_files(codebase_path: str, app_type: str) -> List[str]:
 
     Args:
         codebase_path: Path to the code base folder
-        app_type: Either 'ionic' or 'spring'
+        app_type: Either 'ionic', 'spring', or 'python'
 
     Returns:
         List of file paths for all relevant source files
@@ -235,6 +315,25 @@ def find_source_files(codebase_path: str, app_type: str) -> List[str]:
             os.path.join(codebase_path, "src", "main", "java"),
             os.path.join(codebase_path, "src", "main", "resources"),
             os.path.join(codebase_path, "src", "main", "kotlin")
+        ]
+    elif app_type == "python":
+        # Python/Flask app common directories
+        priority_dirs = [
+            os.path.join(codebase_path, "app"),
+            os.path.join(codebase_path, "src"),
+            os.path.join(codebase_path, "instance"),
+            os.path.join(codebase_path, "config"),
+            os.path.join(codebase_path, "templates"),
+            os.path.join(codebase_path, "static"),
+            os.path.join(codebase_path, "models"),
+            os.path.join(codebase_path, "views"),
+            os.path.join(codebase_path, "controllers"),
+            os.path.join(codebase_path, "routes"),
+            os.path.join(codebase_path, "services"),
+            os.path.join(codebase_path, "migrations"),
+            os.path.join(codebase_path, "tests"),
+            os.path.join(codebase_path, "blueprints"),
+            os.path.join(codebase_path, "api")
         ]
 
     # First collect files from priority directories
