@@ -69,8 +69,8 @@ jobs:
             docker load < /tmp/account-service.tar
             
             # Stop and remove the existing container if it exists
-            docker stop finance-manager-account-service || true
-            docker rm finance-manager-account-service || true
+            docker stop account-service || true
+            docker rm account-service || true
             
             # Run the new container
             docker run -d --name account-service \
