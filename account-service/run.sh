@@ -36,7 +36,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 ./gradlew bootBuildImage --imageName finance-manager-application/account-service
 
 # Determine Docker run mode
-DOCKER_RUN_OPTS="-p 5001:5001 -e SPRING_PROFILES_ACTIVE=$PROFILE"
+DOCKER_RUN_OPTS="-p 5003:5003 -e SPRING_PROFILES_ACTIVE=$PROFILE"
 if [ "$DETACH_MODE" = true ]; then
   DOCKER_RUN_OPTS="$DOCKER_RUN_OPTS -d"
 fi
