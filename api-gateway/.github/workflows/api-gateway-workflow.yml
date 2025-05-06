@@ -69,8 +69,8 @@ jobs:
             docker load < /tmp/api-gateway.tar
             
             # Stop and remove the existing container if it exists
-            docker stop finance-manager-api-gateway || true
-            docker rm finance-manager-api-gateway || true
+            docker stop api-gateway || true
+            docker rm api-gateway || true
             
             # Run the new container
             docker run -d --name api-gateway \
