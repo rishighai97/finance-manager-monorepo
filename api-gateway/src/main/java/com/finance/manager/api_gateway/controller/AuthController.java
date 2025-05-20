@@ -27,26 +27,26 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDetails> signup(@RequestBody UserSignupRequest request) {
+    public ResponseEntity<?> signup(@RequestBody UserSignupRequest request) {
         try {
             log.info("Received signup request for user - {}", request.getUsername());
             UserDetails userDetails = userService.createUser(request);
             log.info("Signup successful for user - {}", request.getUsername());
             return ResponseEntity.ok(userDetails);
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(HttpStatusCode.valueOf(e.getStatusCode().value())).build();
+            return ResponseEntity.status(e.getStatusCode()).body(e.getStatusText());
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody UserLoginRequest request) {
         try {
             log.info("Received login request for user - {}", request.getUsername());
             AuthResponse response = userService.authenticateUser(request);
             log.info("Signup successful for user - {}", request.getUsername());
             return ResponseEntity.ok(response);
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(HttpStatusCode.valueOf(e.getStatusCode().value())).build();
+            return ResponseEntity.status(e.getStatusCode()).body(e.getStatusText());
         }
     }
 

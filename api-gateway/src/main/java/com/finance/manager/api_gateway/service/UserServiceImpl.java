@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
 
         Integer count = namedParameterJdbcTemplate.queryForObject(checkSql, checkParams, Integer.class);
         if (count > 0) {
-            throw new HttpClientErrorException(HttpStatusCode.valueOf(409));
+            throw new HttpClientErrorException(HttpStatusCode.valueOf(409), "Username already taken");
         }
 
         // Hash the password
@@ -97,12 +97,12 @@ public class UserServiceImpl implements UserService {
                             .build()
             );
         } catch (EmptyResultDataAccessException e) {
-            throw new HttpClientErrorException(HttpStatusCode.valueOf(400));
+            throw new HttpClientErrorException(HttpStatusCode.valueOf(400), "No user found");
         }
 
         // Verify password
         if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
-            throw new HttpClientErrorException(HttpStatusCode.valueOf(401));
+            throw new HttpClientErrorException(HttpStatusCode.valueOf(401), "Incorrect password");
         }
 
 
