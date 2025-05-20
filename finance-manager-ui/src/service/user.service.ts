@@ -225,30 +225,10 @@ export class UserService {
       errorMessage = error.error.errorDescription;
     } else if (error.status) {
       // Server-side error with status code
-      switch (error.status) {
-        case 400:
-          errorMessage = 'No account found for this username'
-          break;
-        case 401:
-          errorMessage = 'Unauthorized. Please valdiate username / password.';
-          break;
-        case 403:
-          errorMessage = 'Access denied.';
-          break;
-        case 404:
-          errorMessage = 'Requested resource not found.';
-          break;
-        case 409:
-          errorMessage = 'Username already taken'
-          break;
-        case 500:
-          errorMessage = 'Server error. Please try again later.';
-          break;
-        default:
-          errorMessage = `Server error: ${error.status}`;
-      }
+      errorMessage = error.error;
+
     }
-    
+    console.log("final, ",errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }
