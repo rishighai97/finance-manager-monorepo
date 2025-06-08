@@ -11,5 +11,7 @@ public interface TransactionDao {
 
     // Add overloaded method with categoryIds parameter
     List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds);
+
+    void saveAll(List<Transaction> transactions);
 }
 

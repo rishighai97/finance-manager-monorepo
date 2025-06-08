@@ -12,5 +12,7 @@ public interface TransactionService {
 
     // Add overloaded method with categoryIds parameter
     TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds);
+
+    void saveAll(List<Transaction> transactions);
 }
 

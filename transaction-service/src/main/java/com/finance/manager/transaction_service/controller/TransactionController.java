@@ -29,6 +29,12 @@ public class TransactionController {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
+
+    @PostMapping("/v1/save_all")
+    public void saveAll(@RequestBody List<Transaction> transactions) {
+        transactionService.saveAll(transactions);
+    }
+
     @GetMapping("/v1/healthcheck")
     public String healthcheck() {
         return "Transaction API is up and running!";

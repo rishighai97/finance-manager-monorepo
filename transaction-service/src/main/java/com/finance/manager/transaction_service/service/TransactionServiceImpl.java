@@ -48,6 +48,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 
+    @Override
+    public void saveAll(List<Transaction> transactions) {
+        transactionDao.saveAll(transactions);
+    }
+
     private BigDecimal calculateClosingBalance(List<Transaction> transactionList) {
         return getEarliestOrLatestTransactionPerUserAccountId(transactionList, false)
                 .map(Transaction::closingBalance)
@@ -56,7 +61,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private BigDecimal calculateOpeningBalance(List<Transaction> transactionList) {
         return getEarliestOrLatestTransactionPerUserAccountId(transactionList, true)
-                .map(t-> {
+                .map(t -> {
                     BigDecimal closingBalance = t.closingBalance();
                     BigDecimal debitOrCreditAmount = t.debitOrCreditAmount();
                     boolean credit = t.isDebitOrCredit().equalsIgnoreCase(DebitCreditIndicator.CREDIT.getName());
@@ -79,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
     private BigDecimal getTotalDebitOrCreditAmount(List<Transaction> transactionList, DebitCreditIndicator debitOrCreditIndicator) {
         return transactionList
                 .stream()
-                .filter(t->Objects.nonNull(t) && Objects.nonNull(t.isDebitOrCredit()) && t.isDebitOrCredit().strip().equalsIgnoreCase(debitOrCreditIndicator.getName()))
+                .filter(t -> Objects.nonNull(t) && Objects.nonNull(t.isDebitOrCredit()) && t.isDebitOrCredit().strip().equalsIgnoreCase(debitOrCreditIndicator.getName()))
                 .map(Transaction::debitOrCreditAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -87,13 +92,13 @@ public class TransactionServiceImpl implements TransactionService {
     private Transaction getTransactionOnMinOrMaxDate(List<Transaction> transactions, boolean earliest) {
         return transactions
                 .stream()
-                .sorted(Comparator.comparing(this::getDateStringAndConvertToLocalDate, earliest ? Comparator.naturalOrder() : Comparator.reverseOrder()))
+                .sorted(Comparator.comparing(Transaction::date, earliest ? Comparator.naturalOrder() : Comparator.reverseOrder()))
                 .findFirst()
-                .orElseThrow(()-> new RuntimeException("Unable to get transaction at min / max date"));
+                .orElseThrow(() -> new RuntimeException("Unable to get transaction at min / max date"));
     }
 
     private LocalDate getDateStringAndConvertToLocalDate(Transaction t1) {
-        return LocalDate.parse(t1.date(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return t1.date();
     }
 }
 
