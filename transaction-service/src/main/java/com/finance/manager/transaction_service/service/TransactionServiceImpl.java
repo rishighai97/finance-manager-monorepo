@@ -10,13 +10,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,14 +25,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionDao transactionDao;
 
     @Override
-    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate) {
-        // Call the overloaded method with null categoryIds
-        return getUserTransactions(userAccountIds, startDate, endDate, null);
-    }
-
-    @Override
-    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
-        List<Transaction> transactionList = transactionDao.fetchAll(userAccountIds, startDate, endDate, categoryIds);
+    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds, String debitCreditIndicator) {
+        List<Transaction> transactionList = transactionDao.fetchAll(userAccountIds, startDate, endDate, categoryIds, debitCreditIndicator);
         return TransactionsDto
                 .builder()
                 .startDate(startDate)

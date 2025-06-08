@@ -45,7 +45,9 @@ public class TransactionController {
             @RequestParam("user_account_ids") List<String> userAccountIdsList,
             @RequestParam("start_date") String startDate,
             @RequestParam("end_date") String endDate,
-            @RequestParam(value = "category_ids", required = false) List<String> categoryIdsList) {
+            @RequestParam(value = "category_ids", required = false) List<String> categoryIdsList,
+            @RequestParam(value = "debit_credit_indicator", required = false) String debitCreditIndicator
+    ) {
 
         List<Integer> userAccountIds = validateAndGetUserAccountIds(userAccountIdsList);
         validateAndGetRequestDate(startDate);
@@ -65,11 +67,11 @@ public class TransactionController {
             }
         }
 
-        logger.info("Received request to fetch transactions for user ids {}, start date {}, end date {}{}",
-                userAccountIds, startDate, endDate,
+        logger.info("Received request to fetch transactions for user ids {}, start date {}, end date {}, debit_credit_indicator = {} {}",
+                userAccountIds, startDate, endDate, debitCreditIndicator,
                 categoryIds != null ? ", filtered by categories: " + categoryIds : "");
 
-        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate, categoryIds);
+        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate, categoryIds, debitCreditIndicator);
         return ResponseEntity.ok(transactions);
     }
 

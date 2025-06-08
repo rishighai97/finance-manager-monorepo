@@ -2,7 +2,6 @@
 package com.finance.manager.transaction_service.dao;
 
 import com.finance.manager.transaction_service.dto.Transaction;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +27,7 @@ public class TransactionPostgresDao implements TransactionDao {
     }
 
     @Override
-    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate) {
-        // Call the overloaded method with null categoryIds
-        return fetchAll(userAccountIds, startDate, endDate, null);
-    }
-
-    @Override
-    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds, String debitCreditIndicatorFilter) {
         logger.info("Fetching user transactions for user accounts {}, start date {}, end date {}{}",
                 userAccountIds, startDate, endDate, categoryIds != null ? ", filtered by categories: " + categoryIds : "");
 
@@ -52,7 +45,7 @@ public class TransactionPostgresDao implements TransactionDao {
                     STRING_AGG(CAST(tuc.user_category_id AS TEXT), ',') AS user_category_ids
                 FROM "transaction" t
                 LEFT JOIN transaction_user_category tuc ON t.id = tuc.transaction_id
-                WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE)
+                WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE) AND t.debit_credit_indicator IN (:debitCreditIndicators)
                 """);
 
         // Add category filter if categoryIds is provided
@@ -81,6 +74,9 @@ public class TransactionPostgresDao implements TransactionDao {
         if (categoryIds != null && !categoryIds.isEmpty()) {
             params.addValue("categoryIds", categoryIds);
         }
+
+        // add debit credit indicator filter if not null
+        params.addValue("debitCreditIndicators", debitCreditIndicatorFilter != null ? debitCreditIndicatorFilter : List.of("DR","CR"));
 
         List<Transaction> transactions = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             try {
