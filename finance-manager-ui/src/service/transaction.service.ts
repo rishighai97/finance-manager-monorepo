@@ -21,7 +21,8 @@ export class TransactionService {
     userAccountIds: number[],
     startDate: string,
     endDate: string,
-    categoryIds: number[] | null = null
+    categoryIds: number[] | null = null,
+    debitCreditIndicator: 'DR' | 'CR' | null = null
   ): Observable<Transactions> {
     const accounts = userAccountIds.join(",");
     let url = `${this.apiUrl}/v1/fetch_all?user_account_ids=${accounts}&start_date=${startDate}&end_date=${endDate}`;
@@ -32,7 +33,12 @@ export class TransactionService {
       url += `&category_ids=${categories}`;
     }
 
-    console.log(`Fetching transactions for accounts ${accounts}, dates ${startDate} to ${endDate}${categoryIds ? ', categories ' + categoryIds : ''}`);
+    // Add debit_credit_indicator if provided
+    if (debitCreditIndicator) {
+      url += `&debit_credit_indicator=${debitCreditIndicator}`;
+    }
+
+    console.log(`Fetching transactions for accounts ${accounts}, dates ${startDate} to ${endDate}${categoryIds ? ', categories ' + categoryIds : ''}${debitCreditIndicator ? ', indicator ' + debitCreditIndicator : ''}`);
 
     // Send the GET request to the API and return the observable
     return this.http.get<Transactions>(url);

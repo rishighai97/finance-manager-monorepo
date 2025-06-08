@@ -1,4 +1,3 @@
-
 // Import font
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
 
@@ -84,7 +83,7 @@
   }
 
   .account-selector-item,
-  .category-selector-item {
+  .category-selector-item, .debit-credit-selector-item {
     flex: 1; // Equal flex for both selectors
 
     ion-input {
@@ -634,3 +633,14 @@ ion-modal {
     margin: 0 auto;
   }
 }
+
+// .debit-credit-selector-item {
+//   --padding-start: 0;
+//   --inner-padding-end: 0;
+//   margin: 0 8px;
+//   ion-select {
+//     width: 100%;
+//     max-width: 100%;
+//     padding: 0;
+//   }
+// }

@@ -58,6 +58,16 @@
       ></ion-input>
     </ion-item>
 
+    <!-- Debit/Credit Selector -->
+    <ion-item lines="none" class="debit-credit-selector-item">
+      <ion-label position="stacked">DR/CR</ion-label>
+      <ion-select [(ngModel)]="debitCreditIndicator" (ionChange)="onDebitCreditIndicatorChange($event.detail.value)">
+        <ion-select-option [value]="null">All</ion-select-option>
+        <ion-select-option value="DR">Debit</ion-select-option>
+        <ion-select-option value="CR">Credit</ion-select-option>
+      </ion-select>
+    </ion-item>
+
     <ion-button class="refresh-button" (click)="refreshTransactions()">
       <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
     </ion-button>

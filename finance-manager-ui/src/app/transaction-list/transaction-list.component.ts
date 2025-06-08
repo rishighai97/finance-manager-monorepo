@@ -160,6 +160,8 @@ export class TransactionListComponent implements OnInit, OnChanges {
   private accountSelectionChanged = false;
   private categorySelectionChanged = false;
 
+  debitCreditIndicator: 'DR' | 'CR' | null = null;
+
   constructor(
     private transactionService: TransactionService,
     private route: ActivatedRoute,
@@ -752,7 +754,8 @@ refreshTransactions() {
           this.selectedAccountIds,
           this.startDate,
           this.endDate,
-          this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : null
+          this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : null,
+          this.debitCreditIndicator
         )
         .subscribe(
           (transactions) => {
@@ -878,5 +881,9 @@ refreshTransactions() {
         icon.classList.remove("refreshing");
       }, 1000);
     }, 300);
+  }
+
+  onDebitCreditIndicatorChange(value: 'DR' | 'CR' | null) {
+    this.debitCreditIndicator = value;
   }
 }
