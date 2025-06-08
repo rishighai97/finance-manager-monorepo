@@ -18,3 +18,19 @@ class Transaction:
 
     def __str__(self):
         return self.__dict__.__str__()
+
+    def to_dict(self):
+        return {
+            "transaction_id": self.transaction_id,
+            "date": self.date.strftime('%Y-%m-%d'),  # or ISO format if Spring expects that
+            "user_account_id": self.user_account_id,
+            "title": self.title,
+            "debit_or_credit_amount": self.debit_or_credit_amount,
+            "is_debit_or_credit": self.is_debit_or_credit,
+            "closing_balance": self.closing_balance,
+            "category_id": self.category_id,
+            "type": self.type,
+            "units": self.units,
+            "price_per_unit": self.price_per_unit,
+            "user_category_ids": None  # assuming not used, or set accordingly
+        }

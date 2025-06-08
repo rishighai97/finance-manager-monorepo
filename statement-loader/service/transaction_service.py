@@ -1,11 +1,11 @@
-from dao.transaction_dao import TransactionDao, TransactionPostgresDao
+from dao.transaction_dao import TransactionDao, TransactionApiDao
 from model.transaction import Transaction
 from typing import List
 from utils.iterable_utils import IterableUtils
 
 class TransactionService:
     def __init__(self):
-        self.dao : TransactionDao= TransactionPostgresDao()
+        self.dao : TransactionDao = TransactionApiDao()
 
     def save(self, transactions: List[Transaction]):
         print(f"Saving {len(transactions)} transactions in database")

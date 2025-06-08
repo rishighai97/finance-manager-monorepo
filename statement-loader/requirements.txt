@@ -11,3 +11,4 @@ Flask~=3.1.0
 Flask-SQLAlchemy
 Werkzeug
 flask_cors
+requests
