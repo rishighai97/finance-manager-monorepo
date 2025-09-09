@@ -2,9 +2,9 @@ export const environment = {
   production: true,
   name: "prod",
   apiEndpoints: {
-    accountService: "http://31.57.224.242:5003",
-    transactionService: "http://31.57.224.242:5004",
-    statementUploaderService: "http://31.57.224.242:5002",
-    gatewayService: "http://31.57.224.242:5001",
-  },
+      accountService: "http://localhost:5003",
+      transactionService: "http://localhost:5004",
+      statementUploaderService: "http://localhost:5002",
+      gatewayService: "http://localhost:5001",
+    },
 };
