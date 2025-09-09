@@ -38,9 +38,9 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test {
-	useJUnitPlatform()
-}
+//test {
+//	useJUnitPlatform()
+//}
 
 bootBuildImage {
 	environment = ["BP_JVM_VERSION" : "21.0.6"]

@@ -22,7 +22,7 @@ Thumbs.db
 # Git related
 .git/
 .github/
-.gitignore
+../.gitignore
 
 # Other unnecessary files
 *.md
