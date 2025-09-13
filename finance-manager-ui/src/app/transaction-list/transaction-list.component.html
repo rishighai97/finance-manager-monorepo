@@ -169,12 +169,21 @@
           Categorize
         </ion-button>
         <ion-button
+          fill="solid"
+          color="danger"
+          (click)="deleteCategoryAllSearched()"
+          [disabled]="!batchCategoryInput || getTransactions().length === 0"
+          class="batch-categorize-btn"
+        >
+          Delete Category
+        </ion-button>
+        <ion-button
           fill="outline"
           color="medium"
           (click)="resetCategoryChanges()"
           class="batch-clear-btn"
         >
-          Clear All
+          Revert Categorize
         </ion-button>
       </div>
     </div>

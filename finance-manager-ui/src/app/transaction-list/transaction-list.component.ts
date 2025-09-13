@@ -112,6 +112,69 @@ import { ToastService } from "src/service/toast.service";
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
+  /**
+   * Marks the selected batch category for deletion on all searched transactions,
+   * using the same logic as the cross button (removeCategory).
+   */
+  deleteCategoryAllSearched() {
+    const categoryTitle = this.batchCategoryInput?.trim();
+    if (!categoryTitle) return;
+    // Find categoryId by title
+    let categoryId: number | undefined;
+    for (const [id, cat] of this.categoryMap.entries()) {
+      if (cat.category_title === categoryTitle) {
+        categoryId = id;
+        break;
+      }
+    }
+    if (categoryId === undefined) {
+      this.toastService.showError('Category not found');
+      return;
+    }
+    // Use removeCategory logic for each filtered transaction
+    this.filteredTransactions.forEach((transaction) => {
+      // Defensive: user_category_ids may be null or not a Set
+      let userCategoryIds: Set<number> = new Set();
+      if (transaction.user_category_ids) {
+        if (transaction.user_category_ids instanceof Set) {
+          userCategoryIds = transaction.user_category_ids;
+        } else if (Array.isArray(transaction.user_category_ids)) {
+          userCategoryIds = new Set(transaction.user_category_ids);
+        }
+      }
+      if (userCategoryIds.has(categoryId!)) {
+        // Simulate the removeCategory logic (without needing an event)
+        const transactionId = transaction.transaction_id;
+        const deleteItem = {
+          transaction_id: transactionId,
+          user_category_id: categoryId!,
+          action: TransactionUserCategoryAction.DELETE,
+        };
+        let currentDeletes = this.catDeleteMap.get(transactionId) || [];
+        currentDeletes = [...currentDeletes, deleteItem];
+        this.catDeleteMap.set(transactionId, currentDeletes);
+
+        // Remove from insert map if present
+        let currentInserts = this.catInsertMap.get(transactionId) || [];
+        const insertIndex = currentInserts.findIndex(
+          (item) =>
+            item.user_category_id === categoryId &&
+            item.action === TransactionUserCategoryAction.INSERT
+        );
+        if (insertIndex !== -1) {
+          currentInserts.splice(insertIndex, 1);
+          if (currentInserts.length === 0) {
+            this.catInsertMap.delete(transactionId);
+          } else {
+            this.catInsertMap.set(transactionId, currentInserts);
+          }
+        }
+        // Update the transaction in the view
+        this.updateTransactionCategories(transaction);
+      }
+    });
+    this.checkCategoryChanges();
+  }
   @Input() accountId: number | null = null;
   @Input() groupedAccounts: GroupedUserAccount[] = [];
   @Input() startDate: string = "";
