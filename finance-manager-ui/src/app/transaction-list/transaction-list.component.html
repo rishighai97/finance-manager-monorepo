@@ -135,16 +135,6 @@
 
       <div class="search-actions">
         <ion-button
-          fill="outline"
-          size="small"
-          (click)="openBatchAddCategories()"
-          class="add-cat-btn"
-        >
-          <ion-icon name="pricetags-outline" slot="start"></ion-icon>
-          Add category to all searched transactions
-        </ion-button>
-
-        <ion-button
           *ngIf="hasCategoryChanges"
           fill="solid"
           color="warning"
@@ -157,10 +147,40 @@
           Update Categories
         </ion-button>
       </div>
+
+      <!-- New: Batch Categorize Input and Buttons -->
+      <div class="batch-categorize-row">
+        <ion-select
+          placeholder="Select category to apply"
+          [(ngModel)]="batchCategoryInput"
+          class="batch-category-input"
+        >
+          <ion-select-option *ngFor="let cat of userCategories" [value]="cat.category_title">
+            {{ cat.category_title }}
+          </ion-select-option>
+        </ion-select>
+        <ion-button
+          fill="solid"
+          color="primary"
+          (click)="categorizeAllSearched()"
+          [disabled]="!batchCategoryInput || getTransactions().length === 0"
+          class="batch-categorize-btn"
+        >
+          Categorize
+        </ion-button>
+        <ion-button
+          fill="outline"
+          color="medium"
+          (click)="resetCategoryChanges()"
+          class="batch-clear-btn"
+        >
+          Clear All
+        </ion-button>
+      </div>
     </div>
 
     <!-- Category Changes Actions -->
-    <div class="category-changes-container" *ngIf="hasCategoryChanges">
+    <!-- <div class="category-changes-container" *ngIf="hasCategoryChanges">
       <ion-button
         fill="outline"
         color="medium"
@@ -170,7 +190,7 @@
         <ion-icon name="refresh-outline" slot="start"></ion-icon>
         Reset Changes
       </ion-button>
-    </div>
+    </div> -->
   </ng-container>
 
   <ion-list [inset]="true" lines="none">
@@ -280,7 +300,7 @@
     </div>
     }
   </ion-list>
-</ion-content>
+<!-- removed duplicate closing ion-content tag -->
 
 <!-- Account Selector Modal -->
 <ion-modal

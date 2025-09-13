@@ -42,6 +42,9 @@ import {
   AlertController,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
+// ...existing code...
+
+// ...existing code...
 import {
   refreshOutline,
   addCircleOutline,
@@ -114,6 +117,57 @@ export class TransactionListComponent implements OnInit, OnChanges {
   @Input() startDate: string = "";
   @Input() endDate: string = "";
   @Output() backClicked = new EventEmitter<void>();
+  batchCategoryInput: string = "";
+
+  /**
+   * Applies the batchCategoryInput to all currently displayed (not-yet-saved) transactions.
+   */
+  categorizeAllSearched() {
+    const categoryTitle = this.batchCategoryInput?.trim();
+    if (!categoryTitle) return;
+    // Find categoryId by title
+    let categoryId: number | undefined;
+    for (const [id, cat] of this.categoryMap.entries()) {
+      if (cat.category_title === categoryTitle) {
+        categoryId = id;
+        break;
+      }
+    }
+    if (categoryId === undefined) {
+      this.toastService.showError('Category not found');
+      return;
+    }
+    // Use the same logic as Add Category (batch add mode)
+    this.batchAddCategories = [categoryId];
+    this.selectedTransaction = null;
+    this.saveSelectedCategories();
+  }
+
+  /**
+   * Clears the batch category input and removes the category from all unsaved transactions.
+   */
+  clearAllBatchCategories() {
+    const categoryTitle = this.batchCategoryInput?.trim();
+    if (!categoryTitle) return;
+    // Find categoryId by title
+    let categoryId: number | undefined;
+    for (const [id, cat] of this.categoryMap.entries()) {
+      if (cat.category_title === categoryTitle) {
+        categoryId = id;
+        break;
+      }
+    }
+    if (categoryId === undefined) {
+      this.toastService.showError('Category not found');
+      return;
+    }
+    for (const tx of this.getTransactions()) {
+      if (tx.user_category_ids) {
+        tx.user_category_ids.delete(categoryId);
+      }
+    }
+    this.batchCategoryInput = "";
+  }
   @ViewChild("accountModal") accountModal!: IonModal;
   @ViewChild("categoryModal") categoryModal!: IonModal;
   @ViewChild("addCategoryModal") addCategoryModal!: IonModal;
