@@ -38,6 +38,7 @@ import {
   IonSearchbar,
   IonRadioGroup,
   IonRadio,
+  IonFooter,
   AlertController,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
@@ -104,10 +105,39 @@ import { ToastService } from "src/service/toast.service";
     IonPopover,
     IonSearchbar,
     IonRadioGroup,
-    IonRadio,
+  IonRadio,
+  IonFooter,
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
+  // Clear all selected categories in modal
+  clearAllCategories() {
+    this.selectedCategoryIds = [];
+  }
+
+  // Select all filtered categories in modal
+  selectAllCategories() {
+    // Always include -1 (Uncategorized) if present in filtered list
+    const allIds = this.filteredUserCategories.map(cat => cat.id);
+    if (this.filteredUserCategories.some(cat => cat.id === -1)) {
+      this.selectedCategoryIds = [-1, ...allIds.filter(id => id !== -1)];
+    } else {
+      this.selectedCategoryIds = allIds;
+    }
+  }
+
+  filterCategories() {
+    const term = this.categorySearchTerm.toLowerCase();
+    this.filteredUserCategories = this.userCategories.filter(cat =>
+      cat.category_title.toLowerCase().includes(term)
+    );
+  }
+
+  // For category modal search
+  categorySearchTerm: string = '';
+  filteredUserCategories: UserCategory[] = [];
+
+  
   /**
    * Marks the selected batch category for deletion on all searched transactions,
    * using the same logic as the cross button (removeCategory).
@@ -318,11 +348,13 @@ export class TransactionListComponent implements OnInit, OnChanges {
       }
     );
 
+
     // Subscribe to categories
     this.categoryService.userCategories$.subscribe(
       (categories: UserCategory[]) => {
         this.userCategories = categories;
         this.createCategoryMap();
+        this.filteredUserCategories = this.userCategories.slice();
       }
     );
 
@@ -370,6 +402,19 @@ export class TransactionListComponent implements OnInit, OnChanges {
     // Only reload on accountId change for initial load
     if (changes["accountId"]) {
       this.loadTransactions();
+    }
+    // Update filteredUserCategories if userCategories changes
+    this.filteredUserCategories = this.userCategories.slice();
+  }
+
+   filterCategoryOptions(): void {
+    const term = this.categorySearchTerm?.toLowerCase() || '';
+    if (!term) {
+      this.filteredUserCategories = this.userCategories ? [...this.userCategories] : [];
+    } else {
+      this.filteredUserCategories = (this.userCategories || []).filter((cat: UserCategory) =>
+        cat.category_title.toLowerCase().includes(term)
+      );
     }
   }
 

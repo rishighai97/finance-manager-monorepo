@@ -51,20 +51,56 @@
       (click)="openCategorySelector()"
     >
       <ion-label position="stacked">Category</ion-label>
-      <!-- Old input removed, only ion-select below is active -->
-      <ion-select
-        multiple="true"
-        [(ngModel)]="selectedCategoryIds"
-        interface="popover"
-        placeholder="Select categories"
-        (ionChange)="applyFilter()"
-      >
-        <ion-select-option [value]="-1">Uncategorized</ion-select-option>
-        <ion-select-option *ngFor="let cat of userCategories" [value]="cat.id">
-          {{ cat.category_title }}
-        </ion-select-option>
-      </ion-select>
+      <ion-input readonly [value]="getSelectedCategoriesText()" placeholder="Select categories"></ion-input>
     </ion-item>
+
+    <!-- Category Modal -->
+    <ion-modal
+      #categoryModal
+      [isOpen]="isCategoryModalOpen"
+      [initialBreakpoint]="0.5"
+      [breakpoints]="[0, 0.5, 0.75]"
+      (didDismiss)="closeCategorySelector()"
+      class="force-center-modal"
+    >
+      <ng-template>
+        <ion-header class="ion-no-border">
+          <ion-toolbar>
+            <ion-title>Search Categories</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="closeCategorySelector()">
+                <ion-icon name="close-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <ion-searchbar
+              placeholder="Search categories"
+              [(ngModel)]="categorySearchTerm"
+              (ionInput)="filterCategories()"
+              showClearButton="always"
+              class="modal-searchbar"
+              style="flex: 1 1 auto;"
+            ></ion-searchbar>
+            <ion-button size="small" fill="outline" (click)="clearAllCategories()">Clear All</ion-button>
+            <ion-button size="small" fill="outline" (click)="selectAllCategories()">Select All</ion-button>
+            <ion-button size="small" color="primary" (click)="applyFilter(); closeCategorySelector();">Apply</ion-button>
+          </div>
+          <ion-list class="force-center-modal-scroll">
+            <ion-item (click)="toggleCategorySelection(-1)">
+              <ion-label>Uncategorized</ion-label>
+              <ion-checkbox slot="end" [checked]="isCategorySelected(-1)"></ion-checkbox>
+            </ion-item>
+            <ion-item *ngFor="let cat of filteredUserCategories" (click)="toggleCategorySelection(cat.id)">
+              <ion-label>{{ cat.category_title }}</ion-label>
+              <ion-checkbox slot="end" [checked]="isCategorySelected(cat.id)"></ion-checkbox>
+            </ion-item>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
 
     <!-- Debit/Credit Selector -->
     <ion-item lines="none" class="debit-credit-selector-item">
@@ -420,19 +456,15 @@
 <ion-modal
   #addCategoryModal
   [isOpen]="isAddCategoryModalOpen"
-  [initialBreakpoint]="1"
-  [breakpoints]="[1]"
+  [initialBreakpoint]="0.75"
+  [breakpoints]="[0, 0.25, 0.5, 0.75]"
   (didDismiss)="closeAddCategoryModal()"
-  (ionBackdropTap)="closeAddCategoryModal()"
-  (ionModalWillDismiss)="closeAddCategoryModal()"
-  class="centered-modal force-center-modal"
-  mode="ios"
 >
   <ng-template>
     <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button (click)="closeAddCategoryModal()" type="button">
+          <ion-button (click)="closeAddCategoryModal()">
             <ion-icon name="arrow-back-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
@@ -444,12 +476,12 @@
           }}
         </ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="saveSelectedCategories()" type="button"> Save </ion-button>
+          <ion-button (click)="saveSelectedCategories()"> Save </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-  <ion-content class="centered-modal-content force-center-modal-scroll">
+    <ion-content>
       <div class="modal-info">
         @if (selectedTransaction) {
         <p class="transaction-title">{{ selectedTransaction.title }}</p>
