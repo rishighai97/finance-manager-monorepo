@@ -1,3 +1,39 @@
+// Force Ionic modal to center (override default slide-up)
+.force-center-modal::part(content),
+.force-center-modal .modal-wrapper {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  min-height: 300px;
+  max-height: 90vh;
+  width: 95vw;
+  max-width: 500px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  background: #fff;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.force-center-modal-scroll {
+  max-height: 70vh;
+  overflow-y: auto !important;
+}
+// Centered modal styles
+.centered-modal .modal-wrapper,
+.centered-modal .modal-shadow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.centered-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
 // Import font
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
 
