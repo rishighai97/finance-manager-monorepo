@@ -51,11 +51,19 @@
       (click)="openCategorySelector()"
     >
       <ion-label position="stacked">Category</ion-label>
-      <ion-input
-        readonly
-        [value]="getSelectedCategoriesText()"
+      <!-- Old input removed, only ion-select below is active -->
+      <ion-select
+        multiple="true"
+        [(ngModel)]="selectedCategoryIds"
+        interface="popover"
         placeholder="Select categories"
-      ></ion-input>
+        (ionChange)="applyFilter()"
+      >
+        <ion-select-option [value]="-1">Uncategorized</ion-select-option>
+        <ion-select-option *ngFor="let cat of userCategories" [value]="cat.id">
+          {{ cat.category_title }}
+        </ion-select-option>
+      </ion-select>
     </ion-item>
 
     <!-- Debit/Credit Selector -->
@@ -122,16 +130,24 @@
 
     <!-- Search Bar -->
     <div class="search-container">
-      <ion-searchbar
-        placeholder="Search transactions"
-        [(ngModel)]="searchTerm"
-        (ionInput)="onSearchChange($event)"
-        animated
-        debounce="300"
-        showCancelButton="focus"
-        cancelButtonText="Clear"
-      >
-      </ion-searchbar>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <ion-searchbar
+          placeholder="Search transactions"
+          [(ngModel)]="searchTerm"
+          (ionInput)="onSearchChange($event)"
+          animated
+          debounce="300"
+          showCancelButton="focus"
+          cancelButtonText="Clear"
+          style="flex: 1 1 auto;"
+        ></ion-searchbar>
+        <ion-checkbox
+          [(ngModel)]="regexSearch"
+          style="margin-left: 8px;"
+          aria-label="Enable regex search"
+        ></ion-checkbox>
+        <span style="font-size: 0.9em;">Regex</span>
+      </div>
 
       <div class="search-actions">
         <ion-button
@@ -353,7 +369,8 @@
   </ng-template>
 </ion-modal>
 
-<!-- Category Selector Modal -->
+<!-- Category Selector Modal (old) removed: now using only ion-select dropdown for categories -->
+<!--
 <ion-modal
   #categoryModal
   [isOpen]="isCategoryModalOpen"
@@ -397,6 +414,7 @@
     </ion-content>
   </ng-template>
 </ion-modal>
+-->
 
 <!-- Add Category Modal -->
 <ion-modal

@@ -1,4 +1,3 @@
-// Updated transaction-list.component.ts
 
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -42,9 +41,6 @@ import {
   AlertController,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
-// ...existing code...
-
-// ...existing code...
 import {
   refreshOutline,
   addCircleOutline,
@@ -244,6 +240,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
   // Transaction search
   searchTerm: string = "";
   filteredTransactions: Transaction[] = [];
+  regexSearch: boolean = false;
 
   // New properties for date inputs
   startDateInput: string = "";
@@ -498,22 +495,58 @@ refreshTransactions() {
   }
 
   applyFilter() {
-    if (!this.searchTerm) {
-      this.filteredTransactions = [...this.transactions];
-    } else {
-      const searchLower = this.searchTerm.toLowerCase();
-      this.filteredTransactions = this.transactions.filter(
-        (transaction) =>
-          transaction.title.toLowerCase().includes(searchLower) ||
-          this.accountMap
-            .get(transaction.user_account_id)
-            ?.user_account_name.toLowerCase()
-            .includes(searchLower) ||
-          this.getUserCategoryTitles(transaction).some((title) =>
-            title.toLowerCase().includes(searchLower)
-          )
-      );
+    // Handle Uncategorized filter
+    const uncategorizedSelected = this.selectedCategoryIds?.includes(-1);
+    let filtered = [...this.transactions];
+
+    if (uncategorizedSelected) {
+      filtered = filtered.filter((tx) => {
+        if (!tx.user_category_ids) return true;
+        if (tx.user_category_ids instanceof Set) return tx.user_category_ids.size === 0;
+  if (Array.isArray(tx.user_category_ids)) return (tx.user_category_ids as number[]).length === 0;
+        return false;
+      });
+    } else if (this.selectedCategoryIds && this.selectedCategoryIds.length > 0) {
+      filtered = filtered.filter((tx) => {
+        if (!tx.user_category_ids) return false;
+        let ids: number[] = Array.isArray(tx.user_category_ids)
+          ? tx.user_category_ids
+          : Array.from(tx.user_category_ids);
+        return ids.some((id) => this.selectedCategoryIds.includes(id));
+      });
     }
+
+    // Search filter (regex or normal)
+    if (this.searchTerm) {
+      if (this.regexSearch) {
+        let regex: RegExp | null = null;
+        try {
+          regex = new RegExp(this.searchTerm, 'i');
+        } catch (e) {
+          this.filteredTransactions = [];
+          return;
+        }
+        filtered = filtered.filter((transaction) =>
+          regex!.test(transaction.title) ||
+          regex!.test(this.accountMap.get(transaction.user_account_id)?.user_account_name || '') ||
+          this.getUserCategoryTitles(transaction).some((title) => regex!.test(title))
+        );
+      } else {
+        const searchLower = this.searchTerm.toLowerCase();
+        filtered = filtered.filter(
+          (transaction) =>
+            transaction.title.toLowerCase().includes(searchLower) ||
+            this.accountMap
+              .get(transaction.user_account_id)
+              ?.user_account_name.toLowerCase()
+              .includes(searchLower) ||
+            this.getUserCategoryTitles(transaction).some((title) =>
+              title.toLowerCase().includes(searchLower)
+            )
+        );
+      }
+    }
+    this.filteredTransactions = filtered;
   }
 
   // Open add category modal for a specific transaction
