@@ -456,18 +456,14 @@
 <ion-modal
   #addCategoryModal
   [isOpen]="isAddCategoryModalOpen"
-  [initialBreakpoint]="0.75"
-  [breakpoints]="[0, 0.25, 0.5, 0.75]"
+  [initialBreakpoint]="0.5"
+  [breakpoints]="[0, 0.5, 0.75]"
   (didDismiss)="closeAddCategoryModal()"
+  class="force-center-modal"
 >
   <ng-template>
     <ion-header class="ion-no-border">
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button (click)="closeAddCategoryModal()">
-            <ion-icon name="arrow-back-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
         <ion-title>
           {{
             selectedTransaction
@@ -476,12 +472,26 @@
           }}
         </ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="saveSelectedCategories()"> Save </ion-button>
+          <ion-button (click)="closeAddCategoryModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-
     <ion-content>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <ion-searchbar
+          placeholder="Search categories"
+          [(ngModel)]="addCategorySearchTerm"
+          (ionInput)="filterAddCategories()"
+          showClearButton="always"
+          class="modal-searchbar"
+          style="flex: 1 1 auto;"
+        ></ion-searchbar>
+        <ion-button size="small" fill="outline" (click)="clearAllAddCategories()">Clear All</ion-button>
+        <ion-button size="small" fill="outline" (click)="selectAllAddCategories()">Select All</ion-button>
+        <ion-button size="small" color="primary" (click)="saveSelectedCategories(); closeAddCategoryModal();">Apply</ion-button>
+      </div>
       <div class="modal-info">
         @if (selectedTransaction) {
         <p class="transaction-title">{{ selectedTransaction.title }}</p>
@@ -494,15 +504,14 @@
         </p>
         }
       </div>
-
-      <ion-list>
+      <ion-list class="force-center-modal-scroll">
         @if (userCategories.length === 0) {
         <ion-item>
           <ion-label class="ion-text-center">
             No categories available. Add categories from the Categories tab.
           </ion-label>
         </ion-item>
-        } @else { @for (category of userCategories; track category.id) {
+        } @else { @for (category of filteredAddUserCategories; track category.id) {
         <ion-item (click)="toggleAddCategorySelection(category.id)">
           <ion-icon
             name="pricetags-outline"

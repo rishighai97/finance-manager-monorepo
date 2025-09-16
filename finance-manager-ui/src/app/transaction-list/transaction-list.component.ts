@@ -110,6 +110,35 @@ import { ToastService } from "src/service/toast.service";
   ],
 })
 export class TransactionListComponent implements OnInit, OnChanges {
+  // For Add Category modal search and select/clear all
+  addCategorySearchTerm: string = '';
+  filteredAddUserCategories: UserCategory[] = [];
+
+
+  filterAddCategories() {
+    const term = this.addCategorySearchTerm.toLowerCase();
+    this.filteredAddUserCategories = this.userCategories.filter(cat =>
+      cat.category_title.toLowerCase().includes(term)
+    );
+  }
+
+  clearAllAddCategories() {
+    if (this.selectedTransaction) {
+      this.selectedCategories = [];
+    } else {
+      this.batchAddCategories = [];
+    }
+  }
+
+  selectAllAddCategories() {
+    const allIds = this.filteredAddUserCategories.map(cat => cat.id);
+    if (this.selectedTransaction) {
+      // Limit to 5 for single transaction
+      this.selectedCategories = allIds.slice(0, 5);
+    } else {
+      this.batchAddCategories = allIds;
+    }
+  }
   // Clear all selected categories in modal
   clearAllCategories() {
     this.selectedCategoryIds = [];
@@ -355,6 +384,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
         this.userCategories = categories;
         this.createCategoryMap();
         this.filteredUserCategories = this.userCategories.slice();
+        this.filteredAddUserCategories = this.userCategories.slice();
       }
     );
 
@@ -403,8 +433,9 @@ export class TransactionListComponent implements OnInit, OnChanges {
     if (changes["accountId"]) {
       this.loadTransactions();
     }
-    // Update filteredUserCategories if userCategories changes
-    this.filteredUserCategories = this.userCategories.slice();
+  // Update filteredUserCategories if userCategories changes
+  this.filteredUserCategories = this.userCategories.slice();
+  this.filteredAddUserCategories = this.userCategories.slice();
   }
 
    filterCategoryOptions(): void {
