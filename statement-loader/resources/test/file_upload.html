@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create JSON Requests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .request-container {
+            margin-bottom: 20px;
+        }
+        .request-container input, .request-container select, .request-container button {
+            margin: 5px;
+        }
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Create Multiple JSON Requests</h1>
+
+<div id="requestsContainer"></div>
+
+<button id="addRequestBtn">Add Request</button>
+<button id="submitBtn">Submit Requests</button>
+
+<h2>API Response:</h2>
+<table id="responseTable" style="display:none;">
+    <thead>
+        <tr id="tableHeaders"></tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    // Function to generate a random request ID between 1 and 100
+    function getRandomRequestId() {
+        return Math.floor(Math.random() * 100) + 1;
+    }
+
+    // Add a new request form
+    document.getElementById('addRequestBtn').addEventListener('click', function() {
+        const requestContainer = document.createElement('div');
+        requestContainer.classList.add('request-container');
+
+        // Request ID (Random integer between 1 and 100)
+        const requestId = getRandomRequestId();
+
+        requestContainer.innerHTML = `
+            <label for="fileExtension">File Extension:</label>
+            <select id="fileExtension">
+                <option value="xls">xls</option>
+                <option value="xlsx">xlsx</option>
+                <option value="csv">csv</option>
+                <option value="pdf">pdf</option>
+            </select>
+            <br>
+
+            <label for="accountId">Account ID:</label>
+            <select id="accountId">
+                ${[...Array(20).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+            </select>
+            <br>
+
+            <label for="userAccountId">User Account ID:</label>
+            <select id="userAccountId">
+                ${[...Array(20).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+            </select>
+            <br>
+
+            <label for="fileUpload">File:</label>
+            <input type="file" id="fileUpload">
+            <br><br>
+
+            <input type="hidden" id="userId" value="1">
+            <input type="hidden" id="requestId" value="${requestId}">
+        `;
+
+        document.getElementById('requestsContainer').appendChild(requestContainer);
+    });
+
+    // Submit the requests to the backend
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        const requests = [];
+        const requestContainers = document.querySelectorAll('.request-container');
+
+        // Convert each request data into an object and include the Base64 string
+        const filePromises = [];
+
+        requestContainers.forEach(container => {
+            const fileExtension = container.querySelector('#fileExtension').value;
+            const accountId = container.querySelector('#accountId').value;
+            const userId = container.querySelector('#userId').value;
+            const userAccountId = container.querySelector('#userAccountId').value;
+            const requestId = container.querySelector('#requestId').value;
+            const fileInput = container.querySelector('#fileUpload');
+
+            const filePromise = new Promise((resolve, reject) => {
+                const file = fileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const base64String = e.target.result.split(',')[1]; // Remove the base64 prefix
+                        const requestData = {
+                            request_id: requestId,
+                            account_id: accountId,
+                            user_id: userId,
+                            user_account_id: userAccountId,
+                            file_extension: fileExtension,
+                            file: base64String
+                        };
+                        resolve(requestData);
+                    };
+
+                    reader.onerror = reject;
+
+                    // Read the file as a Data URL (Base64)
+                    reader.readAsDataURL(file);
+                } else {
+                    // If no file is uploaded, resolve with empty Base64 string
+                    resolve({
+                        request_id: requestId,
+                        account_id: accountId,
+                        user_id: userId,
+                        user_account_id: userAccountId,
+                        file_extension: fileExtension,
+                        file: ''
+                    });
+                }
+            });
+
+            filePromises.push(filePromise);
+        });
+
+        // Wait for all file conversions to finish
+        Promise.all(filePromises).then(allRequests => {
+            // Send the requests as a POST request to the backend
+            fetch('http://localhost:5002/statement/upload/v1/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(allRequests)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server response:', data);
+                displayApiResponse(data);
+            })
+            .catch(error => {
+                console.error('Error submitting requests:', error);
+                alert('Error submitting requests.');
+            });
+        });
+    });
+
+    // Function to display the API response as a table
+    function displayApiResponse(data) {
+        const responseTable = document.getElementById('responseTable');
+        const tbody = responseTable.querySelector('tbody');
+        const tableHeaders = document.getElementById('tableHeaders');
+
+        tbody.innerHTML = ''; // Clear any previous data
+        tableHeaders.innerHTML = ''; // Clear previous headers
+
+        // Generate the table headers dynamically based on the first item in the response
+        if (data.length > 0) {
+            const headers = Object.keys(data[0]);
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header.replace(/_/g, ' ').toUpperCase(); // Format headers
+                tableHeaders.appendChild(th);
+            });
+
+            // Populate the table with the response data
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = item[header] || 'N/A';  // Show 'N/A' if value is missing
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+
+            // Show the table after populating it with data
+            responseTable.style.display = 'table';
+        } else {
+            alert("No data available in the response.");
+        }
+    }
+</script>
+
+</body>
+</html>
