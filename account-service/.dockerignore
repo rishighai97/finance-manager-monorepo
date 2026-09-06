@@ -1,0 +1,31 @@
+# Gradle files
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE specific files
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Git related
+.git/
+.github/
+../.gitignore
+
+# Other unnecessary files
+*.md
+LICENSE
+*.adoc
+docker-compose*.yml
