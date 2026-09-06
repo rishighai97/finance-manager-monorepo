@@ -6,4 +6,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 
 | ID | Title | Status |
 |---|---|---|
-| [JIRA_1](JIRA_1.md) | Update documentation for all modules | In Refinement |
+| [JIRA_1](JIRA_1.md) | Update documentation for all modules | Done |

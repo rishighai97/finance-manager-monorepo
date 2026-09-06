@@ -1,6 +1,6 @@
 # JIRA_1: Update documentation for all modules
 
-**Status**: In Refinement
+**Status**: Done
 **Created**: 2026-09-06
 **Last updated**: 2026-09-06
 
@@ -42,15 +42,24 @@ This ticket also defines a reusable README template (`docs/README_TEMPLATE.md`) 
 4. Update root `README.md`'s module table only if this pass surfaces a real gap (e.g. a module's description no longer matches reality) - not a mandatory rewrite.
 
 ## Acceptance criteria
-- [ ] `docs/README_TEMPLATE.md` exists and defines the shared section structure described in Requirement 1.
-- [ ] Each of `account-service`, `api-gateway`, `transaction-service`, `statement-loader`, `finance-manager-ui`, `scripts` has a `README.md` matching that template.
-- [ ] `account-service`, `api-gateway`, `transaction-service`, `statement-loader` READMEs include endpoint tables that are accurate against current controller/blueprint code (spot-checkable, not aspirational).
-- [ ] Root `CLAUDE.md` accurately describes the monorepo structure, current CI workflows, and the `jira/` + skills workflow - no references to the old 5-repo layout remain.
-- [ ] Root `README.md` module table reviewed and confirmed (or corrected) against the rewritten module READMEs.
+- [x] `docs/README_TEMPLATE.md` exists and defines the shared section structure described in Requirement 1.
+- [x] Each of `account-service`, `api-gateway`, `transaction-service`, `statement-loader`, `finance-manager-ui`, `scripts` has a `README.md` matching that template.
+- [x] `account-service`, `api-gateway`, `transaction-service`, `statement-loader` READMEs include endpoint tables that are accurate against current controller/blueprint code (spot-checkable, not aspirational).
+- [x] Root `CLAUDE.md` accurately describes the monorepo structure, current CI workflows, and the `jira/` + skills workflow - no references to the old 5-repo layout remain.
+- [x] Root `README.md` module table reviewed and confirmed (or corrected) against the rewritten module READMEs.
 
 ## Implementation notes
-(none yet - pending "Ready for Dev" confirmation)
+- Verified endpoint tables directly against controller/blueprint source (`AccountController`, `UserAccountController`, `AuthController`, `TransactionController`, `CategoryController`, `statement_upload_controller.py`) rather than trusting old docs.
+- Corrected two real architectural inaccuracies found in the old `CLAUDE.md` while verifying against source:
+  1. `api-gateway` does **not** call `account-service` - it reads/writes `user_detail` directly via JDBC (old doc claimed it talked to `account-service` for user/account data).
+  2. `statement-loader` calls `transaction-service` over HTTP (`TransactionApiDao` -> `/transaction/v1/save_all`) to write transactions - it does **not** write transactions directly to Postgres, though it does read account/`account_statement` metadata directly (old doc claimed transactions were written directly to Postgres).
+- Also found and documented: `api-gateway` auth tokens are stored in-memory (not real JWTs, don't survive restart) - flagged as a Gotcha and a known pre-customer-facing gap, not fixed here (out of scope).
+- Root README's `api-gateway` description and its "pr-gate check is required to merge" claim were both inaccurate against current reality; corrected as part of the "spot-check root README" requirement.
+- `scripts/README.md` also flags `scripts/claude/claude_get_context.py`/`claude_patch.py` as legacy pre-Claude-Code tooling (hardcoded to a stale path) - left in place, noted as a future cleanup candidate.
+- `statement-loader/README.md` documents the `--app-profile` working-directory requirement precisely (must run from repo root) after tracing `utils/env_utils.py`.
 
 ## Changelog
 - 2026-09-06: created from one-liner (Draft)
 - 2026-09-06: refined after clarifying questions - endpoint tables required for backend services, CLAUDE.md refresh included in scope, README template to be saved as `docs/README_TEMPLATE.md` (Status -> In Refinement)
+- 2026-09-06: user confirmed spec (Status -> Ready for Dev), implementation started (Status -> In Progress)
+- 2026-09-06: implementation complete - all acceptance criteria met, 2 real architectural inaccuracies in old docs corrected (Status -> Done)

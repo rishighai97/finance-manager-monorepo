@@ -5,7 +5,7 @@ Multi-module workspace for the Finance Manager application. Each module below ke
 | Module | Stack | Port (local) | Description |
 |---|---|---|---|
 | [`account-service`](account-service/README.md) | Java 21, Spring Boot (Gradle) | 5003 | APIs to read and write user accounts |
-| [`api-gateway`](api-gateway/README.md) | Java 21, Spring Boot (Gradle) | 5001 | Handles signup/login and fronts auth for the other services |
+| [`api-gateway`](api-gateway/README.md) | Java 21, Spring Boot (Gradle) | 5001 | Handles signup/login/logout only - not a proxy for the other services |
 | [`transaction-service`](transaction-service/README.md) | Java 21, Spring Boot (Gradle) | 5004 | APIs to read and write user transactions and categories |
 | [`statement-loader`](statement-loader/README.md) | Python, Flask | 5002 | Loads transactions from uploaded bank/broker account statements |
 | [`finance-manager-ui`](finance-manager-ui/README.md) | Angular 19 + Ionic 8 (Capacitor) | 8100 | Mobile/web client |
@@ -15,4 +15,8 @@ All four backend services (`account-service`, `api-gateway`, `transaction-servic
 
 ## CI/CD
 
-Each module has its own GitHub Actions deploy workflow (`.github/workflows/<module>-deploy.yml`), scoped to only run when that module's files change. Pull requests run `.github/workflows/pr-checks.yml`, which detects which modules changed and only builds/tests those (see that module's job for exact commands); a single `pr-gate` check is required to merge.
+Each module has its own GitHub Actions deploy workflow (`.github/workflows/<module>-deploy.yml`), scoped to only run when that module's files change. Pull requests run `.github/workflows/pr-checks.yml`, which detects which modules changed and only builds/tests those (see that module's job for exact commands), aggregated into a single `pr-gate` check. That check is not yet required to merge (this repo is private on a free GitHub plan, which doesn't support required status checks on private repos) - it still reports pass/fail on every PR.
+
+## Spec-driven development
+
+Requirements are tracked as `jira/JIRA_<ID>.md` spec files (see `jira/README.md`), maintained via the `jira-create` skill - a one-line requirement gets captured and iteratively refined until explicitly marked "Ready for Dev" before any implementation starts. See root `CLAUDE.md` for details.

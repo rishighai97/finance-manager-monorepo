@@ -1,90 +1,59 @@
-# Finance Manager - Environment Configuration
+# finance-manager-ui
 
-This project is configured to support multiple environments:
+Mobile/web client.
 
-- **local**: Default development environment (`http://localhost:5002/5003/5004`)
-- **dev**: Development server environment
-- **qa**: Quality Assurance environment
-- **uat**: User Acceptance Testing environment
-- **prod**: Production environment
+## Overview
+Ionic/Angular app that calls `account-service`, `transaction-service`, `statement-loader`, and `api-gateway` (for auth) directly - there's no BFF/API-gateway-as-proxy layer; each service's base URL is configured independently per environment.
 
-## Environment Setup
+## Tech stack
+- Angular 19, Ionic 8, Capacitor 7 (for iOS packaging)
+- RxJS
+- Karma/Jasmine for unit tests, ESLint for linting
 
-The application uses Angular's environment configuration system to manage different environments. The environment files are located in `src/environments/`:
+## Local setup & run
+```bash
+cd finance-manager-ui
+npm install
+npm start              # ng serve, local environment (http://localhost:4200 by default)
+# or: npm run start:dev / start:qa / start:uat / start:prod
+```
+`ionic serve --external` (see `scripts/local_startup/finance-manager-ui.sh`) is used instead when you need the dev server reachable from another device on the LAN. Production container listens on port **8100** (see `Dockerfile`).
 
-- `environment.ts` - Default environment (local)
-- `environment.dev.ts` - Development environment
-- `environment.qa.ts` - QA environment
-- `environment.uat.ts` - UAT environment
-- `environment.prod.ts` - Production environment
+### Environments
+Environment config (which backend URLs to call) lives in `src/environments/environment*.ts`, selected via the Angular build `--configuration` flag:
 
-## Running the Application with Different Environments
-
-Use the following npm scripts to run the application with specific environment configurations:
+| Env | File | Notes |
+|---|---|---|
+| local (default) | `environment.ts` | `localhost:5001-5004` |
+| dev | `environment.dev.ts` | |
+| qa | `environment.qa.ts` | |
+| uat | `environment.uat.ts` | |
+| prod | `environment.prod.ts` | |
 
 ```bash
-# Local environment (default)
-npm start
-
-# Development environment
-npm run start:dev
-
-# QA environment
-npm run start:qa
-
-# UAT environment
-npm run start:uat
-
-# Production environment
-npm run start:prod
-ionic serve --external
+npm run build          # ng build (local config)
+npm run build:dev / build:qa / build:uat / build:prod
 ```
 
-## Building the Application for Different Environments
-
-Use the following npm scripts to build the application with specific environment configurations:
-
+### iOS (Capacitor)
 ```bash
-# Local environment (default)
-npm run build
-
-# Development environment
-npm run build:dev
-
-# QA environment
-npm run build:qa
-
-# UAT environment
-npm run build:uat
-
-# Production environment
-npm run build:prod
+ionic build
+npx cap copy ios
+npx cap open ios        # opens Xcode
 ```
+(`chmod 777 -R ios` and `pod install` may be needed the first time, per Capacitor's usual iOS setup.)
 
-## Environment Configuration
+## Key modules
+- `src/app/` - one folder per feature: `tabs` (nav shell), `account-list`, `transaction-list`, `category-list`, `statement-uploader`, `auth`, `logout`, `tab2`, `tab3`, `explore-container`.
+- `src/service/` - one HTTP client service per backend concern: `account.service.ts`, `user.account.service.ts`, `transaction.service.ts`, `category.service.ts`, `statement-upload.service.ts`, `user.service.ts` (auth), plus `auth-inteceptor.service.ts` (attaches the auth token to outgoing requests) and `auth-guard.service.ts` (route protection).
+- `src/model/` - shared TypeScript interfaces/types for the above.
 
-The environment configuration files include the following settings:
-
-- `production`: Boolean flag indicating if it's a production build
-- `name`: Environment name for identification
-- `apiEndpoints`: Base URLs for various microservices
-  - `accountService`: URL for account management service
-  - `transactionService`: URL for transaction management service
-  - `statementUploaderService`: URL for statement uploading service
-
-## Accessing Environment Configuration
-
-You can access the environment configuration in your Angular components and services:
-
-```typescript
-import { environment } from "src/environments/environment";
-
-console.log(`Current environment: ${environment.name}`);
-console.log(`Account Service URL: ${environment.apiEndpoints.accountService}`);
+## Testing
+```bash
+npm test    # ng test (Karma/Jasmine)
+npm run lint
 ```
+Spec files exist for most services (`*.service.spec.ts`) but not yet for most components/pages under `src/app/`.
 
-ionic build ios
-npx cap open ios
-chmod 777 -R ios
-pod install
-ionic build, then run npx cap copy ios
+## Gotchas
+- No API-gateway-as-proxy: if a backend service's URL/port changes, update it in every `environment.*.ts`, not just one place.
