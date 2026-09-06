@@ -1,0 +1,391 @@
+# FILE: src/main/java/com/finance/manager/transaction_service/controller/TransactionController.java
+
+package com.finance.manager.transaction_service.controller;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
+import com.finance.manager.transaction_service.service.TransactionService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/transaction")
+@CrossOrigin
+@RequiredArgsConstructor
+public class TransactionController {
+
+    private final TransactionService transactionService;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
+
+    @GetMapping("/v1/healthcheck")
+    public String healthcheck() {
+        return "Transaction API is up and running!";
+    }
+
+    @GetMapping("/v1/fetch_all")
+    public ResponseEntity<TransactionsDto> fetchAllTransactionsByUserIdsStartDateAndEndDate(
+            @RequestParam("user_account_ids") List<String> userAccountIdsList,
+            @RequestParam("start_date") String startDate,
+            @RequestParam("end_date") String endDate,
+            @RequestParam(value = "category_ids", required = false) List<String> categoryIdsList) {
+
+        List<Integer> userAccountIds = validateAndGetUserAccountIds(userAccountIdsList);
+        validateAndGetRequestDate(startDate);
+        validateAndGetRequestDate(endDate);
+
+        // Parse optional category IDs
+        Set<Integer> categoryIds = null;
+        if (categoryIdsList != null && !categoryIdsList.isEmpty()) {
+            categoryIds = new HashSet<>();
+            try {
+                for (String categoryId : categoryIdsList) {
+                    categoryIds.add(Integer.parseInt(categoryId));
+                }
+            } catch (NumberFormatException e) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                        "Invalid category_ids passed in request - " + categoryIdsList + ". Please pass valid integer ids");
+            }
+        }
+
+        logger.info("Received request to fetch transactions for user ids {}, start date {}, end date {}{}",
+                userAccountIds, startDate, endDate,
+                categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate, categoryIds);
+        return ResponseEntity.ok(transactions);
+    }
+
+    private List<Integer> validateAndGetUserAccountIds(List<String> userAccountIdsList) {
+        if (userAccountIdsList == null || userAccountIdsList.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass valid list of user_account_ids in request");
+        }
+
+        try {
+            List<Integer> userAccountIds = userAccountIdsList.stream()
+                    .map(Integer::parseInt)
+                    .toList();
+
+            if (userAccountIds.isEmpty()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass valid list of user_account_ids in request");
+            }
+
+            return userAccountIds;
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                    "Invalid user_account_ids passed in request - " + userAccountIdsList + ". Please pass valid integer ids");
+        }
+    }
+
+    private void validateAndGetRequestDate(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass valid date in request");
+        }
+
+        try {
+            // Parse the date to validate format
+            LocalDate.parse(dateStr, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                    "Invalid date passed in request - " + dateStr + ". Valid date format - yyyy-MM-dd");
+        }
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/service/TransactionService.java
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
+
+import java.util.List;
+import java.util.Set;
+
+public interface TransactionService {
+    TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate);
+
+    // Add overloaded method with categoryIds parameter
+    TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds);
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/service/TransactionServiceImpl.java
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.DebitCreditIndicator;
+import com.finance.manager.transaction_service.dao.TransactionDao;
+import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+
+@Service
+@RequiredArgsConstructor
+public class TransactionServiceImpl implements TransactionService {
+
+    private final TransactionDao transactionDao;
+
+    @Override
+    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate) {
+        // Call the overloaded method with null categoryIds
+        return getUserTransactions(userAccountIds, startDate, endDate, null);
+    }
+
+    @Override
+    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+        List<Transaction> transactionList = transactionDao.fetchAll(userAccountIds, startDate, endDate, categoryIds);
+        return TransactionsDto
+                .builder()
+                .startDate(startDate)
+                .endDate(endDate)
+                .totalDebit(getTotalDebitOrCreditAmount(transactionList, DebitCreditIndicator.DEBIT))
+                .totalCredit(getTotalDebitOrCreditAmount(transactionList, DebitCreditIndicator.CREDIT))
+                .openingBalance(calculateOpeningBalance(transactionList))
+                .closingBalance(calculateClosingBalance(transactionList))
+                .transactions(transactionList)
+                .build();
+    }
+
+    private BigDecimal calculateClosingBalance(List<Transaction> transactionList) {
+        return getEarliestOrLatestTransactionPerUserAccountId(transactionList, false)
+                .map(Transaction::closingBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateOpeningBalance(List<Transaction> transactionList) {
+        return getEarliestOrLatestTransactionPerUserAccountId(transactionList, true)
+                .map(t-> {
+                    BigDecimal closingBalance = t.closingBalance();
+                    BigDecimal debitOrCreditAmount = t.debitOrCreditAmount();
+                    boolean credit = t.isDebitOrCredit().equalsIgnoreCase(DebitCreditIndicator.CREDIT.getName());
+                    return credit ? closingBalance.subtract(debitOrCreditAmount) : closingBalance.add(debitOrCreditAmount);
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
+    }
+
+    private Stream<Transaction> getEarliestOrLatestTransactionPerUserAccountId(List<Transaction> transactionList, boolean earliest) {
+        return transactionList
+                .stream()
+                .collect(Collectors.groupingBy(Transaction::userAccountId))
+                .values()
+                .stream()
+                .map(transactions -> getTransactionOnMinOrMaxDate(transactions, earliest));
+    }
+
+    private BigDecimal getTotalDebitOrCreditAmount(List<Transaction> transactionList, DebitCreditIndicator debitOrCreditIndicator) {
+        return transactionList
+                .stream()
+                .filter(t->Objects.nonNull(t) && Objects.nonNull(t.isDebitOrCredit()) && t.isDebitOrCredit().strip().equalsIgnoreCase(debitOrCreditIndicator.getName()))
+                .map(Transaction::debitOrCreditAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Transaction getTransactionOnMinOrMaxDate(List<Transaction> transactions, boolean earliest) {
+        return transactions
+                .stream()
+                .sorted(Comparator.comparing(this::getDateStringAndConvertToLocalDate, earliest ? Comparator.naturalOrder() : Comparator.reverseOrder()))
+                .findFirst()
+                .orElseThrow(()-> new RuntimeException("Unable to get transaction at min / max date"));
+    }
+
+    private LocalDate getDateStringAndConvertToLocalDate(Transaction t1) {
+        return LocalDate.parse(t1.date(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dao/TransactionDao.java
+
+package com.finance.manager.transaction_service.dao;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+
+import java.util.List;
+import java.util.Set;
+
+public interface TransactionDao {
+    List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate);
+
+    // Add overloaded method with categoryIds parameter
+    List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds);
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dao/TransactionPostgresDao.java
+
+package com.finance.manager.transaction_service.dao;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Repository
+public class TransactionPostgresDao implements TransactionDao {
+
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(TransactionPostgresDao.class);
+
+    @Autowired
+    public TransactionPostgresDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    @Override
+    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate) {
+        // Call the overloaded method with null categoryIds
+        return fetchAll(userAccountIds, startDate, endDate, null);
+    }
+
+    @Override
+    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+        logger.info("Fetching user transactions for user accounts {}, start date {}, end date {}{}",
+                userAccountIds, startDate, endDate, categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        StringBuilder sqlBuilder = new StringBuilder("""
+        SELECT t.id,
+            t.date,
+            t.user_account_id,
+            t.title,
+            t.amount,
+            t.debit_credit_indicator,
+            t.closing_balance,
+            t.category_id,
+            t.units,
+            t.price_per_unit,
+            STRING_AGG(CAST(tuc.user_category_id AS TEXT), ',') AS user_category_ids
+        FROM "transaction" t
+        LEFT JOIN transaction_user_category tuc ON t.id = tuc.transaction_id
+        WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE)
+        """);
+
+        // Add category filter if categoryIds is provided
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sqlBuilder.append("""
+            AND EXISTS (
+                SELECT 1 FROM transaction_user_category tuc2
+                WHERE tuc2.transaction_id = t.id AND tuc2.user_category_id IN (:categoryIds)
+            )
+            """);
+        }
+
+        sqlBuilder.append("""
+        GROUP BY t.id, t.date, t.user_account_id, t.title, t.amount, t.debit_credit_indicator, t.closing_balance, t.category_id, t.units, t.price_per_unit
+        ORDER BY t.date desc, t.user_account_id desc
+        """);
+
+        String sql = sqlBuilder.toString();
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userAccountIds", userAccountIds)
+                .addValue("startDate", startDate)
+                .addValue("endDate", endDate);
+
+        // Only add categoryIds parameter if it's not null and not empty
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            params.addValue("categoryIds", categoryIds);
+        }
+
+        List<Transaction> transactions = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            String id = rs.getString("id");
+            String date = rs.getDate("date") != null ? rs.getDate("date").toString() : null;
+            int userAccountId = rs.getInt("user_account_id");
+            String title = rs.getString("title");
+            BigDecimal amount = rs.getBigDecimal("amount");
+            String debitCreditIndicator = rs.getString("debit_credit_indicator");
+            BigDecimal closingBalance = rs.getBigDecimal("closing_balance");
+            Integer categoryId = rs.getObject("category_id") != null ? rs.getInt("category_id") : null;
+            Integer units = rs.getObject("units") != null ? rs.getInt("units") : null;
+            BigDecimal pricePerUnit = rs.getBigDecimal("price_per_unit");
+
+            // Parse the comma-separated category IDs into a Set<Integer>
+            Set<Integer> userCategoryIds = parseCategoryIds(rs.getString("user_category_ids"));
+
+            if (date == null) {
+                throw new RuntimeException("Invalid date " + rs.getObject("date") + " received for request");
+            }
+
+            return Transaction.builder()
+                    .transactionId(id)
+                    .date(date)
+                    .userAccountId(userAccountId)
+                    .title(title)
+                    .debitOrCreditAmount(amount)
+                    .isDebitOrCredit(debitCreditIndicator)
+                    .closingBalance(closingBalance)
+                    .categoryId(categoryId)
+                    .units(units)
+                    .pricePerUnit(pricePerUnit)
+                    .userCategoryIds(userCategoryIds)
+                    .build();
+        });
+
+        logger.info("Fetched {} user transactions for user accounts {}, start date {}, end date {}{}",
+                transactions.size(), userAccountIds, startDate, endDate,
+                categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        return transactions;
+    }
+
+    /**
+     * Parses a comma-separated string of category IDs into a Set of Integers
+     */
+    private Set<Integer> parseCategoryIds(String categoryIdsStr) {
+        if (categoryIdsStr == null || categoryIdsStr.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        try {
+            return Arrays.stream(categoryIdsStr.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toSet());
+        } catch (NumberFormatException e) {
+            logger.error("Error parsing category IDs: {}", categoryIdsStr, e);
+            return Collections.emptySet();
+        }
+    }
+}

@@ -1,0 +1,1368 @@
+# Context for transaction
+# App Type: spring
+# Generated: claude_get_context.py
+# Number of files: 26
+
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/ServletInitializer.java
+
+package com.finance.manager.transaction_service;
+
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+
+public class ServletInitializer extends SpringBootServletInitializer {
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(TransactionServiceApplication.class);
+	}
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/TransactionServiceApplication.java
+
+package com.finance.manager.transaction_service;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TransactionServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(TransactionServiceApplication.class, args);
+	}
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/DebitCreditIndicator.java
+
+package com.finance.manager.transaction_service;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public enum DebitCreditIndicator {
+    DEBIT("DR"),
+    CREDIT("CR");
+
+    @Getter
+    private final String name;
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dto/UserCategory.java
+
+package com.finance.manager.transaction_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+@Builder
+public record UserCategory(
+        @JsonProperty("id") Integer id,
+        @JsonProperty("user_id") Integer userId,
+        @JsonProperty("category_title") String categoryTitle
+) {}
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dto/TransactionUserCategoryAction.java
+
+package com.finance.manager.transaction_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public enum TransactionUserCategoryAction {
+    @JsonProperty("DELETE")
+    DELETE("DELETE"),
+    
+    @JsonProperty("INSERT")
+    INSERT("INSERT");
+
+    @Getter
+    private final String name;
+}
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dto/TransactionUserCategory.java
+
+package com.finance.manager.transaction_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+@Builder
+public record TransactionUserCategory(
+        @JsonProperty("transaction_id")
+        String transactionId,
+        
+        @JsonProperty("user_category_id")
+        Integer userCategoryId,
+        
+        @JsonProperty("action")
+        TransactionUserCategoryAction action
+) {}
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dto/TransactionsDto.java
+
+package com.finance.manager.transaction_service.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Builder
+public record TransactionsDto(
+        @JsonProperty("start_date")
+        String startDate,
+        @JsonProperty("end_date")
+        String endDate,
+        @JsonProperty("opening_balance")
+        BigDecimal openingBalance,
+        @JsonProperty("total_credit")
+        BigDecimal totalCredit,
+        @JsonProperty("total_debit")
+        BigDecimal totalDebit,
+        @JsonProperty("closing_balance")
+        BigDecimal closingBalance,
+        @JsonProperty("transactions")
+        List<Transaction> transactions
+) {
+
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dto/Transaction.java
+
+package com.finance.manager.transaction_service.dto;
+
+import java.math.BigDecimal;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
+@Builder
+public record Transaction(
+        @JsonProperty("transaction_id") String transactionId,
+        @JsonProperty("date") String date,
+        @JsonProperty("user_account_id") int userAccountId,
+        @JsonProperty("title") String title,
+        @JsonProperty("debit_or_credit_amount") BigDecimal debitOrCreditAmount,
+        @JsonProperty("is_debit_or_credit") String isDebitOrCredit,
+        @JsonProperty("closing_balance") BigDecimal closingBalance,
+        @JsonProperty("category_id") Integer categoryId,
+        @JsonProperty("type") String type,
+        @JsonProperty("units") Integer units,
+        @JsonProperty("price_per_unit") BigDecimal pricePerUnit,
+        @JsonProperty("user_category_ids") Set<Integer> userCategoryIds
+) {}
+
+# FILE: src/main/java/com/finance/manager/transaction_service/handler/GlobalExceptionHandler.java
+
+package com.finance.manager.transaction_service.handler;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                ex.getStatusCode().value(),
+                ex.getStatusCode().toString(),
+                ex.getReason()
+        );
+
+        return new ResponseEntity<>(errorResponse, ex.getStatusCode());
+    }
+
+    // Additional handler for standard Spring exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    // Error response model
+    @Getter
+    @AllArgsConstructor
+    public static class ErrorResponse {
+        private int errorCode;
+        private String errorTitle;
+        private String errorDescription;
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/config/PostgresConfig.java
+
+package com.finance.manager.transaction_service.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import javax.sql.DataSource;
+
+@Configuration
+public class PostgresConfig {
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+    // You can also configure additional beans like NamedParameterJdbcTemplate
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dao/TransactionDao.java
+
+
+package com.finance.manager.transaction_service.dao;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+
+import java.util.List;
+import java.util.Set;
+
+public interface TransactionDao {
+    List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate);
+
+    // Add overloaded method with categoryIds parameter
+    List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds);
+}
+
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dao/TransactionPostgresDao.java
+
+
+package com.finance.manager.transaction_service.dao;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Repository
+public class TransactionPostgresDao implements TransactionDao {
+
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(TransactionPostgresDao.class);
+
+    @Autowired
+    public TransactionPostgresDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    @Override
+    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate) {
+        // Call the overloaded method with null categoryIds
+        return fetchAll(userAccountIds, startDate, endDate, null);
+    }
+
+    @Override
+    public List<Transaction> fetchAll(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+        logger.info("Fetching user transactions for user accounts {}, start date {}, end date {}{}",
+                userAccountIds, startDate, endDate, categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        StringBuilder sqlBuilder = new StringBuilder("""
+        SELECT t.id,
+            t.date,
+            t.user_account_id,
+            t.title,
+            t.amount,
+            t.debit_credit_indicator,
+            t.closing_balance,
+            t.category_id,
+            t.units,
+            t.price_per_unit,
+            STRING_AGG(CAST(tuc.user_category_id AS TEXT), ',') AS user_category_ids
+        FROM "transaction" t
+        LEFT JOIN transaction_user_category tuc ON t.id = tuc.transaction_id
+        WHERE t.user_account_id IN (:userAccountIds) AND t.date BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE)
+        """);
+
+        // Add category filter if categoryIds is provided
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sqlBuilder.append("""
+            AND EXISTS (
+                SELECT 1 FROM transaction_user_category tuc2
+                WHERE tuc2.transaction_id = t.id AND tuc2.user_category_id IN (:categoryIds)
+            )
+            """);
+        }
+
+        sqlBuilder.append("""
+        GROUP BY t.id, t.date, t.user_account_id, t.title, t.amount, t.debit_credit_indicator, t.closing_balance, t.category_id, t.units, t.price_per_unit
+        ORDER BY t.date desc, t.user_account_id desc
+        """);
+
+        String sql = sqlBuilder.toString();
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userAccountIds", userAccountIds)
+                .addValue("startDate", startDate)
+                .addValue("endDate", endDate);
+
+        // Only add categoryIds parameter if it's not null and not empty
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            params.addValue("categoryIds", categoryIds);
+        }
+
+        List<Transaction> transactions = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            String id = rs.getString("id");
+            String date = rs.getDate("date") != null ? rs.getDate("date").toString() : null;
+            int userAccountId = rs.getInt("user_account_id");
+            String title = rs.getString("title");
+            BigDecimal amount = rs.getBigDecimal("amount");
+            String debitCreditIndicator = rs.getString("debit_credit_indicator");
+            BigDecimal closingBalance = rs.getBigDecimal("closing_balance");
+            Integer categoryId = rs.getObject("category_id") != null ? rs.getInt("category_id") : null;
+            Integer units = rs.getObject("units") != null ? rs.getInt("units") : null;
+            BigDecimal pricePerUnit = rs.getBigDecimal("price_per_unit");
+
+            // Parse the comma-separated category IDs into a Set<Integer>
+            Set<Integer> userCategoryIds = parseCategoryIds(rs.getString("user_category_ids"));
+
+            if (date == null) {
+                throw new RuntimeException("Invalid date " + rs.getObject("date") + " received for request");
+            }
+
+            return Transaction.builder()
+                    .transactionId(id)
+                    .date(date)
+                    .userAccountId(userAccountId)
+                    .title(title)
+                    .debitOrCreditAmount(amount)
+                    .isDebitOrCredit(debitCreditIndicator)
+                    .closingBalance(closingBalance)
+                    .categoryId(categoryId)
+                    .units(units)
+                    .pricePerUnit(pricePerUnit)
+                    .userCategoryIds(userCategoryIds)
+                    .build();
+        });
+
+        logger.info("Fetched {} user transactions for user accounts {}, start date {}, end date {}{}",
+                transactions.size(), userAccountIds, startDate, endDate,
+                categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        return transactions;
+    }
+
+    /**
+     * Parses a comma-separated string of category IDs into a Set of Integers
+     */
+    private Set<Integer> parseCategoryIds(String categoryIdsStr) {
+        if (categoryIdsStr == null || categoryIdsStr.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        try {
+            return Arrays.stream(categoryIdsStr.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toSet());
+        } catch (NumberFormatException e) {
+            logger.error("Error parsing category IDs: {}", categoryIdsStr, e);
+            return Collections.emptySet();
+        }
+    }
+}
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dao/CategoryPostgresDao.java
+
+
+package com.finance.manager.transaction_service.dao;
+
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+@Repository
+public class CategoryPostgresDao implements CategoryDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(CategoryPostgresDao.class);
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    public CategoryPostgresDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
+
+    @Override
+    public List<UserCategory> fetchAllCategories(List<Integer> userIds, int batchSize) {
+        logger.info("Fetching all categories for user IDs from postgres: {}", userIds);
+        List<UserCategory> result = new ArrayList<>();
+        String sql = """
+                SELECT id, user_id, category_title
+                FROM user_category
+                WHERE user_id in (:userIds)
+                ORDER BY category_title
+                """;
+
+        // Process in batches
+        for (int i = 0; i < userIds.size(); i += batchSize) {
+            int end = Math.min(userIds.size(), i + batchSize);
+            List<Integer> batchIds = userIds.subList(i, end);
+
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("userIds", batchIds);
+
+
+            List<UserCategory> categories = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) ->
+                    UserCategory.builder()
+                            .id(rs.getInt("id"))
+                            .userId(rs.getInt("user_id"))
+                            .categoryTitle(rs.getString("category_title"))
+                            .build()
+            );
+            result.addAll(categories);
+            logger.info("Retrieved {} categories for user IDs: {}", categories.size(), batchIds);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void deleteCategories(List<Integer> categoryIds, int batchSize) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            logger.info("No categories to delete");
+            return;
+        }
+
+        logger.info("Deleting {} categories with batch size {}", categoryIds.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < categoryIds.size(); i += batchSize) {
+            int end = Math.min(categoryIds.size(), i + batchSize);
+            List<Integer> batchIds = categoryIds.subList(i, end);
+            
+            // First delete from transaction_user_category
+            deleteTransactionCategoryMappings(batchIds);
+            
+            // Then delete from user_category
+            deleteUserCategories(batchIds);
+            
+            logger.info("Processed batch {} to {} of {} categories", i, end, categoryIds.size());
+        }
+    }
+
+    private void deleteTransactionCategoryMappings(List<Integer> categoryIds) {
+        String sql = """
+                DELETE FROM transaction_user_category
+                WHERE user_category_id IN (:categoryIds)
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("categoryIds", categoryIds);
+
+        int deleted = namedParameterJdbcTemplate.update(sql, params);
+        logger.info("Deleted {} transaction category mappings", deleted);
+    }
+
+    private void deleteUserCategories(List<Integer> categoryIds) {
+        String sql = """
+                DELETE FROM user_category
+                WHERE id IN (:categoryIds)
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("categoryIds", categoryIds);
+
+        int deleted = namedParameterJdbcTemplate.update(sql, params);
+        logger.info("Deleted {} user categories", deleted);
+    }
+
+    @Override
+    @Transactional
+    public void updateCategories(List<UserCategory> categories, int batchSize) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to update");
+            return;
+        }
+
+        logger.info("Updating {} categories with batch size {}", categories.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < categories.size(); i += batchSize) {
+            int end = Math.min(categories.size(), i + batchSize);
+            List<UserCategory> batch = categories.subList(i, end);
+            
+            updateCategoryBatch(batch);
+            
+            logger.info("Processed update batch {} to {} of {} categories", i, end, categories.size());
+        }
+    }
+
+    private void updateCategoryBatch(List<UserCategory> categories) {
+        String sql = """
+                UPDATE user_category
+                SET category_title = :categoryTitle
+                WHERE id = :id
+                """;
+
+        List<MapSqlParameterSource> paramsList = new ArrayList<>();
+        
+        for (UserCategory category : categories) {
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("id", category.id())
+                    .addValue("categoryTitle", category.categoryTitle());
+            paramsList.add(params);
+        }
+
+        int[] updated = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
+        logger.info("Updated {} categories in batch", updated.length);
+    }
+    
+    @Override
+    @Transactional
+    public void deleteTransactionCategories(List<TransactionUserCategory> mappings, int batchSize) {
+        if (mappings == null || mappings.isEmpty()) {
+            logger.info("No transaction-category mappings to delete");
+            return;
+        }
+
+        logger.info("Deleting {} transaction-category mappings with batch size {}", mappings.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < mappings.size(); i += batchSize) {
+            int end = Math.min(mappings.size(), i + batchSize);
+            List<TransactionUserCategory> batch = mappings.subList(i, end);
+            
+            deleteTransactionCategoryBatch(batch);
+            
+            logger.info("Processed delete batch {} to {} of {} mappings", i, end, mappings.size());
+        }
+    }
+
+    private void deleteTransactionCategoryBatch(List<TransactionUserCategory> mappings) {
+        String sql = """
+                DELETE FROM transaction_user_category
+                WHERE transaction_id = :transactionId AND user_category_id = :userCategoryId
+                """;
+
+        List<MapSqlParameterSource> paramsList = new ArrayList<>();
+        
+        for (TransactionUserCategory mapping : mappings) {
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("transactionId", mapping.transactionId())
+                    .addValue("userCategoryId", mapping.userCategoryId());
+            paramsList.add(params);
+        }
+
+        int[] deleted = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
+        logger.info("Deleted {} transaction-category mappings in batch", deleted.length);
+    }
+    
+    @Override
+    @Transactional
+    public void insertTransactionCategories(List<TransactionUserCategory> mappings, int batchSize) {
+        if (mappings == null || mappings.isEmpty()) {
+            logger.info("No transaction-category mappings to insert");
+            return;
+        }
+
+        logger.info("Inserting {} transaction-category mappings with batch size {}", mappings.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < mappings.size(); i += batchSize) {
+            int end = Math.min(mappings.size(), i + batchSize);
+            List<TransactionUserCategory> batch = mappings.subList(i, end);
+            
+            insertTransactionCategoryBatch(batch);
+            
+            logger.info("Processed insert batch {} to {} of {} mappings", i, end, mappings.size());
+        }
+    }
+
+    private void insertTransactionCategoryBatch(List<TransactionUserCategory> mappings) {
+        String sql = """
+                INSERT INTO transaction_user_category (transaction_id, user_category_id)
+                VALUES (:transactionId, :userCategoryId)
+                ON CONFLICT (transaction_id, user_category_id) DO NOTHING
+                """;
+
+        List<MapSqlParameterSource> paramsList = new ArrayList<>();
+        
+        for (TransactionUserCategory mapping : mappings) {
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("transactionId", mapping.transactionId())
+                    .addValue("userCategoryId", mapping.userCategoryId());
+            paramsList.add(params);
+        }
+
+        int[] inserted = namedParameterJdbcTemplate.batchUpdate(sql, paramsList.toArray(new MapSqlParameterSource[0]));
+        logger.info("Inserted {} transaction-category mappings in batch", inserted.length);
+    }
+    
+    @Override
+    @Transactional
+    public void saveCategories(List<UserCategory> categories, int batchSize) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to save");
+            return;
+        }
+
+        logger.info("Saving {} new categories with batch size {}", categories.size(), batchSize);
+        
+        // Process in batches
+        for (int i = 0; i < categories.size(); i += batchSize) {
+            int end = Math.min(categories.size(), i + batchSize);
+            List<UserCategory> batch = categories.subList(i, end);
+            
+            saveCategoryBatch(batch);
+            
+            logger.info("Processed save batch {} to {} of {} categories", i, end, categories.size());
+        }
+    }
+    
+    private void saveCategoryBatch(List<UserCategory> categories) {
+        String sql = """
+                INSERT INTO user_category (user_id, category_title)
+                VALUES (:userId, :categoryTitle)
+                """;
+        for (UserCategory category : categories) {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("userId", category.userId())
+                    .addValue("categoryTitle", category.categoryTitle());
+            
+            namedParameterJdbcTemplate.update(sql, params);
+        }
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/dao/CategoryDao.java
+
+
+package com.finance.manager.transaction_service.dao;
+
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+
+import java.util.List;
+import java.util.Set;
+
+public interface CategoryDao {
+    /**
+     * Fetches all categories for a given user ID
+     * 
+     * @param userIds The ID of the user
+     * @return List of user categories
+     */
+    List<UserCategory> fetchAllCategories(List<Integer> userIds, int batchSize);
+    
+    /**
+     * Deletes categories and their transaction mappings in batches
+     * 
+     * @param categoryIds The list of category IDs to delete
+     * @param batchSize The size of each batch for deletion
+     */
+    void deleteCategories(List<Integer> categoryIds, int batchSize);
+    
+    /**
+     * Updates category titles in batches
+     * 
+     * @param categories The list of categories to update
+     * @param batchSize The size of each batch for update
+     */
+    void updateCategories(List<UserCategory> categories, int batchSize);
+    
+    /**
+     * Deletes transaction-category mappings in batches
+     * 
+     * @param mappings The list of transaction-category mappings to delete
+     * @param batchSize The size of each batch for deletion
+     */
+    void deleteTransactionCategories(List<TransactionUserCategory> mappings, int batchSize);
+    
+    /**
+     * Inserts transaction-category mappings in batches, ignoring duplicates
+     * 
+     * @param mappings The list of transaction-category mappings to insert
+     * @param batchSize The size of each batch for insertion
+     */
+    void insertTransactionCategories(List<TransactionUserCategory> mappings, int batchSize);
+
+    /**
+     * Saves new categories in batches
+     * 
+     * @param categories The list of categories to save
+     * @param batchSize The size of each batch for insertion
+     * @return
+     */
+    void saveCategories(List<UserCategory> categories, int batchSize);
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/controller/CategoryController.java
+
+
+package com.finance.manager.transaction_service.controller;
+
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategoryAction;
+import com.finance.manager.transaction_service.service.CategoryService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/category")
+@CrossOrigin
+@RequiredArgsConstructor
+public class CategoryController {
+
+    private final CategoryService categoryService;
+    private static final Logger logger = LoggerFactory.getLogger(CategoryController.class);
+
+    @GetMapping("/v1/healthcheck")
+    public String healthcheck() {
+        return "Category API is up and running!";
+    }
+
+    @GetMapping("/v1/fetch_all")
+    public ResponseEntity<List<UserCategory>> fetchAllCategoriesByUserId(@RequestParam("user_ids") List<Integer> userIds) {
+        validateUserIds(userIds);
+        
+        logger.info("Received request to fetch all categories for user IDs: {}", userIds);
+        List<UserCategory> categories = categoryService.getAllCategories(userIds);
+        
+        return ResponseEntity.ok(categories);
+    }
+
+    @DeleteMapping("/v1/delete_all")
+    public ResponseEntity<Void> deleteAllCategories(@RequestBody List<UserCategory> categories) {
+        validateCategories(categories);
+        
+        logger.info("Received request to delete {} categories", categories.size());
+        categoryService.deleteCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/v1/edit_all")
+    public ResponseEntity<Void> editAllCategories(@RequestBody List<UserCategory> categories) {
+        validateCategories(categories);
+        
+        logger.info("Received request to edit {} categories", categories.size());
+        categoryService.updateCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
+    
+    @PutMapping("/v1/transaction_user_category/edit_all")
+    public ResponseEntity<Void> editTransactionCategories(@RequestBody List<TransactionUserCategory> mappings) {
+        validateTransactionCategoryMappings(mappings);
+        
+        logger.info("Received request to edit {} transaction-category mappings", mappings.size());
+        categoryService.editTransactionCategories(mappings);
+        
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/v1/save_all")
+    public ResponseEntity<Void> saveAllCategories(@RequestBody List<UserCategory> categories) {
+        validateNewCategories(categories);
+        
+        logger.info("Received request to save {} new categories", categories.size());
+        categoryService.saveCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
+
+    private void validateUserIds(List<Integer> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid user_ids");
+        }
+    }
+
+    private void validateCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of categories");
+        }
+        
+        // Validate each category has an ID
+        for (UserCategory category : categories) {
+            if (category.id() == null || category.id() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid ID");
+            }
+        }
+    }
+    
+    private void validateNewCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of categories");
+        }
+        
+        // Validate each category has a user_id and category_title
+        for (UserCategory category : categories) {
+            if (category.userId() == null || category.userId() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid user ID");
+            }
+            
+            if (category.categoryTitle() == null || category.categoryTitle().isEmpty()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a title");
+            }
+        }
+    }
+    
+    private void validateTransactionCategoryMappings(List<TransactionUserCategory> mappings) {
+        if (mappings == null || mappings.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of transaction-category mappings");
+        }
+        
+        // Validate each mapping has required fields
+        for (TransactionUserCategory mapping : mappings) {
+            if (mapping.transactionId() == null || mapping.transactionId().isBlank()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid transaction ID");
+            }
+            
+            if (mapping.userCategoryId() == null || mapping.userCategoryId() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid user category ID");
+            }
+            
+            if (mapping.action() == null) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid action (DELETE or INSERT)");
+            }
+        }
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/controller/TransactionController.java
+
+
+package com.finance.manager.transaction_service.controller;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
+import com.finance.manager.transaction_service.service.TransactionService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/transaction")
+@CrossOrigin
+@RequiredArgsConstructor
+public class TransactionController {
+
+    private final TransactionService transactionService;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
+
+    @GetMapping("/v1/healthcheck")
+    public String healthcheck() {
+        return "Transaction API is up and running!";
+    }
+
+    @GetMapping("/v1/fetch_all")
+    public ResponseEntity<TransactionsDto> fetchAllTransactionsByUserIdsStartDateAndEndDate(
+            @RequestParam("user_account_ids") List<String> userAccountIdsList,
+            @RequestParam("start_date") String startDate,
+            @RequestParam("end_date") String endDate,
+            @RequestParam(value = "category_ids", required = false) List<String> categoryIdsList) {
+
+        List<Integer> userAccountIds = validateAndGetUserAccountIds(userAccountIdsList);
+        validateAndGetRequestDate(startDate);
+        validateAndGetRequestDate(endDate);
+
+        // Parse optional category IDs
+        Set<Integer> categoryIds = null;
+        if (categoryIdsList != null && !categoryIdsList.isEmpty()) {
+            categoryIds = new HashSet<>();
+            try {
+                for (String categoryId : categoryIdsList) {
+                    categoryIds.add(Integer.parseInt(categoryId));
+                }
+            } catch (NumberFormatException e) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                        "Invalid category_ids passed in request - " + categoryIdsList + ". Please pass valid integer ids");
+            }
+        }
+
+        logger.info("Received request to fetch transactions for user ids {}, start date {}, end date {}{}",
+                userAccountIds, startDate, endDate,
+                categoryIds != null ? ", filtered by categories: " + categoryIds : "");
+
+        TransactionsDto transactions = transactionService.getUserTransactions(userAccountIds, startDate, endDate, categoryIds);
+        return ResponseEntity.ok(transactions);
+    }
+
+    private List<Integer> validateAndGetUserAccountIds(List<String> userAccountIdsList) {
+        if (userAccountIdsList == null || userAccountIdsList.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass valid list of user_account_ids in request");
+        }
+
+        try {
+            List<Integer> userAccountIds = userAccountIdsList.stream()
+                    .map(Integer::parseInt)
+                    .toList();
+
+            if (userAccountIds.isEmpty()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass valid list of user_account_ids in request");
+            }
+
+            return userAccountIds;
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                    "Invalid user_account_ids passed in request - " + userAccountIdsList + ". Please pass valid integer ids");
+        }
+    }
+
+    private void validateAndGetRequestDate(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please pass valid date in request");
+        }
+
+        try {
+            // Parse the date to validate format
+            LocalDate.parse(dateStr, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400),
+                    "Invalid date passed in request - " + dateStr + ". Valid date format - yyyy-MM-dd");
+        }
+    }
+}
+
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/service/CategoryServiceImpl.java
+
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.dao.CategoryDao;
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategoryAction;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CategoryServiceImpl implements CategoryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CategoryServiceImpl.class);
+    private final CategoryDao categoryDao;
+    
+    // Configurable batch size for database operations
+    private final int batchSize = 500;
+
+    @Override
+    public List<UserCategory> getAllCategories(List<Integer> userIds) {
+        logger.info("Getting all categories for user ID: {} and batch size: {}", userIds, batchSize);
+        return categoryDao.fetchAllCategories(userIds, batchSize);
+    }
+
+    @Override
+    public void deleteCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to delete");
+            return;
+        }
+        
+        logger.info("Deleting {} categories", categories.size());
+        
+        // Extract category IDs from the input
+        List<Integer> categoryIds = categories.stream()
+                .map(UserCategory::id)
+                .collect(Collectors.toList());
+        
+        categoryDao.deleteCategories(categoryIds, batchSize);
+    }
+
+    @Override
+    public void updateCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to update");
+            return;
+        }
+        
+        logger.info("Updating {} categories", categories.size());
+        categoryDao.updateCategories(categories, batchSize);
+    }
+    
+    @Override
+    @Transactional
+    public void editTransactionCategories(List<TransactionUserCategory> mappings) {
+        if (mappings == null || mappings.isEmpty()) {
+            logger.info("No transaction-category mappings to edit");
+            return;
+        }
+        
+        // Segregate mappings by action
+        List<TransactionUserCategory> deleteList = mappings.stream()
+                .filter(m -> m.action() == TransactionUserCategoryAction.DELETE)
+                .collect(Collectors.toList());
+        
+        List<TransactionUserCategory> insertList = mappings.stream()
+                .filter(m -> m.action() == TransactionUserCategoryAction.INSERT)
+                .collect(Collectors.toList());
+        
+        logger.info("Processing {} transaction-category mappings: {} to delete, {} to insert", 
+                mappings.size(), deleteList.size(), insertList.size());
+        
+        // First delete all mappings marked for deletion
+        if (!deleteList.isEmpty()) {
+            categoryDao.deleteTransactionCategories(deleteList, batchSize);
+        }
+        
+        // Then insert all mappings marked for insertion
+        if (!insertList.isEmpty()) {
+            categoryDao.insertTransactionCategories(insertList, batchSize);
+        }
+    }
+    
+    @Override
+    public void saveCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            logger.info("No categories to save");
+            return;
+        }
+        
+        logger.info("Saving {} new categories", categories.size());
+        categoryDao.saveCategories(categories, batchSize);
+    }
+}
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/service/TransactionServiceImpl.java
+
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.DebitCreditIndicator;
+import com.finance.manager.transaction_service.dao.TransactionDao;
+import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+
+@Service
+@RequiredArgsConstructor
+public class TransactionServiceImpl implements TransactionService {
+
+    private final TransactionDao transactionDao;
+
+    @Override
+    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate) {
+        // Call the overloaded method with null categoryIds
+        return getUserTransactions(userAccountIds, startDate, endDate, null);
+    }
+
+    @Override
+    public TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds) {
+        List<Transaction> transactionList = transactionDao.fetchAll(userAccountIds, startDate, endDate, categoryIds);
+        return TransactionsDto
+                .builder()
+                .startDate(startDate)
+                .endDate(endDate)
+                .totalDebit(getTotalDebitOrCreditAmount(transactionList, DebitCreditIndicator.DEBIT))
+                .totalCredit(getTotalDebitOrCreditAmount(transactionList, DebitCreditIndicator.CREDIT))
+                .openingBalance(calculateOpeningBalance(transactionList))
+                .closingBalance(calculateClosingBalance(transactionList))
+                .transactions(transactionList)
+                .build();
+    }
+
+    private BigDecimal calculateClosingBalance(List<Transaction> transactionList) {
+        return getEarliestOrLatestTransactionPerUserAccountId(transactionList, false)
+                .map(Transaction::closingBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateOpeningBalance(List<Transaction> transactionList) {
+        return getEarliestOrLatestTransactionPerUserAccountId(transactionList, true)
+                .map(t-> {
+                    BigDecimal closingBalance = t.closingBalance();
+                    BigDecimal debitOrCreditAmount = t.debitOrCreditAmount();
+                    boolean credit = t.isDebitOrCredit().equalsIgnoreCase(DebitCreditIndicator.CREDIT.getName());
+                    return credit ? closingBalance.subtract(debitOrCreditAmount) : closingBalance.add(debitOrCreditAmount);
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
+    }
+
+    private Stream<Transaction> getEarliestOrLatestTransactionPerUserAccountId(List<Transaction> transactionList, boolean earliest) {
+        return transactionList
+                .stream()
+                .collect(Collectors.groupingBy(Transaction::userAccountId))
+                .values()
+                .stream()
+                .map(transactions -> getTransactionOnMinOrMaxDate(transactions, earliest));
+    }
+
+    private BigDecimal getTotalDebitOrCreditAmount(List<Transaction> transactionList, DebitCreditIndicator debitOrCreditIndicator) {
+        return transactionList
+                .stream()
+                .filter(t->Objects.nonNull(t) && Objects.nonNull(t.isDebitOrCredit()) && t.isDebitOrCredit().strip().equalsIgnoreCase(debitOrCreditIndicator.getName()))
+                .map(Transaction::debitOrCreditAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Transaction getTransactionOnMinOrMaxDate(List<Transaction> transactions, boolean earliest) {
+        return transactions
+                .stream()
+                .sorted(Comparator.comparing(this::getDateStringAndConvertToLocalDate, earliest ? Comparator.naturalOrder() : Comparator.reverseOrder()))
+                .findFirst()
+                .orElseThrow(()-> new RuntimeException("Unable to get transaction at min / max date"));
+    }
+
+    private LocalDate getDateStringAndConvertToLocalDate(Transaction t1) {
+        return LocalDate.parse(t1.date(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+}
+
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/service/TransactionService.java
+
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.dto.Transaction;
+import com.finance.manager.transaction_service.dto.TransactionsDto;
+
+import java.util.List;
+import java.util.Set;
+
+public interface TransactionService {
+    TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate);
+
+    // Add overloaded method with categoryIds parameter
+    TransactionsDto getUserTransactions(List<Integer> userAccountIds, String startDate, String endDate, Set<Integer> categoryIds);
+}
+
+
+
+# FILE: src/main/java/com/finance/manager/transaction_service/service/CategoryService.java
+
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+
+import java.util.List;
+import java.util.Set;
+
+public interface CategoryService {
+    /**
+     * Fetches all categories for a given user ID
+     * 
+     * @param userIuserIdsd The ID of the user
+     * @return List of user categories
+     */
+    List<UserCategory> getAllCategories(List<Integer> userIds);
+    
+    /**
+     * Deletes categories and their transaction mappings
+     * 
+     * @param categories The list of categories to delete
+     */
+    void deleteCategories(List<UserCategory> categories);
+    
+    /**
+     * Updates category titles
+     * 
+     * @param categories The list of categories to update
+     */
+    void updateCategories(List<UserCategory> categories);
+    
+    /**
+     * Edits transaction categories by first deleting those marked for deletion
+     * and then inserting those marked for insertion
+     * 
+     * @param mappings The list of transaction-category mappings to edit
+     */
+    void editTransactionCategories(List<TransactionUserCategory> mappings);
+    
+    /**
+     * Saves new categories
+     * 
+     * @param categories The list of categories to save
+     * @return
+     */
+    void saveCategories(List<UserCategory> categories);
+}
+
+# FILE: src/main/resources/application-local.properties
+
+# PostgreSQL Connection Properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/finance_manager
+spring.datasource.username=postgres
+spring.datasource.password=
+
+# Connection Pool Properties
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.idle-timeout=600000
+spring.datasource.hikari.connection-timeout=30000
+spring.datasource.hikari.max-lifetime=1800000
+
+# server config
+server.port=5004
+
+# FILE: src/main/resources/application.properties
+
+spring.application.name=transaction_service
+
+
+# FILE: HELP.md
+
+# Getting Started
+
+### Reference Documentation
+For further reference, please consider the following sections:
+
+* [Official Gradle documentation](https://docs.gradle.org)
+* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/gradle-plugin)
+* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/gradle-plugin/packaging-oci-image.html)
+* [JDBC API](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/reference/data/sql.html)
+
+### Guides
+The following guides illustrate how to use some features concretely:
+
+* [Accessing Relational Data using JDBC with Spring](https://spring.io/guides/gs/relational-data-access/)
+* [Managing Transactions](https://spring.io/guides/gs/managing-transactions/)
+
+### Additional Links
+These additional references should also help you:
+
+* [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
+
+
+
+# FILE: README.md
+
+# transaction-service
+APIs to read and write user transactions
+
+
+# FILE: gradle/wrapper/gradle-wrapper.properties
+
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+
+
+# FILE: src/test/java/com/finance/manager/transaction_service/TransactionServiceApplicationTests.java
+
+package com.finance.manager.transaction_service;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class TransactionServiceApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
