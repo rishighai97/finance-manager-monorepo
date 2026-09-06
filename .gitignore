@@ -1,0 +1,39 @@
+# === Java / Gradle (account-service, api-gateway, transaction-service) ===
+**/.gradle/
+**/build/
+**/out/
+*.class
+
+# === Node / Angular / Ionic / Capacitor (finance-manager-ui) ===
+**/node_modules/
+**/www/
+**/.angular/
+**/dist/
+**/ios/
+**/android/
+*.tsbuildinfo
+npm-debug.log*
+
+# === Python (statement-loader, scripts/sql) ===
+**/__pycache__/
+*.pyc
+**/*.egg-info/
+**/.venv/
+**/venv/
+
+# === IDE ===
+**/.idea/
+**/.vscode/
+*.iml
+
+# === OS ===
+**/.DS_Store
+
+# === Secrets ===
+.env
+.env.*
+!.env.*.example
+*.pem
+*.key
+*.p12
+*credentials*.json
