@@ -1,0 +1,48 @@
+
+package com.finance.manager.transaction_service.service;
+
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+
+import java.util.List;
+import java.util.Set;
+
+public interface CategoryService {
+    /**
+     * Fetches all categories for a given user ID
+     * 
+     * @param userIuserIdsd The ID of the user
+     * @return List of user categories
+     */
+    List<UserCategory> getAllCategories(List<Integer> userIds);
+    
+    /**
+     * Deletes categories and their transaction mappings
+     * 
+     * @param categories The list of categories to delete
+     */
+    void deleteCategories(List<UserCategory> categories);
+    
+    /**
+     * Updates category titles
+     * 
+     * @param categories The list of categories to update
+     */
+    void updateCategories(List<UserCategory> categories);
+    
+    /**
+     * Edits transaction categories by first deleting those marked for deletion
+     * and then inserting those marked for insertion
+     * 
+     * @param mappings The list of transaction-category mappings to edit
+     */
+    void editTransactionCategories(List<TransactionUserCategory> mappings);
+    
+    /**
+     * Saves new categories
+     * 
+     * @param categories The list of categories to save
+     * @return
+     */
+    void saveCategories(List<UserCategory> categories);
+}

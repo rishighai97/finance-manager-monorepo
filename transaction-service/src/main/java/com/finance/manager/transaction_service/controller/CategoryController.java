@@ -1,0 +1,139 @@
+
+package com.finance.manager.transaction_service.controller;
+
+import com.finance.manager.transaction_service.dto.UserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategory;
+import com.finance.manager.transaction_service.dto.TransactionUserCategoryAction;
+import com.finance.manager.transaction_service.service.CategoryService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/category")
+@CrossOrigin
+@RequiredArgsConstructor
+public class CategoryController {
+
+    private final CategoryService categoryService;
+    private static final Logger logger = LoggerFactory.getLogger(CategoryController.class);
+
+    @GetMapping("/v1/healthcheck")
+    public String healthcheck() {
+        return "Category API is up and running!";
+    }
+
+    @GetMapping("/v1/fetch_all")
+    public ResponseEntity<List<UserCategory>> fetchAllCategoriesByUserId(@RequestParam("user_ids") List<Integer> userIds) {
+        validateUserIds(userIds);
+        
+        logger.info("Received request to fetch all categories for user IDs: {}", userIds);
+        List<UserCategory> categories = categoryService.getAllCategories(userIds);
+        
+        return ResponseEntity.ok(categories);
+    }
+
+    @DeleteMapping("/v1/delete_all")
+    public ResponseEntity<Void> deleteAllCategories(@RequestBody List<UserCategory> categories) {
+        validateCategories(categories);
+        
+        logger.info("Received request to delete {} categories", categories.size());
+        categoryService.deleteCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/v1/edit_all")
+    public ResponseEntity<Void> editAllCategories(@RequestBody List<UserCategory> categories) {
+        validateCategories(categories);
+        
+        logger.info("Received request to edit {} categories", categories.size());
+        categoryService.updateCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
+    
+    @PutMapping("/v1/transaction_user_category/edit_all")
+    public ResponseEntity<Void> editTransactionCategories(@RequestBody List<TransactionUserCategory> mappings) {
+        validateTransactionCategoryMappings(mappings);
+        
+        logger.info("Received request to edit {} transaction-category mappings", mappings.size());
+        categoryService.editTransactionCategories(mappings);
+        
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/v1/save_all")
+    public ResponseEntity<Void> saveAllCategories(@RequestBody List<UserCategory> categories) {
+        validateNewCategories(categories);
+        
+        logger.info("Received request to save {} new categories", categories.size());
+        categoryService.saveCategories(categories);
+        
+        return ResponseEntity.ok().build();
+    }
+
+    private void validateUserIds(List<Integer> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid user_ids");
+        }
+    }
+
+    private void validateCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of categories");
+        }
+        
+        // Validate each category has an ID
+        for (UserCategory category : categories) {
+            if (category.id() == null || category.id() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid ID");
+            }
+        }
+    }
+    
+    private void validateNewCategories(List<UserCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of categories");
+        }
+        
+        // Validate each category has a user_id and category_title
+        for (UserCategory category : categories) {
+            if (category.userId() == null || category.userId() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a valid user ID");
+            }
+            
+            if (category.categoryTitle() == null || category.categoryTitle().isEmpty()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each category must have a title");
+            }
+        }
+    }
+    
+    private void validateTransactionCategoryMappings(List<TransactionUserCategory> mappings) {
+        if (mappings == null || mappings.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Please provide a valid list of transaction-category mappings");
+        }
+        
+        // Validate each mapping has required fields
+        for (TransactionUserCategory mapping : mappings) {
+            if (mapping.transactionId() == null || mapping.transactionId().isBlank()) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid transaction ID");
+            }
+            
+            if (mapping.userCategoryId() == null || mapping.userCategoryId() <= 0) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid user category ID");
+            }
+            
+            if (mapping.action() == null) {
+                throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Each mapping must have a valid action (DELETE or INSERT)");
+            }
+        }
+    }
+}
