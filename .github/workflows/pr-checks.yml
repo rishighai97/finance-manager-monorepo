@@ -1,0 +1,136 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      account-service: ${{ steps.filter.outputs.account-service }}
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      transaction-service: ${{ steps.filter.outputs.transaction-service }}
+      statement-loader: ${{ steps.filter.outputs.statement-loader }}
+      finance-manager-ui: ${{ steps.filter.outputs.finance-manager-ui }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            account-service:
+              - 'account-service/**'
+            api-gateway:
+              - 'api-gateway/**'
+            transaction-service:
+              - 'transaction-service/**'
+            statement-loader:
+              - 'statement-loader/**'
+            finance-manager-ui:
+              - 'finance-manager-ui/**'
+
+  test-account-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.account-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: account-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - run: chmod +x gradlew
+      - run: ./gradlew test
+
+  test-api-gateway:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api-gateway == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - run: chmod +x gradlew
+      - run: ./gradlew test
+
+  test-transaction-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.transaction-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: transaction-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - run: chmod +x gradlew
+      - run: ./gradlew test
+
+  test-statement-loader:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.statement-loader == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: statement-loader
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      # No automated test suite exists yet (resources/test/* are manual scratch
+      # scripts, not pytest tests) - this only validates the module still imports.
+      - run: python -m compileall .
+
+  test-finance-manager-ui:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.finance-manager-ui == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: finance-manager-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --watch=false --browsers=ChromeHeadless
+
+  pr-gate:
+    needs:
+      - detect-changes
+      - test-account-service
+      - test-api-gateway
+      - test-transaction-service
+      - test-statement-loader
+      - test-finance-manager-ui
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any triggered module check failed
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more module checks failed"
+            exit 1
+          fi
+          echo "All triggered module checks passed (untouched modules were skipped)"

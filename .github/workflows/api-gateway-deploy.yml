@@ -3,12 +3,9 @@ name: API Gateway CI/CD
 on:
   push:
     branches: [ main ]
-  #    paths:
-  #      - 'account-service/**'
-  pull_request:
-    branches: [ main ]
-  #    paths:
-  #      - 'account-service/**'
+    paths:
+      - 'api-gateway/**'
+      - '.github/workflows/api-gateway-deploy.yml'
   workflow_dispatch:
 
 jobs:
@@ -17,6 +14,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    defaults:
+      run:
+        working-directory: api-gateway
 
     steps:
       - name: Checkout repository
@@ -45,19 +45,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and tag Docker image
-        #        working-directory: ./account-service
-        run: ./gradlew bootBuildImage --imageName finance-manager-account-service:latest
+        run: ./gradlew bootBuildImage --imageName finance-manager-api-gateway:latest
 
       - name: Save Docker image
-        run: docker save finance-manager-account-service:latest > account-service.tar
+        run: docker save finance-manager-api-gateway:latest > $GITHUB_WORKSPACE/api-gateway.tar
+
       - name: Copy Docker image to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-          source: account-service.tar
+          source: api-gateway.tar
           target: /tmp
+
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
@@ -66,19 +67,19 @@ jobs:
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           script: |
             # Load the Docker image
-            docker load < /tmp/account-service.tar
-            
+            docker load < /tmp/api-gateway.tar
+
             # Stop and remove the existing container if it exists
-            docker stop account-service || true
-            docker rm account-service || true
-            
+            docker stop api-gateway || true
+            docker rm api-gateway || true
+
             # Run the new container
-            docker run -d --name account-service \
-              -p 5003:5003 \
+            docker run -d --name api-gateway \
+              -p 5001:5001 \
               -v /finance_manager_application:/finance_manager_application \
               -e SPRING_PROFILES_ACTIVE=prod \
               --restart=always \
-              finance-manager-account-service:latest
-            
+              finance-manager-api-gateway:latest
+
             # Clean up
-            rm /tmp/account-service.tar
+            rm /tmp/api-gateway.tar
