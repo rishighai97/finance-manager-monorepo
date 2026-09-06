@@ -1,0 +1,94 @@
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+ion-content {
+  --background: #f5f7fa;
+  
+  ion-card {
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    overflow: hidden;
+    
+    ion-card-header {
+      padding-top: 24px;
+      
+      ion-card-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--ion-color-dark);
+      }
+    }
+    
+    ion-card-content {
+      padding: 24px;
+    }
+  }
+}
+
+ion-segment {
+  margin-bottom: 20px;
+}
+
+.auth-form {
+  margin-top: 16px;
+  
+  ion-item {
+    --padding-start: 0;
+    --background: transparent;
+    --border-color: rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+    
+    ion-label {
+      color: var(--ion-color-medium);
+      font-weight: 500;
+    }
+    
+    ion-input {
+      --padding-start: 8px;
+    }
+  }
+}
+
+.auth-button {
+  margin-top: 24px;
+  height: 48px;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 8px rgba(var(--ion-color-primary-rgb), 0.2);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 14px;
+  
+  ion-text[color="primary"] {
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+  }
+}
+
+.error-message {
+  display: block;
+  margin: 16px 0;
+  padding: 12px;
+  background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+  border-left: 3px solid var(--ion-color-danger);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Animation for the spinner
+ion-spinner {
+  --spinner-size: 24px;
+  margin-right: 8px;
+}

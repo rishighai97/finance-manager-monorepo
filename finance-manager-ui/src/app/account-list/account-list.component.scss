@@ -1,0 +1,409 @@
+// Import font
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+// Set font family for all elements
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+// Color classes
+.danger {
+  color: #ff4961;
+}
+
+.success {
+  color: #2dd36f;
+  background: none;
+}
+
+.warning {
+  color: #ffc409;
+}
+
+// Amount container styling for consistent alignment
+.amount-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 100px;
+  background: none;
+
+  ion-chip {
+    margin-right: 0;
+    margin-left: auto;
+    background: none;
+  }
+}
+
+// Level 1 items styling
+.level1-item {
+  margin: 16px auto 8px;
+  --border-radius: 12px;
+  // --background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  .level1-label {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    padding-left: 8px;
+  }
+
+  ion-chip {
+    font-weight: 600;
+  }
+}
+
+// Level 2 items styling
+.level2-item {
+  margin: 4px auto 0 16px;
+  --background: transparent;
+  --border-radius: 8px;
+
+  .level2-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+    padding-left: 8px;
+  }
+
+  ion-chip {
+    font-weight: 500;
+  }
+}
+
+
+.account-item {
+  margin: 4px auto 4px 40px;
+  --background: #ffffff;
+  --border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative;
+
+  h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  p {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 6px;
+  }
+  
+  .edit-options-button {
+    margin-top: 6px;
+    --border-radius: 16px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    height: 26px;
+  }
+}
+
+/* Responsive styles to ensure buttons stay on one line */
+@media (max-width: 400px) {
+  .account-item {
+    .action-buttons {
+      max-width: 180px;
+      
+      ion-button {
+        height: 22px;
+        
+        .btn-text {
+          font-size: 8px;
+        }
+        
+        ion-icon {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 340px) {
+  .account-item {
+    .action-buttons {
+      max-width: 150px;
+      
+      ion-button {
+        height: 20px;
+        --padding-start: 2px;
+        --padding-end: 2px;
+        
+        .btn-text {
+          font-size: 7px;
+        }
+        
+        ion-icon {
+          font-size: 9px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 300px) {
+  .account-item {
+    .action-buttons {
+      ion-button {
+        padding: 0;
+        
+        .btn-text {
+          display: none;
+        }
+        
+        ion-icon {
+          margin: 0 auto;
+        }
+      }
+    }
+  }
+}
+
+ion-list {
+  background: transparent;
+}
+
+ion-content {
+  --background: #f5f7fa;
+}
+
+// Empty state styling (NEW)
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 100px);
+  text-align: center;
+  padding: 20px;
+  color: var(--ion-color-medium);
+  margin-top: 30px;
+
+  .empty-icon {
+    font-size: 100px;
+    color: var(--ion-color-light-shade);
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  h2 {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  ion-button {
+    max-width: 200px;
+    --border-radius: 12px;
+    height: 48px;
+  }
+}
+
+// Modal styling
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+  
+  ion-header {
+    --background: var(--ion-background-color);
+  }
+  
+  ion-content {
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+  }
+  
+  .form-group {
+    margin: 16px;
+    
+    .name-input-item {
+      --background: #f8f9fa;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      margin-bottom: 8px;
+      
+      ion-label {
+        color: var(--ion-color-medium);
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      
+      ion-input {
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+        --padding-start: 0;
+        font-size: 16px;
+      }
+    }
+  }
+  
+  .error-message-item {
+    margin-top: 4px;
+    --background: rgba(var(--ion-color-danger-rgb), 0.05);
+    --border-radius: 8px;
+    
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+    
+    ion-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+  }
+  
+  ion-item-divider {
+    --padding-start: 16px;
+    --background: #f5f7fa;
+    --color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+  
+  ion-radio-group {
+    ion-item {
+      --padding-start: 16px;
+      --inner-padding-end: 16px;
+      
+      ion-avatar {
+        width: 32px;
+        height: 32px;
+        margin-right: 12px;
+      }
+      
+      ion-label {
+        h2 {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 2px;
+        }
+        
+        p {
+          font-size: 12px;
+          color: var(--ion-color-medium);
+        }
+      }
+    }
+  }
+}
+
+// Floating Action Button styling
+ion-fab {
+  margin-bottom: 16px;
+  margin-right: 16px;
+  
+  ion-fab-button {
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Toast styling
+.toast-success {
+  --background: var(--ion-color-success);
+  --color: white;
+  --border-radius: 4px;
+  --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+}
+
+.toast-error {
+  --background: var(--ion-color-danger);
+  --color: white;
+  --border-radius: 4px;
+  --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+}
+
+
+.account-item {
+  // Keep your existing styles for the item itself
+  
+  // Action buttons container
+  .action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    
+    ion-button {
+      --padding-start: 10px;
+      --padding-end: 10px;
+      height: 28px;
+      margin: 0;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: none;
+      
+      &.view-button {
+        --border-color: var(--ion-color-primary);
+        --color: var(--ion-color-primary);
+      }
+      
+      &.edit-button {
+        --border-color: #ff9800;
+        --color: #ff9800;
+      }
+      
+      &.delete-button {
+        --border-color: var(--ion-color-danger);
+        --color: var(--ion-color-danger);
+      }
+    }
+  }
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 0 16px 12px 72px; // Left padding aligns with content after avatar
+  margin-top: -4px;
+  margin-bottom: 8px;
+  
+  ion-button {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    height: 28px;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: none;
+    
+    &.view-button {
+      --border-color: var(--ion-color-primary);
+      --color: var(--ion-color-primary);
+    }
+    
+    &.edit-button {
+      --border-color: #ff9800;
+      --color: #ff9800;
+    }
+    
+    &.delete-button {
+      --border-color: var(--ion-color-danger);
+      --color: var(--ion-color-danger);
+    }
+  }
+}

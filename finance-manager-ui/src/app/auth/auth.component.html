@@ -1,0 +1,78 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{ authMode === 'login' ? 'Login' : 'Sign Up' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title class="ion-text-center">
+        {{ authMode === 'login' ? 'Welcome Back' : 'Create Account' }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- Segment buttons for switching between login and signup -->
+      <ion-segment [(ngModel)]="authMode" (ionChange)="segmentChanged($event)">
+        <ion-segment-button value="login">
+          <ion-label>Login</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="signup">
+          <ion-label>Sign Up</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <!-- Error message display -->
+      <ion-text color="danger" *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </ion-text>
+
+      <!-- LOGIN FORM -->
+      <div *ngIf="authMode === 'login'" class="auth-form">
+        <ion-item>
+          <!-- <ion-label position="floating">Username</ion-label> -->
+          <ion-input [(ngModel)]="loginUsername" placeholder="Enter your username"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <!-- <ion-label position="floating">Password</ion-label> -->
+          <ion-input [(ngModel)]="loginPassword" type="password" placeholder="Enter your password"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" (click)="login()" [disabled]="isLoading" class="auth-button">
+          <ion-spinner *ngIf="isLoading" name="circles"></ion-spinner>
+          <span *ngIf="!isLoading">Login</span>
+        </ion-button>
+
+        <div class="auth-link">
+          <ion-text>Don't have an account? </ion-text>
+          <ion-text color="primary" (click)="switchMode()">Sign up</ion-text>
+        </div>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div *ngIf="authMode === 'signup'" class="auth-form">
+        <ion-item>
+          <!-- <ion-label position="floating">Username</ion-label> -->
+          <ion-input [(ngModel)]="signupUsername" placeholder="Choose a username"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <!-- <ion-label position="floating">Password</ion-label> -->
+          <ion-input [(ngModel)]="signupPassword" type="password" placeholder="Choose a password"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" (click)="signup()" [disabled]="isLoading" class="auth-button">
+          <ion-spinner *ngIf="isLoading" name="circles"></ion-spinner>
+          <span *ngIf="!isLoading">Create Account</span>
+        </ion-button>
+
+        <div class="auth-link">
+          <ion-text>Already have an account? </ion-text>
+          <ion-text color="primary" (click)="switchMode()">Login</ion-text>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

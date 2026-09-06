@@ -1,0 +1,286 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Statement Uploader</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshWithAnimation($event)">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- No Statements Placeholder -->
+  @if (statementsToBeUploaded.length === 0 && uploadResults.length === 0) {
+  <div class="empty-state">
+    <ion-icon name="document-outline" class="empty-icon"></ion-icon>
+    <h2>No Statements Uploaded</h2>
+    <p>Click the plus button to start uploading bank statements</p>
+  </div>
+  }
+
+  <!-- Statements List -->
+  @if (statementsToBeUploaded.length > 0) {
+  <ion-list>
+    @for (statement of statementsToBeUploaded; track statement) {
+    <ion-item class="statement-item">
+      <ion-avatar slot="start">
+        <img [src]="getUserAccountById(statement.user_account_id)?.icon" />
+      </ion-avatar>
+
+      <ion-label>
+        {{ statement.file_name }}
+      </ion-label>
+
+      <div slot="end" class="statement-actions">
+        <ion-button
+          fill="clear"
+          color="primary"
+          (click)="
+            editStatement(statement, statementsToBeUploaded.indexOf(statement))
+          "
+        >
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button
+          fill="clear"
+          color="danger"
+          (click)="deleteStatement(statementsToBeUploaded.indexOf(statement))"
+        >
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-item>
+    }
+  </ion-list>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <ion-button expand="block" color="danger" (click)="clearAllStatements()">
+      <ion-icon name="trash-outline" slot="start"></ion-icon>
+      Clear All Statements
+    </ion-button>
+
+    <ion-button expand="block" color="primary" (click)="uploadAllStatements()">
+      <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+      Upload Statements
+    </ion-button>
+  </div>
+  }
+
+  <!-- Upload Results List -->
+  <div class="upload-results-container" *ngIf="uploadResults.length > 0">
+    <div class="section-title">
+      <h4>Statement Upload Summary</h4>
+    </div>
+
+    <ion-list>
+      <ion-item
+        *ngFor="let result of uploadResults"
+        class="result-item"
+        [ngClass]="{
+          'success-result': result.response.status,
+          'error-result': !result.response.status
+        }"
+      >
+        <ion-avatar slot="start">
+          <img
+            [src]="getUserAccountById(result.statement.user_account_id)?.icon"
+          />
+        </ion-avatar>
+
+        <ion-label>
+          <h2>{{ result.statement.file_name }}</h2>
+          <p *ngIf="result.response.status">
+            Transactions: {{ result.response.transaction_count }}
+          </p>
+          <div *ngIf="!result.response.status" class="error-messages">
+            <p class="error-message">
+              <ion-icon name="alert-circle-outline"></ion-icon> Failed to upload
+              statement
+            </p>
+          </div>
+        </ion-label>
+
+        <div slot="end" class="status-indicator">
+          <ion-icon
+            *ngIf="result.response.status"
+            name="checkmark-circle"
+            color="success"
+          ></ion-icon>
+          <ion-icon
+            *ngIf="!result.response.status"
+            name="close-circle"
+            color="danger"
+          ></ion-icon>
+        </div>
+      </ion-item>
+    </ion-list>
+
+    <ion-button
+      expand="block"
+      color="medium"
+      (click)="resetUploader()"
+      class="reset-button"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Clear All & Start Over
+    </ion-button>
+  </div>
+
+  <!-- Loading indicator during upload -->
+  <div class="loading-container" *ngIf="isUploading">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Uploading statements...</p>
+  </div>
+
+  <!-- Upload Modal -->
+  <ion-modal [isOpen]="isUploadModalOpen" (didDismiss)="resetUploadForm()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="resetUploadForm()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Upload Statement</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="addStatement()"
+              [disabled]="!selectedAccount || !selectedFile || fileTypeError"
+            >
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Selector -->
+        <ion-item button (click)="openAccountSelector()" detail="true">
+          <ion-label>
+            <h2>Select Account</h2>
+            <p>
+              @if (selectedAccount) {
+              {{ selectedAccount.user_account_name }}
+              } @else { Choose an account }
+            </p>
+          </ion-label>
+        </ion-item>
+
+        <!-- File Upload -->
+        <ion-item button (click)="fileInput.click()">
+          <ion-label>
+            <h2>Upload Statement</h2>
+            <p>
+              @if (selectedFile) {
+              {{ selectedFile.name }}
+              } @else { Choose a file to upload }
+            </p>
+          </ion-label>
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            style="display: none"
+            #fileInput
+          />
+          @if (selectedFile && selectedAccount) { @if (fileTypeError) {
+          <ion-icon
+            name="close-circle"
+            color="danger"
+            class="validation-icon"
+          ></ion-icon>
+          } @else {
+          <ion-icon
+            name="checkmark-circle"
+            color="success"
+            class="validation-icon"
+          ></ion-icon>
+          } }
+          <ion-icon name="cloud-upload-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <!-- File Type Error Message -->
+        @if (fileTypeError) {
+        <ion-item lines="none" class="error-message-item">
+          <ion-icon name="alert-circle" color="danger" slot="start"></ion-icon>
+          <ion-label>
+            File type not supported for this account. Please upload a file with
+            one of the supported extensions.
+          </ion-label>
+        </ion-item>
+        }
+
+        <!-- Supported File Types -->
+        @if (selectedAccount) {
+        <div class="supported-files-container">
+          <h4>Supported File Types</h4>
+          <div class="extension-chips">
+            @for (ext of
+            getFileExtensionsArray(selectedAccount.statement_file_extensions);
+            track ext) {
+            <span class="extension-chip">{{ ext }}</span>
+            }
+          </div>
+        </div>
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal for Account Selection -->
+  <ion-modal
+    #accountModal
+    [isOpen]="isAccountModalOpen"
+    (didDismiss)="closeAccountSelector()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Select Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAccountSelector()">Done</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <ion-radio-group [(ngModel)]="selectedAccount">
+          <ion-list>
+            @for (group of groupedAccounts; track group) {
+            <ion-item-divider>
+              {{ group.level_1_title }}
+            </ion-item-divider>
+
+            @for (account of group.user_accounts; track account) {
+            <ion-item button (click)="selectAccount(account)">
+              <ion-avatar slot="start">
+                <img [src]="account.icon" [alt]="account.user_account_name" />
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ account.user_account_name }}</h2>
+                <p>
+                  Supported files: @for (ext of
+                  getFileExtensionsArray(account.statement_file_extensions);
+                  track ext) {
+                  <span class="file-extensions-badge">{{ ext }}</span>
+                  }
+                </p>
+              </ion-label>
+              <ion-radio slot="end" [value]="account"></ion-radio>
+            </ion-item>
+            } }
+          </ion-list>
+        </ion-radio-group>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Floating Action Button -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="isUploadModalOpen = true">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

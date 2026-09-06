@@ -1,0 +1,282 @@
+@if (!showTransactions) {
+
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-title>Accounts</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="refreshWithAnimation($event)">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+}
+
+<ion-content [fullscreen]="true" color="light">
+  @if (!showTransactions) {
+  <ion-list [inset]="true" lines="none">
+    @if (getGroupedAccounts().length > 0) {
+    <!-- Level 1 Groups -->
+    @for (level1Group of getLevel1Groups(); track level1Group.title) {
+    <ion-item class="level1-item">
+      <ion-label class="level1-label">
+        {{ level1Group.title }}
+      </ion-label>
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: level1Group.amount < 0,
+            success: level1Group.amount > 0
+          }"
+        >
+          <ion-label>{{ level1Group.amount | currency : "INR" }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+
+    <!-- Level 2 accounts (always visible now) -->
+    @for (groupedAccount of getGroupedAccountsForLevel1(level1Group.title);
+    track groupedAccount) {
+    <ion-item class="level2-item">
+      <ion-label class="level2-title">
+        {{ groupedAccount.level_2_title }}
+      </ion-label>
+      <div slot="end" class="amount-container">
+        <ion-chip
+          [ngClass]="{
+            danger: groupedAccount.level_2_amount < 0,
+            success: groupedAccount.level_2_amount > 0
+          }"
+        >
+          <ion-label>{{
+            groupedAccount.level_2_amount | currency : "INR"
+          }}</ion-label>
+        </ion-chip>
+      </div>
+    </ion-item>
+
+    @for (account of groupedAccount.user_accounts; track account) {
+    <ion-item
+      class="account-item"
+      (click)="onAccountClick(account)"
+      button="true"
+      lines="none"
+    >
+      <ion-avatar slot="start">
+        <img alt="Account Icon" [src]="account.icon" />
+      </ion-avatar>
+      <ion-label>
+        <h4>{{ account.user_account_name }}</h4>
+        @if (account.latest_balance_date) {
+        <p>{{ account.latest_balance_date | date : "mediumDate" }}</p>
+        }
+        <ion-button
+          size="small"
+          fill="outline"
+          color="primary"
+          class="edit-options-button"
+          (click)="showAccountOptions(account, $event)"
+        >
+          Settings
+        </ion-button>
+      </ion-label>
+
+      <div slot="end" class="amount-container">
+        @if (account.latest_balance != null && account.latest_balance != 0) {
+        <ion-chip
+          [ngClass]="{
+            danger: account.latest_balance < 0,
+            success: account.latest_balance > 0
+          }"
+        >
+          <ion-label>{{ account.latest_balance | currency : "INR" }}</ion-label>
+        </ion-chip>
+        }
+      </div>
+    </ion-item>
+    }} } } @else if (isLoading) {
+    <ion-item>
+      <ion-label>Loading accounts...</ion-label>
+      <ion-spinner></ion-spinner>
+    </ion-item>
+    } @else {
+    <!-- Empty state when no accounts are available -->
+    <div class="empty-state">
+      <ion-icon name="wallet-outline" class="empty-icon"></ion-icon>
+      <h2>No Accounts Available</h2>
+      <p>Click the plus button below to add your first account</p>
+    </div>
+    }
+  </ion-list>
+
+  <!-- Floating Action Button to Add New Account -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openAccountModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- New Account Modal -->
+  <ion-modal [isOpen]="isAccountModalOpen" (didDismiss)="closeAccountModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeAccountModal()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Add New Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="saveUserAccount()"
+              [disabled]="!selectedAccount || !newUserAccountName.trim()"
+            >
+              Done
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Name Input - Improved Version -->
+        <div class="input-container">
+          <div class="title-section">
+            <h4>Enter Account Name</h4>
+            <p>This name will be displayed in your accounts list</p>
+          </div>
+
+          <div class="input-field">
+            <ion-input
+              [(ngModel)]="newUserAccountName"
+              placeholder="Enter account name"
+              maxlength="50"
+              class="custom-input"
+              fill="solid"
+              label="Account Name"
+              label-placement="floating"
+              helper-text="Max 50 characters"
+              counter="true"
+            ></ion-input>
+          </div>
+        </div>
+
+        <!-- Select Account Type -->
+        <div class="section-title">
+          <h4>Choose Account Type</h4>
+        </div>
+
+        <ion-list class="account-list">
+          <ion-radio-group [(ngModel)]="selectedAccount">
+            @for (group of accounts; track group) {
+            <ion-item-divider>
+              {{ group.level_1_title }}
+            </ion-item-divider>
+
+            @for (account of group.accounts; track account) {
+            <ion-item
+              button
+              (click)="selectAccount(account)"
+              class="account-select-item"
+            >
+              <ion-avatar slot="start">
+                <img [src]="account.icon" [alt]="account.account_name" />
+              </ion-avatar>
+              <ion-label>
+                <h2>{{ account.account_name }}</h2>
+                <p>{{ account.account_type_2 }}</p>
+              </ion-label>
+              <ion-radio slot="end" [value]="account"></ion-radio>
+            </ion-item>
+            } }
+          </ion-radio-group>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Edit Account Modal -->
+  <ion-modal
+    [isOpen]="isEditAccountModalOpen"
+    (didDismiss)="closeEditAccountModal()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeEditAccountModal()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Edit Account</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              (click)="saveEditedAccountName()"
+              [disabled]="!newEditAccountName.trim()"
+            >
+              Save
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- Account Name Input -->
+        <div class="form-group">
+          <ion-item lines="none" class="name-input-item">
+            <ion-label position="stacked"
+              >Account Name (Max 50 characters)</ion-label
+            >
+            <ion-input
+              [(ngModel)]="newEditAccountName"
+              placeholder="Enter account name"
+              maxlength="50"
+              required="true"
+            ></ion-input>
+          </ion-item>
+
+          @if (newEditAccountName && newEditAccountName.length > 50) {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon
+              name="alert-circle"
+              color="danger"
+              slot="start"
+            ></ion-icon>
+            <ion-label color="danger">
+              Account name cannot exceed 50 characters
+            </ion-label>
+          </ion-item>
+          } @if (!newEditAccountName.trim() && newEditAccountName !== '') {
+          <ion-item lines="none" class="error-message-item">
+            <ion-icon
+              name="alert-circle"
+              color="danger"
+              slot="start"
+            ></ion-icon>
+            <ion-label color="danger"> Account name cannot be empty </ion-label>
+          </ion-item>
+          }
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Delete Account Alert -->
+  <ion-alert
+    [isOpen]="isDeleteAccountAlertOpen"
+    header="Delete Account"
+    [subHeader]="accountToDelete?.user_account_name"
+    message="This account will be deleted permanently. This action cannot be undone."
+    [buttons]="deleteAccountButtons"
+  ></ion-alert>
+
+  } @else {
+  <app-transaction-list
+    [accountId]="selectedAccountId"
+    [groupedAccounts]="getGroupedAccounts()"
+    (backClicked)="backFromTransactions()"
+  >
+  </app-transaction-list>
+  }
+</ion-content>
