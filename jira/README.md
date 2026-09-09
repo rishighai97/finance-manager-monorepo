@@ -7,3 +7,6 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | ID | Title | Status |
 |---|---|---|
 | [JIRA_1](JIRA_1.md) | Update documentation for all modules | Done |
+| [JIRA_2](JIRA_2.md) | Local-run, local-setup and db-setup skills | Done |
+| [JIRA_3](JIRA_3.md) | local-install skill (Java/Node/Ionic/Docker toolchain installer) | Done |
+| [JIRA_4](JIRA_4.md) | Signup 500s - blank local Postgres password in api-gateway/transaction-service | Done |
