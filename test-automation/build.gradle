@@ -1,0 +1,55 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.0-SNAPSHOT'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.finance.manager'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+	maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+	cucumberVersion = '7.20.1'
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// BDD (Cucumber, JUnit 5 platform engine, Spring context per step class)
+	testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+	testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
+	testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+	testImplementation 'org.junit.platform:junit-platform-suite'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+	useJUnitPlatform()
+	// Forward this through to the JVM running the tests so a caller can do
+	// ./gradlew test -Dcucumber.filter.tags="@account" -Dspring.profiles.active=local
+	// Only set cucumber.filter.tags when actually provided - an empty tag
+	// expression is parsed by Cucumber as "match nothing", not "no filter".
+	if (System.getProperty('cucumber.filter.tags')) {
+		systemProperty 'cucumber.filter.tags', System.getProperty('cucumber.filter.tags')
+	}
+	systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'local')
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}
+}

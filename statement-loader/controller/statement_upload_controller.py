@@ -22,7 +22,7 @@ def upload_statements() -> str:
     print("Received request to upload statements")
     account_statement_requests: List[AccountStatementUploadRequest] = get_account_statement_requests()
     result = [record.__dict__ for record in service.upload_statement(account_statement_requests=account_statement_requests)]
-    return json.dumps(result)
+    return json.dumps(result), 200, {'Content-Type': 'application/json'}
 
 def get_account_statement_requests() -> List[AccountStatementUploadRequest]:
     if request is None or request.json is None:

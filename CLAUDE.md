@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository structure
 
-This is a **single monorepo** consolidated (with full per-module git history preserved) from six previously-separate repos, each of which still exists standalone on GitHub but is no longer the canonical source. `dbscripts` was added later, directly in this monorepo (not one of the original six):
+This is a **single monorepo** consolidated (with full per-module git history preserved) from six previously-separate repos, each of which still exists standalone on GitHub but is no longer the canonical source. `dbscripts` and `test-automation` were added later, directly in this monorepo (not one of the original six):
 
 | Module | Stack | Port (local) | Purpose |
 |---|---|---|---|
@@ -14,6 +14,7 @@ This is a **single monorepo** consolidated (with full per-module git history pre
 | [`statement-loader`](statement-loader/README.md) | Python 3, Flask | 5002 (via `STATEMENT_LOADER_SERVER_PORT`) | Parses bank/broker statements, calls `transaction-service` to load them |
 | [`finance-manager-ui`](finance-manager-ui/README.md) | Angular 19 + Ionic 8 (Capacitor for iOS) | 8100 (ionic serve) | Mobile/web client |
 | [`dbscripts`](dbscripts/README.md) | SQL | — | Version-controlled schema/sample-data SQL, run via the `db-run`/`db-setup` skills |
+| [`test-automation`](test-automation/README.md) | Java 21, Spring Boot + Cucumber (Gradle) | — | Black-box backend BDD test suite against a running stack |
 | [`scripts`](scripts/README.md) | Bash/Python | — | Local environment setup, deployment helpers |
 
 Each module's README is the source of truth for that module's endpoints, gotchas, and exact local-run command - **this file only covers cross-module/whole-repo concerns.** They all follow a shared structure defined in `docs/README_TEMPLATE.md`.
@@ -40,6 +41,8 @@ Current skills:
 | `db-run` | Run `dbscripts/` SQL via the `psql` CLI |
 | `db-setup` | Reset local DB + load sample data |
 | `local-run` | Bring up the whole local stack |
+| `scenario-discovery` | Catalog business test scenarios from the real APIs |
+| `bdd-test-generate` | Generate + run a scenario's UI/backend BDD tests |
 
 See `docs/SKILLS.md` for full details on all but `jira-create`.
 
