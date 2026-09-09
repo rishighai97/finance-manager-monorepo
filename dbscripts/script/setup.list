@@ -1,0 +1,26 @@
+# Order of .sql files (relative to dbscripts/) to run for a full local setup:
+# create every table (dependency order), then load sample data.
+# One path per line; blank lines and lines starting with # are ignored.
+# Read by the db-run skill (.claude/skills/db-run/SKILL.md) - see that skill
+# for how this file is executed, and the db-setup skill for how it's used to
+# reset local data.
+
+table/create/account_icon.sql
+table/create/account_type.sql
+table/create/account.sql
+table/create/account_statement.sql
+table/create/user_detail.sql
+table/create/user_account.sql
+table/create/transaction.sql
+table/create/user_category.sql
+table/create/transaction_user_category.sql
+
+table/insert/account_icon.sql
+table/insert/account_type.sql
+table/insert/account.sql
+table/insert/account_statement.sql
+table/insert/user_detail.sql
+table/insert/user_account.sql
+table/insert/user_category.sql
+# transaction and transaction_user_category intentionally have no sample data -
+# they're populated by the real statement-upload flow, not fixture rows.

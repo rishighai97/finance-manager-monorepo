@@ -9,13 +9,14 @@ Multi-module workspace for the Finance Manager application. Each module below ke
 | [`transaction-service`](transaction-service/README.md) | Java 21, Spring Boot (Gradle) | 5004 | APIs to read and write user transactions and categories |
 | [`statement-loader`](statement-loader/README.md) | Python, Flask | 5002 | Loads transactions from uploaded bank/broker account statements |
 | [`finance-manager-ui`](finance-manager-ui/README.md) | Angular 19 + Ionic 8 (Capacitor) | 8100 | Mobile/web client |
-| [`scripts`](scripts/README.md) | Bash / Python | — | Local environment setup, database schema management, and deployment helper scripts |
+| [`dbscripts`](dbscripts/README.md) | SQL | — | Version-controlled schema/sample-data SQL, run via the `db-run`/`db-setup` skills |
+| [`scripts`](scripts/README.md) | Bash / Python | — | Local environment setup and deployment helper scripts |
 
 All four backend services (`account-service`, `api-gateway`, `transaction-service`, `statement-loader`) share a single Postgres database (`finance_manager`, default `localhost:5432` locally).
 
 ## Running locally
 
-The `local-run` Claude Code skill (`.claude/skills/local-run/SKILL.md`) brings up the whole stack - Postgres, all three Java services, `statement-loader`, and the UI - and auto-bootstraps prerequisites/sample data on a fresh checkout, so the app ends up reachable at `http://localhost:8100`. See `docs/SKILLS.md` for that skill and its `local-setup`/`db-setup` counterparts.
+The `local-run` Claude Code skill (`.claude/skills/local-run/SKILL.md`) brings up the whole stack - Postgres, all three Java services, `statement-loader`, and the UI - and auto-bootstraps prerequisites/sample data on a fresh checkout, so the app ends up reachable at `http://localhost:8100`. See `docs/SKILLS.md` for that skill and its `local-setup`/`local-install`/`db-run`/`db-setup` counterparts.
 
 ## CI/CD
 

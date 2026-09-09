@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository structure
 
-This is a **single monorepo** consolidated (with full per-module git history preserved) from six previously-separate repos, each of which still exists standalone on GitHub but is no longer the canonical source:
+This is a **single monorepo** consolidated (with full per-module git history preserved) from six previously-separate repos, each of which still exists standalone on GitHub but is no longer the canonical source. `dbscripts` was added later, directly in this monorepo (not one of the original six):
 
 | Module | Stack | Port (local) | Purpose |
 |---|---|---|---|
@@ -13,7 +13,8 @@ This is a **single monorepo** consolidated (with full per-module git history pre
 | [`transaction-service`](transaction-service/README.md) | Java 21, Spring Boot (Gradle) | 5004 | Read/write user transactions and categories |
 | [`statement-loader`](statement-loader/README.md) | Python 3, Flask | 5002 (via `STATEMENT_LOADER_SERVER_PORT`) | Parses bank/broker statements, calls `transaction-service` to load them |
 | [`finance-manager-ui`](finance-manager-ui/README.md) | Angular 19 + Ionic 8 (Capacitor for iOS) | 8100 (ionic serve) | Mobile/web client |
-| [`scripts`](scripts/README.md) | Bash/Python | — | Local environment setup, DB schema management, deployment helpers |
+| [`dbscripts`](dbscripts/README.md) | SQL | — | Version-controlled schema/sample-data SQL, run via the `db-run`/`db-setup` skills |
+| [`scripts`](scripts/README.md) | Bash/Python | — | Local environment setup, deployment helpers |
 
 Each module's README is the source of truth for that module's endpoints, gotchas, and exact local-run command - **this file only covers cross-module/whole-repo concerns.** They all follow a shared structure defined in `docs/README_TEMPLATE.md`.
 
@@ -36,10 +37,11 @@ Current skills:
 | `jira-create` | Spec-driven requirements (see above) |
 | `local-setup` | Verify/repair local prerequisites |
 | `local-install` | Install/upgrade Java, Node, Ionic, Docker |
+| `db-run` | Run `dbscripts/` SQL via the `psql` CLI |
 | `db-setup` | Reset local DB + load sample data |
 | `local-run` | Bring up the whole local stack |
 
-See `docs/SKILLS.md` for full details on the latter four.
+See `docs/SKILLS.md` for full details on all but `jira-create`.
 
 ## Common commands
 
@@ -89,7 +91,7 @@ The `local-run` skill (`.claude/skills/local-run/SKILL.md`) is the recommended w
 
 `scripts/local_startup/*.sh` and `scripts/app_startup` document the same flow manually/for reference (Postgres via Docker, then each Gradle service via `bootRun`, then statement-loader, then `ionic serve`) but hardcode a pre-monorepo path - prefer the skills above for an actual local run.
 
-Database schema is managed by `scripts/sql/finance_manager_db/database_manager.py` (create/drop/truncate tables from `finance_manager_db_config.py`) and sample data by `populate_accounts.py`, both wrapped by the `db-setup` skill; see `scripts/sql/finance_manager_db/README.md` for the underlying CLI usage and table creation order (dependencies flow: `account_icon`/`account_type` -> `account` -> `account_statement`/`user_detail` -> `user_account` -> `transaction` -> `user_category` -> `transaction_user_category`).
+Database schema and sample-data SQL live in the `dbscripts/` module as version-controlled `.sql` files (`table/{create,drop,insert}/<table>.sql`), run in the order defined by `dbscripts/script/{setup,teardown}.list` via the `db-run` skill; `db-setup` wraps that into a "reset to sample data" workflow. See `dbscripts/README.md` for the layout and table creation order (dependencies flow: `account_icon`/`account_type` -> `account` -> `account_statement`/`user_detail` -> `user_account` -> `transaction` -> `user_category` -> `transaction_user_category`).
 
 ## Architecture
 

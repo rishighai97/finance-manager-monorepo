@@ -24,7 +24,7 @@ else
 fi
 
 echo
-echo "== Python venv (statement-loader + scripts/sql/finance_manager_db) =="
+echo "== Python venv (statement-loader) =="
 VENV_DIR="$REPO_ROOT/.venv"
 
 # statement-loader's code uses `from datetime import ... UTC`, which needs
@@ -70,10 +70,8 @@ if [ -d "$VENV_DIR" ]; then
   # shellcheck disable=SC1091
   source "$VENV_DIR/bin/activate"
   pip install --quiet --upgrade pip
-  if pip install --quiet \
-    -r "$REPO_ROOT/statement-loader/requirements.txt" \
-    -r "$REPO_ROOT/scripts/sql/finance_manager_db/requirements.txt"; then
-    ok "venv ready at $VENV_DIR ($(python --version 2>&1), statement-loader + db-tooling dependencies installed)"
+  if pip install --quiet -r "$REPO_ROOT/statement-loader/requirements.txt"; then
+    ok "venv ready at $VENV_DIR ($(python --version 2>&1), statement-loader dependencies installed)"
   else
     fail "pip install failed - see output above"
   fi

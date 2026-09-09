@@ -1,0 +1,14 @@
+# Order of .sql files (relative to dbscripts/) to run to drop everything -
+# reverse dependency order of setup.list's creates, all CASCADE.
+# One path per line; blank lines and lines starting with # are ignored.
+# Read by the db-run skill (.claude/skills/db-run/SKILL.md).
+
+table/drop/transaction_user_category.sql
+table/drop/user_category.sql
+table/drop/transaction.sql
+table/drop/user_account.sql
+table/drop/user_detail.sql
+table/drop/account_statement.sql
+table/drop/account.sql
+table/drop/account_type.sql
+table/drop/account_icon.sql
