@@ -13,6 +13,10 @@ Multi-module workspace for the Finance Manager application. Each module below ke
 
 All four backend services (`account-service`, `api-gateway`, `transaction-service`, `statement-loader`) share a single Postgres database (`finance_manager`, default `localhost:5432` locally).
 
+## Running locally
+
+The `local-run` Claude Code skill (`.claude/skills/local-run/SKILL.md`) brings up the whole stack - Postgres, all three Java services, `statement-loader`, and the UI - and auto-bootstraps prerequisites/sample data on a fresh checkout, so the app ends up reachable at `http://localhost:8100`. See `docs/SKILLS.md` for that skill and its `local-setup`/`db-setup` counterparts.
+
 ## CI/CD
 
 Each module has its own GitHub Actions deploy workflow (`.github/workflows/<module>-deploy.yml`), scoped to only run when that module's files change. Pull requests run `.github/workflows/pr-checks.yml`, which detects which modules changed and only builds/tests those (see that module's job for exact commands), aggregated into a single `pr-gate` check. That check is not yet required to merge (this repo is private on a free GitHub plan, which doesn't support required status checks on private repos) - it still reports pass/fail on every PR.

@@ -23,6 +23,24 @@ All four backend services share Postgres database `finance_manager` on `localhos
 
 Requirements are tracked as `jira/JIRA_<ID>.md` files (not the Jira tool) following `jira/TEMPLATE.md`, maintained via the `jira-create` skill (`.claude/skills/jira-create/SKILL.md`). A ticket goes `Draft -> In Refinement -> Ready for Dev -> In Progress -> Done`; implementation should not start before a ticket is explicitly confirmed **Ready for Dev** by the user. `jira/README.md` is the ticket index. See `jira/JIRA_1.md` for the ticket this documentation pass was implemented under.
 
+## Skills
+
+Claude Code skills for this repo live under `.claude/skills/<name>/SKILL.md`. `docs/SKILLS.md` is the full catalog - what each skill does, when it's used, and the conventions they share - and is meant to stay in sync with what's actually under `.claude/skills/`.
+
+**Whenever a skill is created, renamed, or removed (by any workflow, not just this one), update `docs/SKILLS.md` in the same change.** This is the file Claude Code consults for skill-related work in this repo, so this instruction is the enforcement point for that rule.
+
+Current skills:
+
+| Skill | Purpose |
+|---|---|
+| `jira-create` | Spec-driven requirements (see above) |
+| `local-setup` | Verify/repair local prerequisites |
+| `local-install` | Install/upgrade Java, Node, Ionic, Docker |
+| `db-setup` | Reset local DB + load sample data |
+| `local-run` | Bring up the whole local stack |
+
+See `docs/SKILLS.md` for full details on the latter four.
+
 ## Common commands
 
 ### Java services (account-service, api-gateway, transaction-service)
@@ -67,9 +85,11 @@ ionic serve --external # serve reachable on LAN, used for device testing
 Environment config (API base URLs per env) lives in `src/environments/environment*.ts` and is selected via the Angular build `--configuration` flag.
 
 ### Running the whole stack locally
-`scripts/local_startup/*.sh` has one script per module showing the exact local run command (Postgres via Docker, then each Gradle service via `bootRun`, then statement-loader, then `ionic serve`). `scripts/app_startup` documents the same flow end-to-end including the Postgres container and `nohup`-backgrounding each process. There's no single top-level script that starts everything yet - start Postgres first, then the three Java services, then statement-loader, then the UI. (A dedicated `local-run` skill to automate this is planned - see `jira/README.md` for status.)
+The `local-run` skill (`.claude/skills/local-run/SKILL.md`) is the recommended way to bring up the whole stack - it auto-runs prerequisite checks (`local-setup` skill) and, on a first-time empty database, sample-data bootstrap (`db-setup` skill), then starts Postgres-dependent services and the UI so the app is reachable at `http://localhost:8100`. See `docs/SKILLS.md` for the full skill catalog.
 
-Database schema is managed by `scripts/sql/finance_manager_db/database_manager.py` (create/drop/truncate tables from `finance_manager_db_config.py`); see `scripts/sql/finance_manager_db/README.md` for full CLI usage and table creation order (dependencies flow: `account_icon`/`account_type` -> `account` -> `account_statement`/`user_detail` -> `user_account` -> `transaction` -> `user_category` -> `transaction_user_category`).
+`scripts/local_startup/*.sh` and `scripts/app_startup` document the same flow manually/for reference (Postgres via Docker, then each Gradle service via `bootRun`, then statement-loader, then `ionic serve`) but hardcode a pre-monorepo path - prefer the skills above for an actual local run.
+
+Database schema is managed by `scripts/sql/finance_manager_db/database_manager.py` (create/drop/truncate tables from `finance_manager_db_config.py`) and sample data by `populate_accounts.py`, both wrapped by the `db-setup` skill; see `scripts/sql/finance_manager_db/README.md` for the underlying CLI usage and table creation order (dependencies flow: `account_icon`/`account_type` -> `account` -> `account_statement`/`user_detail` -> `user_account` -> `transaction` -> `user_category` -> `transaction_user_category`).
 
 ## Architecture
 

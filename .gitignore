@@ -32,6 +32,11 @@ npm-debug.log*
 # === Personal financial data (real bank/broker statements) ===
 scripts/statements/
 
+# === local-run skill artifacts (see .claude/skills/local-run) ===
+**/server.log
+**/server.log.pid
+.postgres-data/
+
 # === Secrets ===
 .env
 .env.*

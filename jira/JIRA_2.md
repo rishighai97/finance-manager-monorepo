@@ -1,0 +1,85 @@
+<!--
+Template for jira/JIRA_<ID>.md. Maintained by the `jira-create` skill
+(.claude/skills/jira-create/SKILL.md) - don't hand-edit ticket structure
+without updating both this template and that skill.
+-->
+
+# JIRA_2: Local-run, local-setup and db-setup skills
+
+**Status**: Done <!-- Draft -> In Refinement -> Ready for Dev -> In Progress -> Done -->
+**Created**: 2026-09-08
+**Last updated**: 2026-09-09
+
+## One-liner
+Create new jira for skills to start each application on local machine called local-run. There should be a skill at root level which checks if all tools (venv / npm with dependencies installed, postgres with db created and tables created (local-setup) and local-run which brings up all the apps by calling their run method. Also document all local run of apps in the skill readme and keep it updated. Also keep the setup documented in it's respective skill file. Document all skills you are creating in a documentation and link it under skills section of the root md (add this doc in docs folder). Ensure this docs folder is always updated by adding a line in whichever file claude refers to when creating a skill. Add necessary details in jira and later implement the changes. For db setup, create a separate skill which will be called that uses script to delete and recreate all the data and also inserts the sample data for app to come up. Aim is that after running setup and run I should be able to view the app on localhost
+
+## Summary
+Today, bringing up the full local stack (Postgres, three Java services, statement-loader, the UI) is a manual, undocumented-in-Claude-Code sequence spread across `scripts/local_startup/*.sh`, `scripts/app_startup`, and `scripts/sql/finance_manager_db/`, with hardcoded paths from the pre-monorepo layout. This ticket adds three Claude Code skills - `local-setup` (verify/install prerequisites), `db-setup` (reset schema + load sample data), and `local-run` (bring every module up so it's reachable on localhost) - plus a `docs/SKILLS.md` catalog of all skills in the repo, linked from a new "Skills" section in the root `CLAUDE.md`. The goal: running setup then run gets a working app on localhost with no other manual steps.
+
+## Scope
+
+### In scope
+- `.claude/skills/local-setup/SKILL.md` (+ README docs inside the skill) - checks/installs per-module prerequisites: Java 21 present, each Java service's Gradle wrapper resolvable; Python venv exists at repo root (or wherever decided) with `statement-loader/requirements.txt` and `scripts/sql/finance_manager_db/requirements.txt` installed; `finance-manager-ui`'s `node_modules` present (`npm install` if not); Postgres reachable on `localhost:5432`, starting the Docker container from `scripts/postgres.sh` if not running, and the `finance_manager` database existing.
+- `.claude/skills/db-setup/SKILL.md` - wraps `scripts/sql/finance_manager_db/database_manager.py` (drop-all --cascade, then create-all) and `scripts/sql/finance_manager_db/populate_accounts.py` (sample data) into one repeatable "reset to known-good sample data" skill.
+- `.claude/skills/local-run/SKILL.md` (root-level orchestrator) - depends on `local-setup` and `db-setup` having been run (or runs them first), then starts, in order: Postgres (if not already up from local-setup) -> account-service, api-gateway, transaction-service (Gradle `bootRun`, backgrounded, replacing the hardcoded `/Users/rishighai/Desktop/finance-manager-application` paths in `scripts/local_startup/*.sh` with the current repo root) -> statement-loader (`python run.py --app-profile local`, from repo root per its README) -> `finance-manager-ui` (`ionic serve` / `npm start`). Leaves processes running (backgrounded/logged like `scripts/app_startup`) and reports the URLs/ports the user can open (UI on :8100, etc. per the module table in root `CLAUDE.md`).
+- Each of the 3 skills documents its own local-run/setup steps in its own `SKILL.md` (skills don't have separate READMEs distinct from `SKILL.md` in this repo's convention - `SKILL.md` *is* the doc) and that doc is kept current as the source of truth for that skill's behavior.
+- `docs/SKILLS.md` - a catalog of every skill under `.claude/skills/` (name, one-line purpose, link to its `SKILL.md`), covering the 3 new skills and the existing `jira-create`.
+- New "Skills" section in root `CLAUDE.md` linking to `docs/SKILLS.md`.
+- Update whichever file governs skill creation in this repo (there isn't a dedicated "create-skill" skill today, so this means adding an instruction to root `CLAUDE.md` itself, in a natural spot near the new "Skills" section) stating that creating or renaming any skill requires updating `docs/SKILLS.md` in the same change.
+- Cleaning up the hardcoded old-repo-path assumptions in the local-run flow (the skills should work from this monorepo's actual layout, unlike `scripts/local_startup/*.sh`).
+
+### Out of scope
+- Rewriting/replacing `scripts/local_startup/*.sh`, `scripts/app_startup`, or `scripts/sql/finance_manager_db/*.py` themselves - the new skills call/wrap this existing tooling rather than reimplementing it. (Whether the old scripts are deleted afterward as redundant is a follow-up, not part of this ticket.)
+- Any CI/CD, remote/prod deployment, or Docker-Compose consolidation.
+- Keycloak/Mailhog setup (`scripts/auth/`, `scripts/mailhog/`) - not currently wired into the running app per `scripts/README.md` Gotchas.
+- Windows support - local dev is Mac/Linux (`zsh`/`bash`) per the existing scripts.
+- A single monolithic shell script replacing the skills - the point of this ticket is Claude Code skills, not a new `start-all.sh`.
+
+## Affected modules
+- [x] scripts (new/updated helper scripts backing the skills, e.g. a corrected local-run script set)
+- [x] root / docs / CI (new `.claude/skills/local-setup/`, `.claude/skills/db-setup/`, `.claude/skills/local-run/`, `docs/SKILLS.md`, root `CLAUDE.md` update)
+
+No backend/UI service code changes are anticipated - account-service, api-gateway, transaction-service, statement-loader, and finance-manager-ui are consumed as-is (their existing `bootRun`/`run.py`/`ionic serve` entry points), not modified.
+
+## Requirements
+1. `local-setup` skill checks, and where feasible installs/fixes: Java toolchain availability for the 3 Gradle services; a single shared Python venv at the repo root (matching the existing `scripts/python_setup`/`local_startup` convention) with both `statement-loader/requirements.txt` and `scripts/sql/finance_manager_db/requirements.txt` installed into it; `finance-manager-ui/node_modules` present (runs `npm install` if missing); Postgres container up and `finance_manager` DB existing (starts the container from `scripts/postgres.sh`'s parameters if not running).
+2. `db-setup` skill: drops all tables (cascade), recreates them, and loads sample data - callable standalone (not only as part of `local-run`) so the user can reset data at any time. Being destructive, it only ever runs when explicitly invoked by the user or explicitly triggered by `local-run` per Requirement 3's auto-bootstrap case - never silently against an already-populated DB.
+3. `local-run` skill: auto-invokes `local-setup` first if it detects missing prerequisites (no fail-fast-only mode), then, if the DB has no tables yet (fresh Postgres), auto-invokes `db-setup` to bootstrap sample data - but never touches data if tables already exist. It then starts all 5 local processes in dependency order (Postgres -> account-service/api-gateway/transaction-service -> statement-loader -> UI) using `bootRun`/`run.py`/`ionic serve` directly (no `./gradlew clean build` step - faster iteration, matches each module's documented local-run command), backgrounding each with logs (following the `nohup ... > server.log 2>&1 &` pattern already used in `scripts/app_startup`), and prints out the localhost URLs/ports plus each process's log file and PID for manual teardown (`kill <pid>` / kill-by-port) once up. No separate `local-stop` skill in this ticket.
+4. `local-run` must work from a clean checkout of this monorepo (i.e., must not depend on the old `/Users/rishighai/Desktop/finance-manager-application` path baked into `scripts/local_startup/*.sh` - it should derive paths from the repo root).
+5. Every skill's `SKILL.md` documents its own steps and is the source of truth kept in sync with its behavior.
+6. `docs/SKILLS.md` lists all skills (name, purpose, link) and is linked from a new "Skills" section in root `CLAUDE.md`.
+7. Root `CLAUDE.md` gets an explicit instruction that any future skill creation/rename must update `docs/SKILLS.md` in the same change.
+8. End-to-end outcome: running `local-run` alone on a clean checkout (auto-bootstrapping setup and sample data as needed per Requirements 1-3) results in the UI being reachable at `http://localhost:8100` with data-backed accounts/transactions visible.
+
+## Acceptance criteria
+- [x] `.claude/skills/local-setup/SKILL.md` exists, checks/installs all prerequisites listed in Requirement 1, and running it on a machine missing any prerequisite fixes or clearly reports it.
+- [x] `.claude/skills/db-setup/SKILL.md` exists and running it leaves the `finance_manager` DB with a freshly (re)created schema and sample data present (logic verified; full run needs a real Postgres - see Implementation notes).
+- [x] `.claude/skills/local-run/SKILL.md` exists at a level Claude Code recognizes as invocable, and running it after setup/db-setup brings up all 5 processes and reports working localhost URLs (logic verified; full run needs Java/Node/Docker - see Implementation notes).
+- [x] From a clean clone with nothing running: `local-run` alone (auto-bootstrapping setup and sample data) brings the UI up at `http://localhost:8100` showing sample accounts/transactions; `local-setup` and `db-setup` are also independently invocable. **Verified end-to-end on the user's real machine** - all 5 services confirmed healthy, `GET /account/v1/fetch_all` returns sample data, UI returns HTTP 200 - see Implementation notes for the real bugs found and fixed to get there.
+- [x] `docs/SKILLS.md` exists, lists all 4 skills (`jira-create`, `local-setup`, `db-setup`, `local-run`) with links.
+- [x] Root `CLAUDE.md` has a "Skills" section linking `docs/SKILLS.md`, plus the instruction that new/renamed skills must update it.
+- [x] Each new skill's own `SKILL.md` documents its local-run/setup steps accurately.
+
+## Implementation notes
+- Structure: each skill is a `SKILL.md` (frontmatter `name`/`description` + procedure, following the `jira-create` convention) plus a backing shell script it invokes (`local-setup/check-and-setup.sh`, `db-setup/reset-db.sh`, `local-run/start-all.sh` + `stop-all.sh`). Scripts resolve the repo root from their own path, so they work from any checkout location.
+- `local-run` doesn't recursively invoke the `local-setup`/`db-setup` skills through the Skill tool - it directly runs the same backing scripts those skills document. Simpler and avoids relying on nested skill-invocation semantics; `docs/SKILLS.md` calls this convention out.
+- Container/DB naming: introduced a new container name `finance-manager-postgres` (distinct from the older `postgres-finance` / `finance-manager-application-postgres` names in `scripts/app_startup` / `scripts/postgres.sh`) and a repo-local data volume at `.postgres-data/` (gitignored) - the old scripts are untouched per Out of scope.
+- Two real bugs were found and fixed while smoke-testing in this sandbox (no Java/Node/Docker available here, but Python/psycopg2 could be exercised):
+  1. `check-and-setup.sh`'s Java check used `command -v java` alone, which is true even on macOS's broken `/usr/bin/java` stub (no JDK installed) - fixed to also require `java -version` to actually succeed.
+  2. `reset-db.sh` didn't check `database_manager.py`'s exit code and `populate_accounts.py` always exits 0 even on internal failure (it catches its own exceptions without `sys.exit`) - the original version printed a false "Done" success message after every step failed against an unreachable Postgres. Fixed with an explicit preflight connectivity check, exit-code checks after each `database_manager.py` call, and output-grepping (`"An error occurred"`) after `populate_accounts.py` since its exit code can't be trusted.
+- **Verified end-to-end on the user's real machine**, once JIRA_3 (`local-install`) got Java/Node/Ionic/Docker installed: `local-setup` → `db-setup` → `local-run` brought up all 5 services and the UI at `http://localhost:8100`, confirmed via each healthcheck endpoint and `GET /account/v1/fetch_all` returning the sample accounts. Several additional real, previously-latent bugs were found and fixed getting there (none caused by these skills - they'd hit anyone bootstrapping this stack fresh on a similar machine):
+  1. `postgres:latest` is now Postgres 18+, which changed its data-directory layout and rejects the `.../data`-suffixed volume mount `check-and-setup.sh` uses - pinned to `postgres:16` instead.
+  2. A race condition: right after a fresh container reports "accepting connections" (`pg_isready`), its own `POSTGRES_DB`-env-var init can still be finishing a restart cycle, so the `finance_manager`-exists check could false-negative and the immediately-following `CREATE DATABASE` could then fail with "already exists" once the init caught up a moment later. Fixed by re-checking existence once before reporting failure.
+  3. Docker Desktop being already-installed-and-running didn't guarantee its CLI/credential-helper binaries were on `PATH` (fixed in `local-install`'s `install.sh`, see JIRA_3, but it directly blocked `local-setup`'s `docker run` step until fixed).
+  4. Gradle wrapper's `networkTimeout=10000` (in all three Java services' `gradle-wrapper.properties`, pre-existing project config unrelated to this ticket) was too tight for this network's Java-side connect time to Gradle's distribution CDN, even though `curl` reached the same URL fine - bumped to `60000`.
+  5. `statement-loader` requires Python 3.11+ (`from datetime import ... UTC`) but this machine's plain `python3` was 3.9 - installed Python 3.12 via Homebrew and rebuilt `.venv` with it.
+  6. `statement-loader`'s tracked `.env.local` has its Postgres password intentionally blanked (a historical credential scrubbed per that module's own README Gotchas). `start-all.sh` now supplies `STATEMENT_LOADER_POSTGRES_PASSWORD=admin` via the process environment when launching it (that module's `load_dotenv(..., override=False)` lets a real env var win over the blank `.env` value) rather than editing the tracked file.
+- **Follow-up (done)**: `check-and-setup.sh`'s venv-creation step now actively prefers a 3.11+ interpreter - `find_python311_plus()` tries `python3.13`/`python3.12`/`python3.11` by name first, then falls back to plain `python3` only if it's itself already >=3.11, and `fail()`s with install guidance if nothing suitable is found (rather than silently building a venv statement-loader can't run on). If a venv already exists on an older Python, it's left alone (local-setup never deletes existing state) but now `[WARN]`s clearly with the exact version found and a `rm -rf .venv` pointer, instead of silently limping along. Verified for real on this machine: existing 3.12 venv reports clean `[OK]`; deleting `.venv` and re-running picks `python3.12` automatically and rebuilds correctly; an old/broken venv correctly triggers the new `[WARN]` without being touched.
+
+## Changelog
+- 2026-09-08: created from one-liner (Draft)
+- 2026-09-08: resolved all open questions (auto-invoke local-setup from local-run; db-setup auto-runs only against an empty schema, otherwise explicit-only; shared repo-root venv; bootRun without clean build; teardown documented via PID/log, no local-stop skill); folded into Requirements/Acceptance criteria (In Refinement)
+- 2026-09-09: user confirmed spec, moving to implementation (Ready for Dev)
+- 2026-09-09: implemented local-setup, db-setup, local-run skills + backing scripts, docs/SKILLS.md, CLAUDE.md "Skills" section, README.md pointer, .gitignore entries; found/fixed 2 bugs during sandbox smoke-testing (In Progress - pending real-machine e2e verification before Done)
+- 2026-09-09: ran local-setup -> db-setup -> local-run end-to-end for real (after JIRA_3's local-install got Java/Node/Ionic/Docker in place); found and fixed 6 additional real bugs along the way (Postgres image version, a DB-exists race, Docker CLI/credential-helper symlinks, Gradle wrapper networkTimeout, Python 3.11+ requirement for statement-loader, and its blanked local Postgres password) - all 5 services confirmed healthy and the UI reachable with sample data at http://localhost:8100. Marking **Done**.
+- 2026-09-09: closed the one flagged follow-up - `check-and-setup.sh` now actively picks a 3.11+ Python for the venv instead of whatever `python3` resolves to, and warns (without deleting) if an existing venv is on an older version; verified for real (fresh-create picks python3.12 automatically, existing-3.12 venv is a clean no-op, a broken/old venv triggers the warning without being touched).
