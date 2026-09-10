@@ -31,3 +31,4 @@ Feature: Upload a statement and exercise the full downstream transaction lifecyc
       | axis      | 1       | xls       | axis.xls      | 5          | 5               | 3                  | 2026-05-01 | 2026-05-31 |
       | axis      | 1       | csv       | axis.csv      | 5          | 5               | 4                  | 2026-06-01 | 2026-06-30 |
       | groww     | 1       | xlsx      | groww.xlsx    | 7          | 6               | 3                  | 2026-07-01 | 2026-07-31 |
+      | hdfc      | 1       | pdf       | hdfc.pdf      | 1          | 1               | 4                  | 2026-08-01 | 2026-08-31 |

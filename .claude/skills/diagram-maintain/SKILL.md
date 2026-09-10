@@ -39,4 +39,3 @@ If a change doesn't fit HLD/sequence/ER (e.g. a deployment/CI diagram, a compone
 ## Keeping this doc updated
 
 This is a standalone skill (not part of `test-automation`'s pair) - see `docs/SKILLS.md` for the full skill catalog and `architecture-docs/README.md` for what it has produced so far.
-</content>

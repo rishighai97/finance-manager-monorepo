@@ -40,4 +40,3 @@ flowchart LR
 ## Kept in sync with
 
 This diagram is derived from, and should be regenerated against, the root `CLAUDE.md`'s "Architecture" and "Service responsibilities" sections and each module's own README `Overview`/`Endpoints` sections - not hand-maintained independently of them.
-</content>

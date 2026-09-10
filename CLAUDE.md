@@ -48,6 +48,7 @@ Current skills:
 | `unit-test-generate` | Write unit tests (existing-feature or TDD new-feature mode) |
 | `diagram-maintain` | Create/update architecture diagrams (HLD, sequence, ER) in `architecture-docs/`; triggers proactively on architecture-affecting changes |
 | `healthcheck-maintain` | Keep `observability/healthcheck.html`'s endpoint list in sync; auto-invoked by a `PostToolUse` hook on API-surface file changes |
+| `statement-onboard` | Onboard a new statement format/bank (or format drift) into `statement-loader` end-to-end - reader, SQL, tests, docs |
 
 See `docs/SKILLS.md` for full details on all but `jira-create`.
 

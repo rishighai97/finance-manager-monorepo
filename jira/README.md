@@ -16,3 +16,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_8](JIRA_8.md) | Synthetic statement fixtures per bank/broker format + e2e upload coverage | Done |
 | [JIRA_9](JIRA_9.md) | `diagram-maintain` skill for architecture diagrams in a new `architecture-docs` module | Done |
 | [JIRA_10](JIRA_10.md) | Observability module - single-page HTML healthcheck dashboard | Done |
+| [JIRA_11](JIRA_11.md) | `statement-onboard` skill - onboard any new statement format/bank end-to-end | Done |

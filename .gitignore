@@ -37,6 +37,8 @@ npm-debug.log*
 
 # === Personal financial data (real bank/broker statements) ===
 scripts/statements/
+statement-loader/resources/onboarding_samples/*
+!statement-loader/resources/onboarding_samples/README.md
 
 # === local-run skill artifacts (see .claude/skills/local-run) ===
 **/server.log

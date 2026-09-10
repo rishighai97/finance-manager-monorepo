@@ -91,4 +91,3 @@ erDiagram
 ## Kept in sync with
 
 This diagram is derived from, and should be regenerated against, `dbscripts/table/create/*.sql` directly - not hand-maintained independently of the actual schema.
-</content>

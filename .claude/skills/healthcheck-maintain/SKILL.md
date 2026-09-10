@@ -33,4 +33,3 @@ Keeps `observability/healthcheck.html` accurate as backend/UI endpoints change. 
 ## Keeping this doc updated
 
 See `docs/SKILLS.md` for the full skill catalog and `observability/README.md` for what this module contains. If the hook's watched file patterns change, update both `.claude/settings.json` and this file's frontmatter `description` together.
-</content>

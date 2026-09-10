@@ -34,10 +34,18 @@ sys.path.insert(0, str(STATEMENT_LOADER_ROOT))
 
 import xlwt
 import openpyxl
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
 from model.account_statement_upload_request import AccountStatementUploadRequest
 from service.statement_reader.bank_savings.hdfc_savings_account_statement_reader import (
     HdfcSavingsAccountXlsStatementReader,
+)
+from service.statement_reader.bank_savings.hdfc_savings_account_pdf_statement_reader import (
+    HdfcSavingsAccountPdfStatementReader,
+)
+from service.statement_reader.bank_savings.hdfc_savings_account_pdf_v2_statement_reader import (
+    HdfcSavingsAccountPdfV2StatementReader,
 )
 from service.statement_reader.bank_savings.icici_savings_account_statement_reader import (
     IciciXlsSavingsAccountStatementReader,
@@ -75,7 +83,7 @@ FIXED_YEAR = 2026  # baked-in, not "today" - see JIRA_8's fixture-dates decision
 # same account.
 FIXTURE_MONTHS = {
     "hdfc": 1, "icici": 2, "saraswat": 3, "canara": 4,
-    "axis_xls": 5, "axis_csv": 6, "groww": 7,
+    "axis_xls": 5, "axis_csv": 6, "groww": 7, "hdfc_pdf": 8, "hdfc_pdf_v2": 9,
 }
 
 
@@ -144,6 +152,71 @@ def build_hdfc_xls(transactions) -> bytes:
     ws.write(row, 0, "*"); row += 1
     buf = BytesIO()
     wb.save(buf)
+    return buf.getvalue()
+
+
+# ---- HDFC pdf (JIRA_11 - closes the pre-existing "no PDF reader" gap) ----
+
+def build_hdfc_pdf(transactions) -> bytes:
+    """Mimics the real HDFC PDF export's text layout closely enough for
+    HdfcSavingsAccountPdfStatementReader's line-based regex parser: a
+    "Statement of account" anchor line, transaction lines shaped
+    `date narration ref value_date amount balance`, and a trailing
+    STATEMENTSUMMARY block carrying the opening balance. See that reader's
+    module docstring/comments for exactly what it expects."""
+    opening = 50000.0
+    balances = running_balances(transactions, opening=opening)
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    y = 800
+
+    def line(text):
+        nonlocal y
+        c.drawString(50, y, text)
+        y -= 14
+
+    line("HDFC BANK LIMITED (dummy fixture - see JIRA_8/JIRA_11)")
+    line("Statement of account")
+    line("Date Narration Chq./Ref.No. ValueDt WithdrawalAmt. DepositAmt. ClosingBalance")
+    for i, (t, bal) in enumerate(zip(transactions, balances)):
+        d = t["date"]
+        date_str = d.strftime("%d/%m/%y")
+        line(f"{date_str} {t['title']} REF{i + 1:06d} {date_str} {t['amount']:,.2f} {bal:,.2f}")
+    dr_count = sum(1 for t in transactions if not t["is_credit"])
+    cr_count = sum(1 for t in transactions if t["is_credit"])
+    debits = sum(t["amount"] for t in transactions if not t["is_credit"])
+    credits = sum(t["amount"] for t in transactions if t["is_credit"])
+    line("STATEMENTSUMMARY :-")
+    line("OpeningBalance DrCount CrCount Debits Credits ClosingBal")
+    line(f"{opening:,.2f} {dr_count} {cr_count} {debits:,.2f} {credits:,.2f} {balances[-1]:,.2f}")
+    c.save()
+    return buf.getvalue()
+
+
+# ---- HDFC pdf v2 (JIRA_11 - synthetic format-drift demonstration only,
+# not based on any real future HDFC change; see
+# hdfc_savings_account_pdf_v2_statement_reader.py) ----
+
+def build_hdfc_pdf_v2(transactions) -> bytes:
+    opening = 75000.0
+    balances = running_balances(transactions, opening=opening)
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    y = 800
+
+    def line(text):
+        nonlocal y
+        c.drawString(50, y, text)
+        y -= 14
+
+    line("HDFC BANK LIMITED (dummy v2 fixture - see JIRA_11)")
+    line(f"OpeningBal: {opening:,.2f}")
+    line("TRANSACTION DETAILS")
+    line("Date Narration Amount Balance")
+    for t, bal in zip(transactions, balances):
+        d = t["date"]
+        line(f"{d.strftime('%d/%m/%y')} {t['title']} {t['amount']:,.2f} {bal:,.2f}")
+    c.save()
     return buf.getvalue()
 
 
@@ -286,6 +359,16 @@ FIXTURES = [
     {
         "filename": "hdfc.xls", "seed": "hdfc", "count": 4,
         "build": build_hdfc_xls, "reader": HdfcSavingsAccountXlsStatementReader(),
+        "generator": make_bank_transactions,
+    },
+    {
+        "filename": "hdfc.pdf", "seed": "hdfc_pdf", "count": 4,
+        "build": build_hdfc_pdf, "reader": HdfcSavingsAccountPdfStatementReader(),
+        "generator": make_bank_transactions,
+    },
+    {
+        "filename": "hdfc_v2.pdf", "seed": "hdfc_pdf_v2", "count": 3,
+        "build": build_hdfc_pdf_v2, "reader": HdfcSavingsAccountPdfV2StatementReader(),
         "generator": make_bank_transactions,
     },
     {

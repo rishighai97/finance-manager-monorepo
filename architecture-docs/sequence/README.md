@@ -97,4 +97,3 @@ sequenceDiagram
 ## Kept in sync with
 
 Each diagram is derived from, and should be regenerated against, the relevant module's `Endpoints` table and `Overview`/`Gotchas` sections (`statement-loader`, `transaction-service`, `api-gateway` READMEs) plus `finance-manager-ui`'s `src/service/*.service.ts` clients - not hand-maintained independently of them.
-</content>

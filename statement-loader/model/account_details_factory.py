@@ -3,7 +3,7 @@ from model.account_details import AccountDetails
 
 
 class AccountDetailsFactory:
-    HDFC = AccountDetails(bank_name = "HDFC", valid_formats=['.xls','.csv'])
+    HDFC = AccountDetails(bank_name = "HDFC", valid_formats=['.xls','.csv','.pdf'])
     ICICI = AccountDetails(bank_name = "ICICI")
     CANARA = AccountDetails(bank_name = "CANARA")
     SARASWAT = AccountDetails(bank_name = "SARASWAT")

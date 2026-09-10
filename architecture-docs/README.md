@@ -37,4 +37,3 @@ No automated tests - this is static documentation, not application code. Correct
 
 ## Gotchas
 - These diagrams are maintained by the `diagram-maintain` skill, which is meant to trigger proactively whenever a change elsewhere in the repo affects architecture (a new/changed endpoint, inter-service call, database table, or UI-visible flow) - see that skill's `SKILL.md` for exactly what it watches for. A hand-edit here can be overwritten the next time the skill regenerates the diagram(s) it covers.
-</content>

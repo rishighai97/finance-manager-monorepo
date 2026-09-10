@@ -87,4 +87,3 @@ No build/test suite applies to a documentation-only module - correctness was che
 - 2026-09-10: resolved via AskUserQuestion - docs live in a new in-monorepo `architecture-docs/` module (not a separate repo), trigger is description-driven (no hook), and an ER diagram is locked in alongside the HLD and 4 sequence diagrams; folded into Scope/Requirements/Acceptance criteria
 - 2026-09-10: user confirmed the spec - moving to implementation (Ready for Dev)
 - 2026-09-10: implemented in full - `diagram-maintain` skill created with a description-driven proactive trigger; `architecture-docs/` module added with master README + HLD/sequence/ER child READMEs, all as Mermaid source cross-referenced against real source files; `CLAUDE.md`, root `README.md`, `docs/README_TEMPLATE.md`, and `docs/SKILLS.md` updated to keep the module/skill catalogs in sync. Marking **Done**.
-</content>
