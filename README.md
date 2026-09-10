@@ -1,6 +1,13 @@
 # Finance Manager
 
-Multi-module workspace for the Finance Manager application. Each module below keeps its own README with module-specific setup/usage details; this file just gives the map.
+Finance Manager is a personal finance tracker. Users can:
+
+- **Link accounts** - connect bank/broker accounts they hold.
+- **Upload statements** - import a bank/broker statement file to automatically load its transactions.
+- **Categorize transactions** - tag imported transactions with user-defined categories.
+- **Filter transactions** - slice transactions by category or debit/credit to understand spending and holdings.
+
+It's a multi-module workspace - four backend services plus an Angular/Ionic client, all backed by a shared Postgres database. Each module below keeps its own README with module-specific setup/usage details; this file just gives the map. See [`architecture-docs`](architecture-docs/README.md) for diagrams of how the pieces fit together (high-level design, key user-flow sequence diagrams, and the database schema).
 
 | Module | Stack | Port (local) | Description |
 |---|---|---|---|
@@ -11,9 +18,14 @@ Multi-module workspace for the Finance Manager application. Each module below ke
 | [`finance-manager-ui`](finance-manager-ui/README.md) | Angular 19 + Ionic 8 (Capacitor) | 8100 | Mobile/web client |
 | [`dbscripts`](dbscripts/README.md) | SQL | — | Version-controlled schema/sample-data SQL, run via the `db-run`/`db-setup` skills |
 | [`test-automation`](test-automation/README.md) | Java 21, Spring Boot + Cucumber | — | Black-box backend BDD test suite against a running stack |
+| [`architecture-docs`](architecture-docs/README.md) | Markdown + Mermaid | — | Architecture diagrams (HLD, sequence, ER), kept in sync by the `diagram-maintain` skill |
 | [`scripts`](scripts/README.md) | Bash / Python | — | Local environment setup and deployment helper scripts |
 
 All four backend services (`account-service`, `api-gateway`, `transaction-service`, `statement-loader`) share a single Postgres database (`finance_manager`, default `localhost:5432` locally).
+
+## Architecture
+
+[`architecture-docs`](architecture-docs/README.md) has the full picture: a high-level design diagram of every service and how it talks to the shared database, sequence diagrams for key user flows (statement upload, categorizing/filtering transactions, signup/login), and an entity-relationship diagram of the schema. All diagrams are Mermaid source kept up to date by the `diagram-maintain` skill (`docs/SKILLS.md`).
 
 ## Running locally
 

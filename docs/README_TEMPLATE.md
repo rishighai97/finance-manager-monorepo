@@ -1,6 +1,6 @@
 # Module README template
 
-Every module (`account-service`, `api-gateway`, `transaction-service`, `statement-loader`, `finance-manager-ui`, `dbscripts`, `test-automation`, `scripts`) keeps a `README.md` following this section structure. This file is the thing the docs-consistency skill/agent checks module READMEs against - if you add or rename a section, update both this file and that skill together.
+Every module (`account-service`, `api-gateway`, `transaction-service`, `statement-loader`, `finance-manager-ui`, `dbscripts`, `test-automation`, `architecture-docs`, `scripts`) keeps a `README.md` following this section structure. This file is the thing the docs-consistency skill/agent checks module READMEs against - if you add or rename a section, update both this file and that skill together.
 
 Skip a section only if it's genuinely not applicable to that module (e.g. `scripts` has no "Endpoints" section); don't skip a section just because it's more work to fill in.
 
