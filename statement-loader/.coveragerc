@@ -1,0 +1,23 @@
+[run]
+branch = True
+omit =
+    tests/*
+    resources/*
+    */__init__.py
+    app.py
+    run.py
+    statement_extractor.py
+    # Plain DTOs/config/controller/exception - no branching logic, and (per
+    # JIRA_7's scope) not the target of this ticket's backfill, matching the
+    # DTO/config exclusion precedent set for the three Java services.
+    model/*
+    config/*
+    controller/*
+    exception/*
+    # Raw JDBC-equivalent SQL-building DAOs - out of scope per JIRA_7 (unit
+    # tests mock the DAO layer; the real-Postgres path is covered by
+    # test-automation's black-box suite, not here).
+    dao/*
+
+[report]
+precision = 1

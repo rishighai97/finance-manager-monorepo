@@ -20,6 +20,12 @@ npm-debug.log*
 **/*.egg-info/
 **/.venv/
 **/venv/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+
+# === Unit test coverage reports (see jira/JIRA_7.md) ===
+**/coverage/
 
 # === IDE ===
 **/.idea/

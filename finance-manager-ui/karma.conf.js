@@ -25,12 +25,23 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/app'),
+      dir: require('path').join(__dirname, './coverage/finance-manager-ui'),
       subdir: '.',
       reporters: [
         { type: 'html' },
         { type: 'text-summary' }
-      ]
+      ],
+      // Enforced when run with --code-coverage (see package.json's "test"
+      // script) - fails the run below 60% line coverage, matching this
+      // repo's other modules (see jira/JIRA_7.md).
+      check: {
+        global: {
+          statements: 60,
+          branches: 60,
+          functions: 60,
+          lines: 60
+        }
+      }
     },
     reporters: ['progress', 'kjhtml'],
     port: 9876,

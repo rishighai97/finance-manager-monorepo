@@ -50,10 +50,14 @@ npx cap open ios        # opens Xcode
 
 ## Testing
 ```bash
-npm test    # ng test (Karma/Jasmine)
+npm test    # ng test --code-coverage (Karma/Jasmine), enforces >=60% coverage (karma.conf.js's `check` block)
 npm run lint
 ```
-Spec files exist for most services (`*.service.spec.ts`) but not yet for most components/pages under `src/app/`.
+View results: Karma's own console output (pass/fail per spec) plus a browsable HTML coverage report at `coverage/finance-manager-ui/index.html`.
+
+Real (non-boilerplate) spec coverage exists for every `src/service/*.ts` HTTP client, `auth-guard.service.ts`, `auth-inteceptor.service.ts`, and `auth.component.ts` (see `jira/JIRA_7.md`). Along the way, 8 pre-existing specs turned out to have never actually run - `TestBed.configureTestingModule({ declarations: [...] })` for a `standalone: true` component is rejected outright by Angular 19's TestBed (`logout`, `auth`, `statement-uploader`, `account-list`, `transaction-list` components), and `app.component.spec.ts`/`user.account.service.spec.ts`/`tabs.page.spec.ts` were missing an `HttpClient` provider their dependency tree needs - both fixed as part of JIRA_7.
+
+`account-list.component.ts`, `category-list.component.ts`, `transaction-list.component.ts`, and `statement-uploader.component.ts` still only have the Angular-CLI-generated "should create" spec (now actually passing, unlike before) - they're excluded from the coverage gate (`angular.json`'s test target `codeCoverageExclude`) rather than counted against it. Backfilling real behavior tests for these (same pattern as `auth.component.spec.ts`) is a good next `unit-test-generate` existing-feature-mode task - see `jira/JIRA_7.md`'s Implementation notes.
 
 ## Gotchas
 - No API-gateway-as-proxy: if a backend service's URL/port changes, update it in every `environment.*.ts`, not just one place.

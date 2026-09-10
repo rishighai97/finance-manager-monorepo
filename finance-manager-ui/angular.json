@@ -152,7 +152,23 @@
               }
             ],
             "styles": ["src/global.scss"],
-            "scripts": []
+            "scripts": [],
+            "codeCoverageExclude": [
+              "src/model/**",
+              "src/main.ts",
+              "src/app/app.routes.ts",
+              "src/app/tabs/tabs.routes.ts",
+              "src/app/app.component.ts",
+              "src/app/explore-container/explore-container.component.ts",
+              "src/app/logout/logout.component.ts",
+              "src/app/tab2/tab2.page.ts",
+              "src/app/tab3/tab3.page.ts",
+              "src/app/tabs/tabs.page.ts",
+              "src/app/account-list/account-list.component.ts",
+              "src/app/category-list/category-list.component.ts",
+              "src/app/transaction-list/transaction-list.component.ts",
+              "src/app/statement-uploader/statement-uploader.component.ts"
+            ]
           }
         }
       }

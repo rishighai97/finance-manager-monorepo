@@ -3,6 +3,7 @@ plugins {
 	id 'war'
 	id 'org.springframework.boot' version '3.5.0-SNAPSHOT'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.finance.manager'
@@ -36,11 +37,54 @@ dependencies {
 	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// In-memory DB purely so the context-load smoke test can wire up a
+	// DataSource/NamedParameterJdbcTemplate bean without a live Postgres -
+	// unit tests mock the DAO layer directly and never touch this.
+	testRuntimeOnly 'com.h2database:h2'
 }
 
-//test {
-//	useJUnitPlatform()
-//}
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+	testLogging {
+		events "passed", "skipped", "failed"
+	}
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true
+		xml.required = true
+	}
+}
+
+jacocoTestCoverageVerification {
+	dependsOn jacocoTestReport
+	violationRules {
+		rule {
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.60
+			}
+		}
+	}
+	// DTOs/config/the servlet bootstrap have no branching logic - excluded from
+	// the denominator rather than padded out with trivial getter/setter tests.
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					'**/dto/**',
+					'**/config/**',
+					'**/*Application.class',
+					'**/ServletInitializer.class'
+			])
+		}))
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
 
 bootBuildImage {
 	environment = ["BP_JVM_VERSION" : "21.0.6"]

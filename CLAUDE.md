@@ -42,7 +42,8 @@ Current skills:
 | `db-setup` | Reset local DB + load sample data |
 | `local-run` | Bring up the whole local stack |
 | `scenario-discovery` | Catalog business test scenarios from the real APIs |
-| `bdd-test-generate` | Generate + run a scenario's UI/backend BDD tests |
+| `bdd-test-generate` | Generate + run a scenario's backend BDD test |
+| `unit-test-generate` | Write unit tests (existing-feature or TDD new-feature mode) |
 
 See `docs/SKILLS.md` for full details on all but `jira-create`.
 

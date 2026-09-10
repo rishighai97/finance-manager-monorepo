@@ -13,6 +13,7 @@ A grab-bag of operational tooling for running the app locally and (previously) d
 - `mailhog/mailhog_local.sh` - local SMTP testing container; not currently called by any service.
 - `server_setup.md`, `smtp.md` - prod server setup notes.
 - `python_setup` - Ubuntu/Debian steps for installing Python 3.13 and creating a venv (used for `statement-loader`).
+- `generate_dummy_statement_fixtures.py` - generates the 7 synthetic bank/broker statement fixtures `test-automation` uses (one per `statement-loader` reader), verifying each against the real reader class before writing it. Run from the repo root: `.venv/bin/python scripts/generate_dummy_statement_fixtures.py` (needs `xlwt`/`openpyxl` from `statement-loader/requirements.txt`). See `jira/JIRA_8.md` and `test-automation/README.md`'s Gotchas.
 
 ## Local setup & run
 Nothing here runs on its own - see the repo root README for the overall local-stack sequence, which is what `local_startup/*.sh` / `app_startup` document.

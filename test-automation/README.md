@@ -33,6 +33,7 @@ Open it directly in a browser after any run. Gradle's own generic test report (`
 
 ## Key modules
 - `src/test/resources/features/<category>/*.feature` - the actual Gherkin scenarios, one category per folder.
+- `src/test/resources/fixtures/statements/` - synthetic (non-personal) bank/broker statement files, one per `statement-loader` reader, generated + verified by `scripts/generate_dummy_statement_fixtures.py` (see JIRA_8). Not real data - safe to commit, reproducible on any checkout/CI, unlike the real files under the repo-root `scripts/statements/` (gitignored).
 - `src/test/java/.../steps/backend/` - `RestTemplate`-backed step definitions.
 - `src/test/java/.../config/EnvironmentConfig.java` - the per-profile base-URL bean injected into step classes.
 - `src/test/java/.../RunCucumberTest.java` - the JUnit Platform Suite entry point Gradle actually runs.
@@ -64,16 +65,31 @@ Open it directly in a browser after any run. Gradle's own generic test report (`
 | backend | Fetch a user's transactions in a date range | transaction | Implemented |
 | backend | Filter transactions by category | transaction | Implemented |
 | backend | Filter transactions by debit/credit indicator | transaction | Implemented |
-| backend | Upload a bank statement and have it parsed | statement_upload | Implemented |
-| backend | Upload a statement and see its transactions appear in transaction fetch | e2e_flow | Implemented |
+| backend | Uploading a v1 hdfc xls statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 icici xls statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 saraswat xls statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 canara csv statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 axis xls statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 axis csv statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 groww xlsx statement succeeds | statement_upload | Implemented |
+| backend | Upload v1 hdfc xls, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 icici xls, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 saraswat xls, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 canara csv, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 axis xls, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 axis csv, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 groww xlsx, categorize, and filter its transactions | e2e_flow | Implemented |
 | backend | Sign up, link an account, and see it in the user's account list | e2e_flow | Implemented |
 
-All 21 scenarios are implemented and passing (`./gradlew test`, verified against a local stack on 2026-09-09).
+All 33 scenarios are implemented and passing (`./gradlew test`, verified against a local stack on 2026-09-10). The single-fixture HDFC `statement_upload`/`e2e_flow` scenarios from JIRA_6 were replaced under JIRA_8 by a `Scenario Outline` per feature - one row per (bank, version, extension) combination, covering all 7 statement-loader readers (HDFC/ICICI/Saraswat/Canara/Axis xls/Axis csv/Groww) instead of just HDFC, and each `e2e_flow` row now also categorizes and filters the uploaded transactions, not just confirms they're fetchable.
 
 ## Testing
 This project *is* the test suite - "testing it" means running it (see above) against a healthy local stack and checking the HTML report.
 
 ## Gotchas
-- Every test here writes real data (new users, categories, etc.) against whatever database the target environment is pointed at - there's no teardown/cleanup step, matching the fact that most of these endpoints have no corresponding delete (e.g. no delete-user endpoint exists on `api-gateway`). Re-running the suite repeatedly against the same local Postgres will accumulate `backend_user_*` users and similarly-titled fixture rows indefinitely - use the `db-setup` skill to reset if that matters to you, or give fixtures unique-per-run titles (e.g. a timestamp suffix) if a test's own assertions need to distinguish "this run's data" from prior runs' leftovers.
+- Every test here writes real data (new users, categories, etc.) against whatever database the target environment is pointed at - there's no teardown/cleanup step, matching the fact that most of these endpoints have no corresponding delete (e.g. no delete-user endpoint exists on `api-gateway`). Re-running the suite repeatedly against the same local Postgres will accumulate `backend_user_*` users and similarly-titled fixture rows indefinitely - use the `db-setup` skill to reset if that matters to you, or give fixtures unique-per-run titles (e.g. a timestamp suffix) if a test's own assertions need to distinguish "this run's data" from prior runs' leftovers. The statement-fixture-based tests (JIRA_8) are the exception - they use deterministic transaction IDs (same fixture -> same `transaction_id` -> same DB row upserted, not duplicated) and a unique calendar month per fixture, so repeated runs don't accumulate rows or collide even across fixtures sharing an account (the two Axis fixtures both use account_id=5).
 - `local-run`'s Gradle-launched services can take a while to become healthy on a cold start (first-time dependency download) - if a test fails immediately with a connection error, check the target service is actually up (`curl` its healthcheck) before assuming the test itself is broken.
 - `statement-loader`'s `/statement/upload/v1/` endpoint used to return a plain Python `str` (`json.dumps(result)`), which Flask defaults to `Content-Type: text/html` - valid JSON bytes, wrong header. `curl`/`requests` don't care, but Spring's `RestTemplate` correctly refuses to deserialize a `List` from a `text/html` response (`UnknownContentTypeException`). Fixed in `statement-loader/controller/statement_upload_controller.py` by returning an explicit `application/json` content type. Worth knowing if a similar `UnknownContentTypeException` shows up against a new statement-loader endpoint.
+- `statement-loader`'s Postgres connection pool used to leak one connection per account-statement lookup (`config/postgres.py` closed the connection object directly instead of returning it to the pool via `self.pool.putconn(conn)`) - after ~20 statement uploads the pool exhausted and every subsequent upload 500'd with `psycopg2.pool.PoolError: connection pool exhausted`, requiring a full restart to recover. Fixed under JIRA_8 (found while running the new per-format upload scenarios repeatedly); worth knowing if uploads start failing after a long test session without an obvious cause.
+- `transaction-service`'s `TransactionServiceImpl.calculateOpeningBalance`/`calculateClosingBalance` used to NPE on a null `closing_balance` (`BigDecimal.subtract`/`.add` on `null`) - mutual-fund/broker transactions (Groww) never set one, since there's no running bank-account-balance concept for a fund holding. Fixed under JIRA_8 (found via the new Groww e2e scenario) by treating a null closing balance as zero rather than throwing; see `transaction-service/README.md`'s Gotchas for the still-open, differently-shaped null-indicator NPE this didn't touch.
+- Regenerating the statement fixtures (e.g. after changing the random title/amount pool, or adding a new reader format): `.venv/bin/python scripts/generate_dummy_statement_fixtures.py` from the repo root. It re-reads each generated file through the *real* `statement-loader` reader class before writing it, so a fixture that wouldn't actually parse correctly fails generation loudly instead of silently landing as a broken file.

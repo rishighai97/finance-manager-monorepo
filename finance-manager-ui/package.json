@@ -18,7 +18,7 @@
     "build:qa": "ng build --configuration=qa",
     "build:uat": "ng build --configuration=uat",
     "build:prod": "ng build --configuration=production",
-    "test": "ng test",
+    "test": "ng test --code-coverage",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },

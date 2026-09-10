@@ -17,10 +17,14 @@ class Postgres:
         except Exception as e:
             raise Exception("An exception occurred while querying postgres occurred: ", e)
         finally:
-            # Ensure the connection is closed
+            # Return the connection to the pool rather than closing it - the
+            # pool only ever opens minconn..maxconn real connections total,
+            # so closing it directly here (instead of self.pool.putconn)
+            # permanently shrinks the pool by one every call. After enough
+            # requests (~maxconn) every subsequent call failed with
+            # psycopg2.pool.PoolError: connection pool exhausted.
             if conn is not None:
-                # self.pool.putconn(conn) # todo fixme give back connection to pool
-                conn.close()
+                self.pool.putconn(conn)
 
     @staticmethod
     def execute_select_statement(cur, sql: str):

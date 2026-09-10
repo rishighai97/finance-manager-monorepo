@@ -38,7 +38,7 @@ Listens on port **5003**. Connection settings are in `src/main/resources/applica
 | DELETE | `/user_account/v1/delete?user_account_id=` | Unlink an account from a user |
 
 ## Testing
-`./gradlew test` (JUnit 5 via `spring-boot-starter-test`). Note: unlike `api-gateway`/`transaction-service`, this module's `build.gradle` currently has `useJUnitPlatform()` commented out under the `test` task - worth confirming test discovery actually works as expected before relying on `./gradlew test` here.
+`./gradlew test` (JUnit 5 via `spring-boot-starter-test` + Mockito) - `useJUnitPlatform()` is now enabled (previously commented out, so this task silently ran 0 tests; see `jira/JIRA_7.md`). Real unit tests cover `AccountController`/`UserAccountController` (including validation edge cases), `AccountServiceImpl`/`UserAccountServiceImpl`, `AccountGrouper`'s grouping logic, and the `*PostgresDao` classes (DAO layer mocked at the `NamedParameterJdbcTemplate` level - no live Postgres needed). `./gradlew test jacocoTestCoverageVerification` (also wired into `check`) fails the build below 60% line coverage; JaCoCo's HTML report is at `build/reports/jacoco/test/html/index.html`, the JUnit HTML report (with `@DisplayName` sentences) at `build/reports/tests/test/index.html`. `UserAccountServiceApplicationTests`'s context-load smoke test uses an in-memory H2 database (`src/test/resources/application.properties`) purely to satisfy the `DataSource` bean - it was never previously verified as passing either, since it requires a `DataSource` that no-profile test runs didn't have.
 
 ## Gotchas
 - No JPA/ORM - all data access is hand-written SQL via `AccountPostgresDao`/`UserAccountPostgresDao`. Schema changes need a matching DAO change; there's no auto-migration.

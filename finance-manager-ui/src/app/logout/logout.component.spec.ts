@@ -1,4 +1,7 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
 import { LogoutComponent } from './logout.component';
@@ -8,9 +11,13 @@ describe('LogoutComponent', () => {
   let fixture: ComponentFixture<LogoutComponent>;
 
   beforeEach(waitForAsync(() => {
+    // LogoutComponent is standalone - it belongs in `imports`, not the
+    // NgModule-style `declarations` array (that combination is rejected by
+    // Angular 19's TestBed and meant this spec never actually ran; see
+    // jira/JIRA_7.md's Implementation notes).
     TestBed.configureTestingModule({
-      declarations: [ LogoutComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [LogoutComponent, IonicModule.forRoot()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LogoutComponent);

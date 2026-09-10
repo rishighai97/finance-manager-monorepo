@@ -46,7 +46,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     private BigDecimal calculateClosingBalance(List<Transaction> transactionList) {
         return getEarliestOrLatestTransactionPerUserAccountId(transactionList, false)
-                .map(Transaction::closingBalance)
+                // Mutual-fund/broker transactions (e.g. Groww) have no running bank
+                // balance concept - closingBalance() is null for those, not just
+                // absent-and-zero. Treat null as "doesn't contribute" rather than
+                // NPEing, matching getTotalDebitOrCreditAmount's null-safety below.
+                .map(t -> t.closingBalance() != null ? t.closingBalance() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -54,6 +58,9 @@ public class TransactionServiceImpl implements TransactionService {
         return getEarliestOrLatestTransactionPerUserAccountId(transactionList, true)
                 .map(t -> {
                     BigDecimal closingBalance = t.closingBalance();
+                    if (closingBalance == null) {
+                        return BigDecimal.ZERO;
+                    }
                     BigDecimal debitOrCreditAmount = t.debitOrCreditAmount();
                     boolean credit = t.isDebitOrCredit().equalsIgnoreCase(DebitCreditIndicator.CREDIT.getName());
                     return credit ? closingBalance.subtract(debitOrCreditAmount) : closingBalance.add(debitOrCreditAmount);

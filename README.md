@@ -23,6 +23,8 @@ The `local-run` Claude Code skill (`.claude/skills/local-run/SKILL.md`) brings u
 
 Automated end-to-end/API test coverage lives in [`test-automation`](test-automation/README.md) - a black-box BDD (Cucumber) suite that runs against an already-running stack (see `local-run` above) and documents its full scenario catalog and how to view the HTML report.
 
+Each of `account-service`, `api-gateway`, `transaction-service`, `statement-loader`, and `finance-manager-ui` also has its own unit test suite (JUnit 5 + Mockito, pytest, and Jasmine/Karma respectively), each enforcing a 60% minimum line-coverage floor as part of its normal test command - see that module's own README `Testing` section for the exact command and where to view its coverage report. The `unit-test-generate` skill (`docs/SKILLS.md`) maintains these: existing-feature mode backfills tests without changing behavior, new-feature mode writes tests first (TDD) for a ticket's acceptance criteria before implementing it. See `jira/JIRA_7.md` for the ticket this baseline was established under, including real bugs found along the way.
+
 ## CI/CD
 
 Each module has its own GitHub Actions deploy workflow (`.github/workflows/<module>-deploy.yml`), scoped to only run when that module's files change. Pull requests run `.github/workflows/pr-checks.yml`, which detects which modules changed and only builds/tests those (see that module's job for exact commands), aggregated into a single `pr-gate` check. That check is not yet required to merge (this repo is private on a free GitHub plan, which doesn't support required status checks on private repos) - it still reports pass/fail on every PR.

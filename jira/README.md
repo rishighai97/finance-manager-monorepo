@@ -12,3 +12,5 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_4](JIRA_4.md) | Signup 500s - blank local Postgres password in api-gateway/transaction-service | Done |
 | [JIRA_5](JIRA_5.md) | dbscripts module + db-run skill (version-controlled SQL, psql-driven db-setup) | Done |
 | [JIRA_6](JIRA_6.md) | test-automation module (BDD scenario discovery + generation skills) | Done |
+| [JIRA_7](JIRA_7.md) | Unit test coverage across all modules + `unit-test-generate` (TDD) skill | Done |
+| [JIRA_8](JIRA_8.md) | Synthetic statement fixtures per bank/broker format + e2e upload coverage | Done |
