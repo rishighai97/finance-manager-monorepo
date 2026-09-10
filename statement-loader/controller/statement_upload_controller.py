@@ -1,7 +1,7 @@
 import json
 from typing import List
 
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from flask_cors import CORS, cross_origin
 from werkzeug.exceptions import BadRequest
 
@@ -12,8 +12,9 @@ blueprint = Blueprint('statement_upload_controller', __name__,url_prefix='/state
 service = StatementUploader()
 
 @blueprint.route(rule="/healthcheck", methods=['GET'])
+@cross_origin()
 def healthcheck():
-    return "Statement API is up and running!"
+    return jsonify({"status": "OK"})
 
 
 @blueprint.route(rule="/", methods=['POST'])

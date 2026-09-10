@@ -15,3 +15,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_7](JIRA_7.md) | Unit test coverage across all modules + `unit-test-generate` (TDD) skill | Done |
 | [JIRA_8](JIRA_8.md) | Synthetic statement fixtures per bank/broker format + e2e upload coverage | Done |
 | [JIRA_9](JIRA_9.md) | `diagram-maintain` skill for architecture diagrams in a new `architecture-docs` module | Done |
+| [JIRA_10](JIRA_10.md) | Observability module - single-page HTML healthcheck dashboard | Done |

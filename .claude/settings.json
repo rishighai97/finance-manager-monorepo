@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/healthcheck-maintain/check-api-change.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

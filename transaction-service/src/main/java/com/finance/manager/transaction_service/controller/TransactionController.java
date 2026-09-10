@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -36,8 +37,8 @@ public class TransactionController {
     }
 
     @GetMapping("/v1/healthcheck")
-    public String healthcheck() {
-        return "Transaction API is up and running!";
+    public Map<String, String> healthcheck() {
+        return Map.of("status", "OK");
     }
 
     @GetMapping("/v1/fetch_all")

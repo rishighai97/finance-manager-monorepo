@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin
@@ -22,8 +24,8 @@ public class AuthController {
     private final UserService userService;
 
     @GetMapping("/healthcheck")
-    public String healthCheck() {
-        return "API Gateway is up and running";
+    public Map<String, String> healthCheck() {
+        return Map.of("status", "OK");
     }
 
     @PostMapping("/signup")

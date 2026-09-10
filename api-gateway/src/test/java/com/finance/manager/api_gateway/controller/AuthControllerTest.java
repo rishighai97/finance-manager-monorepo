@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,9 +36,9 @@ class AuthControllerTest {
     class HealthCheck {
 
         @Test
-        @DisplayName("returns the up-and-running message without touching the service")
-        void returnsFixedMessage() {
-            assertThat(controller.healthCheck()).isEqualTo("API Gateway is up and running");
+        @DisplayName("returns status OK without touching the service")
+        void returnsStatusOk() {
+            assertThat(controller.healthCheck()).isEqualTo(Map.of("status", "OK"));
         }
     }
 

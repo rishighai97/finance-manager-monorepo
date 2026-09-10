@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,9 +37,9 @@ class CategoryControllerTest {
     class Healthcheck {
 
         @Test
-        @DisplayName("returns the up-and-running message without touching the service")
-        void returnsFixedMessage() {
-            assertThat(controller.healthcheck()).isEqualTo("Category API is up and running!");
+        @DisplayName("returns status OK without touching the service")
+        void returnsStatusOk() {
+            assertThat(controller.healthcheck()).isEqualTo(Map.of("status", "OK"));
         }
     }
 

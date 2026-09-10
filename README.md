@@ -19,6 +19,7 @@ It's a multi-module workspace - four backend services plus an Angular/Ionic clie
 | [`dbscripts`](dbscripts/README.md) | SQL | — | Version-controlled schema/sample-data SQL, run via the `db-run`/`db-setup` skills |
 | [`test-automation`](test-automation/README.md) | Java 21, Spring Boot + Cucumber | — | Black-box backend BDD test suite against a running stack |
 | [`architecture-docs`](architecture-docs/README.md) | Markdown + Mermaid | — | Architecture diagrams (HLD, sequence, ER), kept in sync by the `diagram-maintain` skill |
+| [`observability`](observability/README.md) | HTML/JS/CSS (Bootstrap) | — | Live healthcheck dashboard, kept in sync by the `healthcheck-maintain` skill |
 | [`scripts`](scripts/README.md) | Bash / Python | — | Local environment setup and deployment helper scripts |
 
 All four backend services (`account-service`, `api-gateway`, `transaction-service`, `statement-loader`) share a single Postgres database (`finance_manager`, default `localhost:5432` locally).
@@ -26,6 +27,10 @@ All four backend services (`account-service`, `api-gateway`, `transaction-servic
 ## Architecture
 
 [`architecture-docs`](architecture-docs/README.md) has the full picture: a high-level design diagram of every service and how it talks to the shared database, sequence diagrams for key user flows (statement upload, categorizing/filtering transactions, signup/login), and an entity-relationship diagram of the schema. All diagrams are Mermaid source kept up to date by the `diagram-maintain` skill (`docs/SKILLS.md`).
+
+## Observability
+
+[`observability`](observability/README.md) has `healthcheck.html` - a single-page live dashboard that polls every backend service's healthcheck endpoint plus the UI, per environment (`local` is fully configured; `dev`/`qa`/`uat`/`prod` are placeholders). Open it directly in a browser against a running local stack to see pass/fail status and an IST timestamp for each check, with a manual refresh and a 60-second auto-refresh. Kept up to date by the `healthcheck-maintain` skill (`docs/SKILLS.md`), which is triggered automatically by a hook whenever an API-affecting file changes.
 
 ## Running locally
 

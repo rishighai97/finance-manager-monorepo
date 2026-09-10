@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,6 +32,17 @@ class UserAccountControllerTest {
 
     @InjectMocks
     private UserAccountController controller;
+
+    @Nested
+    @DisplayName("healthcheck")
+    class Healthcheck {
+
+        @Test
+        @DisplayName("returns status OK without touching the service")
+        void returnsStatusOk() {
+            assertThat(controller.healthcheck()).isEqualTo(Map.of("status", "OK"));
+        }
+    }
 
     @Nested
     @DisplayName("fetchAllAccountsByUserIds")

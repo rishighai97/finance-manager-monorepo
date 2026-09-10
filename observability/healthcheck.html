@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Manager Healthcheck</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { background-color: #f5f6f8; }
+  .card { transition: border-color .2s ease; }
+  .card.border-success { border-width: 2px; }
+  .card.border-danger { border-width: 2px; }
+  .endpoint-url { word-break: break-all; }
+  #envTabs .nav-link { cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container py-4">
+
+  <header class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+      <h1 class="h3 mb-0">Finance Manager Healthcheck</h1>
+      <div class="text-muted small">Live status of every backend service and the UI, per environment.</div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span id="lastRefreshLabel" class="text-muted small"></span>
+      <button id="refreshBtn" type="button" class="btn btn-primary btn-sm">
+        <span id="refreshSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+        Refresh now
+      </button>
+    </div>
+  </header>
+
+  <ul class="nav nav-pills mb-3" id="envTabs"></ul>
+
+  <div id="summaryBar" class="mb-3"></div>
+
+  <div id="checksContainer" class="row g-3"></div>
+
+  <div id="placeholderContainer" class="text-center text-muted py-5 d-none"></div>
+
+  <footer class="text-muted small mt-5">
+    Auto-refreshes every 60 seconds. All timestamps shown in IST (Asia/Kolkata), regardless of your local timezone.
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var POLL_INTERVAL_MS = 60000;
+
+  // Endpoint list per environment. `local` is the only one filled in today -
+  // dev/qa/uat/prod are placeholders until those environments' URLs are known.
+  // Kept up to date by the `healthcheck-maintain` skill (.claude/skills/healthcheck-maintain/SKILL.md)
+  // whenever an API changes elsewhere in the repo - see that skill before hand-editing this list.
+  var ENVIRONMENTS = {
+    local: {
+      label: "Local",
+      configured: true,
+      checks: [
+        { service: "account-service", name: "account healthcheck", url: "http://localhost:5003/account/v1/healthcheck", kind: "json" },
+        { service: "account-service", name: "user_account healthcheck", url: "http://localhost:5003/user_account/v1/healthcheck", kind: "json" },
+        { service: "api-gateway", name: "auth healthcheck", url: "http://localhost:5001/auth/healthcheck", kind: "json" },
+        { service: "transaction-service", name: "transaction healthcheck", url: "http://localhost:5004/transaction/v1/healthcheck", kind: "json" },
+        { service: "transaction-service", name: "category healthcheck", url: "http://localhost:5004/category/v1/healthcheck", kind: "json" },
+        { service: "statement-loader", name: "statement upload healthcheck", url: "http://localhost:5002/statement/upload/v1/healthcheck", kind: "json" },
+        { service: "finance-manager-ui", name: "UI reachability", url: "http://localhost:8100/", kind: "reachability" }
+      ]
+    },
+    dev: { label: "Dev", configured: false, checks: [] },
+    qa: { label: "QA", configured: false, checks: [] },
+    uat: { label: "UAT", configured: false, checks: [] },
+    prod: { label: "Prod", configured: false, checks: [] }
+  };
+
+  var currentEnv = "local";
+  var autoRefreshTimer = null;
+  var resultsStore = {}; // "<env>:<index>" -> { status: 'up'|'down', detail, checkedAt }
+
+  function istTimestamp(date) {
+    return new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+    }).format(date) + " IST";
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function runCheck(check) {
+    var startedAt = new Date();
+    if (check.kind === "json") {
+      return fetch(check.url, { cache: "no-store" })
+        .then(function (res) {
+          return res.json().catch(function () { return null; }).then(function (body) {
+            var healthy = res.ok && body && String(body.status).toUpperCase() === "OK";
+            return {
+              status: healthy ? "up" : "down",
+              detail: res.ok
+                ? (body ? "HTTP " + res.status + " - " + JSON.stringify(body) : "HTTP " + res.status + " (non-JSON body)")
+                : "HTTP " + res.status,
+              checkedAt: startedAt
+            };
+          });
+        })
+        .catch(function (err) {
+          return { status: "down", detail: err && err.message ? err.message : "Network error", checkedAt: startedAt };
+        });
+    }
+    if (check.kind === "reachability") {
+      // no-cors: response is opaque (status always 0), so this can only tell us the
+      // request didn't throw a network error - not the real HTTP status. See README Gotchas.
+      return fetch(check.url, { mode: "no-cors", cache: "no-store" })
+        .then(function () {
+          return { status: "up", detail: "Responded (opaque response - CORS prevents reading the real status)", checkedAt: startedAt };
+        })
+        .catch(function (err) {
+          return { status: "down", detail: err && err.message ? err.message : "Network error", checkedAt: startedAt };
+        });
+    }
+    return Promise.resolve({ status: "down", detail: "Unknown check kind", checkedAt: startedAt });
+  }
+
+  function renderEnvTabs() {
+    var tabsEl = document.getElementById("envTabs");
+    tabsEl.innerHTML = "";
+    Object.keys(ENVIRONMENTS).forEach(function (key) {
+      var env = ENVIRONMENTS[key];
+      var li = document.createElement("li");
+      li.className = "nav-item";
+      var a = document.createElement("a");
+      a.className = "nav-link" + (key === currentEnv ? " active" : "");
+      a.textContent = env.label + (env.configured ? "" : " (not configured)");
+      a.addEventListener("click", function () {
+        currentEnv = key;
+        renderAll();
+        if (ENVIRONMENTS[key].configured) { runAllChecks(key); }
+      });
+      li.appendChild(a);
+      tabsEl.appendChild(li);
+    });
+  }
+
+  function renderSummary(env) {
+    var bar = document.getElementById("summaryBar");
+    if (!env.configured) { bar.innerHTML = ""; return; }
+    var results = env.checks.map(function (c, i) { return resultsStore[currentEnv + ":" + i]; });
+    var known = results.filter(function (r) { return !!r; });
+    var up = known.filter(function (r) { return r.status === "up"; }).length;
+    var down = known.filter(function (r) { return r.status === "down"; }).length;
+    var pending = results.length - known.length;
+    bar.innerHTML =
+      '<span class="badge text-bg-success me-1">' + up + " up</span>" +
+      '<span class="badge text-bg-danger me-1">' + down + " down</span>" +
+      (pending ? '<span class="badge text-bg-secondary">' + pending + " checking…</span>" : "");
+  }
+
+  function statusBadge(status) {
+    if (status === "up") return '<span class="badge text-bg-success">UP</span>';
+    if (status === "down") return '<span class="badge text-bg-danger">DOWN</span>';
+    return '<span class="badge text-bg-secondary">Checking…</span>';
+  }
+
+  function renderChecks() {
+    var container = document.getElementById("checksContainer");
+    var placeholder = document.getElementById("placeholderContainer");
+    var env = ENVIRONMENTS[currentEnv];
+
+    if (!env.configured) {
+      container.innerHTML = "";
+      container.classList.add("d-none");
+      placeholder.classList.remove("d-none");
+      placeholder.innerHTML =
+        '<p class="mb-0">No endpoints configured yet for <strong>' + escapeHtml(env.label) + "</strong>.<br>" +
+        "Add them to <code>ENVIRONMENTS." + escapeHtml(currentEnv) + ".checks</code> in this file once that environment's URLs are known.</p>";
+      return;
+    }
+
+    placeholder.classList.add("d-none");
+    container.classList.remove("d-none");
+    container.innerHTML = env.checks.map(function (check, i) {
+      var result = resultsStore[currentEnv + ":" + i];
+      var status = result ? result.status : "pending";
+      var borderClass = status === "up" ? "border-success" : status === "down" ? "border-danger" : "border-secondary-subtle";
+      return (
+        '<div class="col-12 col-md-6 col-lg-4">' +
+          '<div class="card h-100 ' + borderClass + '">' +
+            '<div class="card-body">' +
+              '<div class="d-flex justify-content-between align-items-start mb-1">' +
+                "<h2 class=\"h6 mb-0\">" + escapeHtml(check.service) + "</h2>" +
+                statusBadge(status) +
+              "</div>" +
+              '<div class="text-muted small mb-2">' + escapeHtml(check.name) + "</div>" +
+              '<div class="small endpoint-url mb-2"><a href="' + escapeHtml(check.url) + '" target="_blank" rel="noopener">' + escapeHtml(check.url) + "</a></div>" +
+              '<div class="small">' + (result ? escapeHtml(result.detail) : "Waiting for first check…") + "</div>" +
+              '<div class="small text-muted mt-2">' + (result ? "Checked at " + istTimestamp(result.checkedAt) : "") + "</div>" +
+            "</div>" +
+          "</div>" +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function renderAll() {
+    renderEnvTabs();
+    renderSummary(ENVIRONMENTS[currentEnv]);
+    renderChecks();
+  }
+
+  function runAllChecks(envKey) {
+    var env = ENVIRONMENTS[envKey];
+    if (!env.configured) { return Promise.resolve(); }
+    var btn = document.getElementById("refreshBtn");
+    var spinner = document.getElementById("refreshSpinner");
+    spinner.classList.remove("d-none");
+    btn.disabled = true;
+    return Promise.all(env.checks.map(function (check, i) {
+      return runCheck(check).then(function (result) {
+        resultsStore[envKey + ":" + i] = result;
+        if (currentEnv === envKey) { renderSummary(env); renderChecks(); }
+      });
+    })).then(function () {
+      spinner.classList.add("d-none");
+      btn.disabled = false;
+      document.getElementById("lastRefreshLabel").textContent = "Last full refresh: " + istTimestamp(new Date());
+    });
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", function () {
+    runAllChecks(currentEnv);
+  });
+
+  function scheduleAutoRefresh() {
+    if (autoRefreshTimer) { clearInterval(autoRefreshTimer); }
+    autoRefreshTimer = setInterval(function () { runAllChecks(currentEnv); }, POLL_INTERVAL_MS);
+  }
+
+  renderAll();
+  runAllChecks(currentEnv);
+  scheduleAutoRefresh();
+})();
+</script>
+</body>
+</html>
+</content>

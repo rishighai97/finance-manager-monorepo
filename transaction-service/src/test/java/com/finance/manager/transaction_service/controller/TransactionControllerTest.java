@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,9 +35,9 @@ class TransactionControllerTest {
     class Healthcheck {
 
         @Test
-        @DisplayName("returns the up-and-running message without touching the service")
-        void returnsFixedMessage() {
-            assertThat(controller.healthcheck()).isEqualTo("Transaction API is up and running!");
+        @DisplayName("returns status OK without touching the service")
+        void returnsStatusOk() {
+            assertThat(controller.healthcheck()).isEqualTo(Map.of("status", "OK"));
         }
     }
 

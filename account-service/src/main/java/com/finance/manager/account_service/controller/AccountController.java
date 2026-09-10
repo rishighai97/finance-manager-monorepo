@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @RestController
@@ -20,8 +21,8 @@ public class AccountController {
     private final AccountService service;
 
     @GetMapping("/v1/healthcheck")
-    public String healthcheck() {
-        return "Account API is up and running!";
+    public Map<String, String> healthcheck() {
+        return Map.of("status", "OK");
     }
 
     @GetMapping("/v1/fetch_all")

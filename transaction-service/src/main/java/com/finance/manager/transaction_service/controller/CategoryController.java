@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -26,8 +27,8 @@ public class CategoryController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryController.class);
 
     @GetMapping("/v1/healthcheck")
-    public String healthcheck() {
-        return "Category API is up and running!";
+    public Map<String, String> healthcheck() {
+        return Map.of("status", "OK");
     }
 
     @GetMapping("/v1/fetch_all")

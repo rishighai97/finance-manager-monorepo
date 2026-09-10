@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -31,9 +32,9 @@ class AccountControllerTest {
     class Healthcheck {
 
         @Test
-        @DisplayName("returns the up-and-running message without touching the service")
-        void returnsFixedMessage() {
-            assertThat(controller.healthcheck()).isEqualTo("Account API is up and running!");
+        @DisplayName("returns status OK without touching the service")
+        void returnsStatusOk() {
+            assertThat(controller.healthcheck()).isEqualTo(Map.of("status", "OK"));
         }
     }
 
