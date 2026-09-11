@@ -94,6 +94,7 @@ export class TransactionSearchComponent implements OnInit {
 
   startDate = "";
   endDate = "";
+  isDateRangeModalOpen = false;
 
   userCategories: UserCategory[] = [];
   categoryMap: Map<number, UserCategory> = new Map();
@@ -166,6 +167,30 @@ export class TransactionSearchComponent implements OnInit {
   onDebitCreditIndicatorChange(value: "DR" | "CR" | null) {
     this.debitCreditIndicator = value;
     this.emitFilters();
+  }
+
+  openDateRangeSelector() {
+    this.isDateRangeModalOpen = true;
+  }
+
+  closeDateRangeSelector() {
+    this.isDateRangeModalOpen = false;
+  }
+
+  // Compact "Apr 1–Mar 31" chip label (ux/UX_transaction-search.md's
+  // mockup) instead of two stacked From/To fields always on-screen -
+  // parsed with an explicit local-midnight time to avoid the UTC-parsing
+  // off-by-one day that plain `new Date("2026-04-01")` can produce.
+  getDateRangeText(): string {
+    if (!this.startDate || !this.endDate) {
+      return "Select dates";
+    }
+    const format = (value: string) =>
+      new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    return `${format(this.startDate)}–${format(this.endDate)}`;
   }
 
   openAccountSelector() {

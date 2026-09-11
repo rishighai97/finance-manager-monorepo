@@ -13,6 +13,16 @@ import { TransactionListComponent } from "../transaction-list/transaction-list.c
 @Component({
   selector: "app-transactions-page",
   templateUrl: "./transactions-page.component.html",
+  // `display: contents` - this component is the one Ionic's router
+  // outlet actually applies the `ion-page` flex-column class to, but it
+  // has no ion-header/ion-content of its own (those live on
+  // TransactionListComponent, one level down). Left as the default
+  // `display: inline`, this host would stop the ion-page column from
+  // reaching TransactionListComponent's real content at all; `contents`
+  // makes it invisible to layout so TransactionListComponent's own host
+  // (also `display: contents`, see its stylesheet) becomes a direct
+  // flex-layout descendant of ion-page.
+  styles: [":host { display: contents; }"],
   standalone: true,
   imports: [TransactionSearchComponent, TransactionListComponent],
 })

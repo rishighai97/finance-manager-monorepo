@@ -67,6 +67,39 @@ describe("TransactionSearchComponent", () => {
     });
   });
 
+  // New with the "condensed single-row filter bar" redesign
+  // (ux/UX_transaction-search.md's mockup) - the two stacked From/To date
+  // fields were replaced with a single "Apr 1–Mar 31" chip that opens a
+  // modal, so there's now a formatted-label getter and a modal-open flag
+  // to characterize.
+  describe("getDateRangeText (the compact date-range chip label)", () => {
+    it("formats a real start/end date as an en-dash range with no year", () => {
+      component.startDate = "2026-04-01";
+      component.endDate = "2027-03-31";
+
+      expect(component.getDateRangeText()).toBe("Apr 1–Mar 31");
+    });
+
+    it("falls back to a placeholder when either date is missing", () => {
+      component.startDate = "";
+      component.endDate = "2027-03-31";
+
+      expect(component.getDateRangeText()).toBe("Select dates");
+    });
+  });
+
+  describe("openDateRangeSelector / closeDateRangeSelector", () => {
+    it("toggles isDateRangeModalOpen", () => {
+      expect(component.isDateRangeModalOpen).toBe(false);
+
+      component.openDateRangeSelector();
+      expect(component.isDateRangeModalOpen).toBe(true);
+
+      component.closeDateRangeSelector();
+      expect(component.isDateRangeModalOpen).toBe(false);
+    });
+  });
+
   // seedFilters became @Input() initialFilters as part of jira/JIRA_14.md's
   // addendum (wrapper composition instead of the router-outlet/(activate)
   // coordinator) - seeding now happens in ngOnInit, since Angular sets a

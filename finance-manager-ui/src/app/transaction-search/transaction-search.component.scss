@@ -3,6 +3,15 @@
 // row, just relocated with the markup. Font-family inherited from
 // --ion-font-family (src/theme/variables.scss).
 
+// Projected into transaction-list's <ng-content> (see
+// TransactionsPageComponent) - `display: contents` keeps this host
+// invisible to layout so .filter-bar lands directly in transaction-list's
+// flex flow instead of being wrapped in an unstyled (default `inline`)
+// custom element box.
+:host {
+  display: contents;
+}
+
 ion-content {
   --background: var(--ion-background-color);
 }
@@ -27,47 +36,62 @@ ion-content {
   overflow-y: auto !important;
 }
 
-.date-filter-container {
+// Condensed single-row filter bar (ux/UX_transaction-search.md's Option 4
+// mockup) - plain text + caret "chips" in one row, not the old stacked
+// uppercase-label-over-input form fields. A chip with a real selection
+// gets the primary accent color and an underline; everything else stays
+// muted, matching the mockup's "Apr 1–Mar 31 ▾ / 3 accounts ▾ / Category ▾
+// / DR/CR ▾" treatment.
+.filter-bar {
   display: flex;
-  align-items: flex-end;
-  padding: 14px 20px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px 12px;
   border-bottom: 1px solid var(--app-divider);
-  gap: 10px;
-  flex-wrap: wrap;
+  overflow-x: auto;
+}
 
-  .date-picker-item,
-  .account-selector-item,
-  .category-selector-item,
-  .debit-credit-selector-item {
-    flex: 1;
-    --background: transparent;
-    --padding-start: 0;
-    --inner-padding-end: 0;
-    border-bottom: 1px solid var(--app-divider);
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  padding: 0 0 2px;
+  margin: 0;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--app-color-muted);
+  cursor: pointer;
+  white-space: nowrap;
 
-    ion-label {
-      color: var(--app-color-muted);
-      font-size: 10.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 4px;
-    }
-
-    ion-input,
-    ion-select {
-      --padding-start: 0;
-      --padding-end: 0;
-      --placeholder-color: var(--app-color-muted);
-      font-size: 13px;
-      color: var(--ion-text-color);
-    }
+  .chip-caret {
+    font-size: 11px;
+    color: var(--ion-tab-bar-color);
   }
 
-  .account-selector-item,
-  .category-selector-item {
-    ion-input {
-      cursor: pointer;
+  &.active {
+    color: var(--ion-color-primary);
+    font-weight: 600;
+    border-bottom-color: var(--ion-color-primary);
+
+    .chip-caret {
+      color: inherit;
     }
+  }
+}
+
+ion-select.filter-select {
+  --padding-start: 0;
+  --padding-end: 0;
+  --placeholder-color: var(--app-color-muted);
+  --color: var(--app-color-muted);
+  max-width: 100px;
+
+  &.active {
+    --color: var(--ion-color-primary);
   }
 }
 

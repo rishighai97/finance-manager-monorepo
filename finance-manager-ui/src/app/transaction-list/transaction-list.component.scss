@@ -2,6 +2,17 @@
 // hairline-divided rows, no cards/shadows in list content. Font-family
 // inherited from --ion-font-family (src/theme/variables.scss).
 
+// This component is no longer the directly-routed page (jira/JIRA_14.md's
+// addendum nests it inside TransactionsPageComponent) - an unstyled custom
+// element defaults to `display: inline`, which stops its own ion-header/
+// ion-content from being real flex items of the outer ion-page column, so
+// ion-content collapses instead of filling the remaining height. `display:
+// contents` makes this host invisible to layout, so its children become
+// direct children of ion-page again, exactly as if there were no wrapper.
+:host {
+  display: contents;
+}
+
 // Force Ionic modal to center (override default slide-up) - unrelated to
 // Calm Ledger, structure/behavior unchanged from before.
 .force-center-modal::part(content),

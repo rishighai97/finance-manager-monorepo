@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-title class="cl-headline">Transactions</ion-title>
     <ion-buttons slot="end">
@@ -10,14 +10,22 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-no-padding">
+<!-- No [translucent]/[fullscreen] here (unlike this app's other pages) -
+     TransactionListComponent is no longer the directly-routed page since
+     jira/JIRA_14.md's addendum wrapped it inside TransactionsPageComponent;
+     ion-content[fullscreen]'s automatic header-height offset only works
+     when ion-header/ion-content are direct children of the routed ion-page
+     component, so nested one level deeper it silently computes a 0px
+     offset and content renders behind the header - invisible with the old,
+     taller filter markup (enough of it still peeked out below the header
+     to look right), glaringly visible with the new compact one. Dropping
+     fullscreen/translucent avoids the whole offset calculation - ion-content
+     just lays out normally after ion-header, which is correct either way
+     since this header is already fully opaque, not actually translucent. -->
+<ion-content class="ion-no-padding">
   <!-- transaction-search is projected here (see TransactionsPageComponent) -
        matching ux/UX_transaction-search.md's Option 4 layout, while
-       staying a genuinely separate component from this one. Placed inside
-       ion-content (not as a sibling between it and ion-header) because
-       ion-content[fullscreen] positions itself absolutely to slide under
-       a translucent header - a sibling between header and content isn't
-       accounted for in that offset and visually overlaps the content. -->
+       staying a genuinely separate component from this one. -->
   <ng-content></ng-content>
 
   <!-- No accounts selected - distinct from "no transactions match" (see
