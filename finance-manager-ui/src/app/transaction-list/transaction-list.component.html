@@ -100,6 +100,11 @@
            transaction-search), since it acts on the rows currently
            visible on this list; see JIRA_14's Implementation notes. -->
       <div class="batch-categorize-row">
+        <!-- Inline bulk-actions label (JIRA_15) - these buttons act on
+             every currently visible/filtered transaction, not one row;
+             wording/placement picked via a quick ux-explore round, see
+             ux/UX_transaction-list.md's addendum. -->
+        <span class="bulk-label">Bulk:</span>
         <ion-select
           placeholder="Select category to apply"
           [(ngModel)]="batchCategoryInput"
@@ -127,7 +132,12 @@
         >
           Delete Category
         </ion-button>
+        <!-- Revert Categorize now shares Update Categories' visibility
+             condition (JIRA_15) - both appear together once there's
+             something pending, instead of Revert Categorize showing even
+             when there's nothing to revert. -->
         <ion-button
+          *ngIf="hasCategoryChanges"
           fill="outline"
           color="medium"
           (click)="resetCategoryChanges()"

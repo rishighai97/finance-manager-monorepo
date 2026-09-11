@@ -181,6 +181,37 @@ describe("TransactionListComponent", () => {
     });
   });
 
+  // JIRA_15 - "Revert Categorize" used to render unconditionally even with
+  // nothing pending to revert; it now shares "Update Categories"'
+  // existing hasCategoryChanges condition so both appear/disappear together.
+  describe("Revert Categorize / Update Categories visibility (JIRA_15)", () => {
+    function findButtonByText(text: string) {
+      return fixture.debugElement.query(
+        (el) => el.nativeElement.tagName === "ION-BUTTON" && el.nativeElement.textContent.includes(text)
+      );
+    }
+
+    beforeEach(() => {
+      component.selectedAccountIds = [1];
+    });
+
+    it("hides both buttons when there are no pending category changes", () => {
+      component.hasCategoryChanges = false;
+      fixture.detectChanges();
+
+      expect(findButtonByText("Revert Categorize")).toBeNull();
+      expect(findButtonByText("Update Categories")).toBeNull();
+    });
+
+    it("shows both buttons together once a category change is pending", () => {
+      component.hasCategoryChanges = true;
+      fixture.detectChanges();
+
+      expect(findButtonByText("Revert Categorize")).not.toBeNull();
+      expect(findButtonByText("Update Categories")).not.toBeNull();
+    });
+  });
+
   describe("getTransactionAccountName (Calm Ledger - account shown as a tag under the title, not a title prefix)", () => {
     it("returns the account name for a known account id", () => {
       groupedUserAccounts$.next([

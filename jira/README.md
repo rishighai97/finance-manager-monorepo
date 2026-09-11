@@ -20,3 +20,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_12](JIRA_12.md) | `ux-explore` and `ux-apply` skills for a finance-manager-ui UX overhaul | In Progress |
 | [JIRA_13](JIRA_13.md) | Revamp transaction-list's search/filter section | Ready for Dev |
 | [JIRA_14](JIRA_14.md) | Split transaction-list into separate search and list components | Done |
+| [JIRA_15](JIRA_15.md) | Gate "Revert Categorize" on pending changes, label the bulk-actions row | Done |
