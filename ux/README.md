@@ -6,7 +6,7 @@ Spec-driven UX-direction tracker for finance-manager, parallel to `jira/`'s requ
 
 | File | Status |
 |---|---|
-| [UX_DIRECTION.md](UX_DIRECTION.md) | Not yet created |
+| [UX_DIRECTION.md](UX_DIRECTION.md) | Ready for Dev &mdash; "Calm Ledger" |
 
 ## Pages
 
