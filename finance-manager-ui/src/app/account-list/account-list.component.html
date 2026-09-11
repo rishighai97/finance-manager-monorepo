@@ -2,9 +2,10 @@
 
   <ion-header [translucent]="true">
     <ion-toolbar>
-      <ion-title>Accounts</ion-title>
+      <ion-title class="cl-headline">Accounts</ion-title>
       <ion-buttons slot="end">
-        <ion-button (click)="refreshWithAnimation($event)">
+        <span class="cl-mono meta-count">{{ getGroupedAccounts().length }} linked</span>
+        <ion-button (click)="refreshWithAnimation($event)" color="medium">
           <ion-icon name="refresh-outline"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -13,48 +14,73 @@
 
 }
 
-<ion-content [fullscreen]="true" color="light">
+<ion-content [fullscreen]="true">
   @if (!showTransactions) {
-  <ion-list [inset]="true" lines="none">
-    @if (getGroupedAccounts().length > 0) {
-    <!-- Level 1 Groups -->
-    @for (level1Group of getLevel1Groups(); track level1Group.title) {
-    <ion-item class="level1-item">
-      <ion-label class="level1-label">
-        {{ level1Group.title }}
-      </ion-label>
-      <div slot="end" class="amount-container">
-        <ion-chip
-          [ngClass]="{
-            danger: level1Group.amount < 0,
-            success: level1Group.amount > 0
-          }"
-        >
-          <ion-label>{{ level1Group.amount | currency : "INR" }}</ion-label>
-        </ion-chip>
-      </div>
-    </ion-item>
 
-    <!-- Level 2 accounts (always visible now) -->
+  @if (!isLoading && !hasError && getGroupedAccounts().length > 0) {
+  <div class="net-worth-row">
+    <span class="net-worth-label">Net worth</span>
+    <span
+      class="cl-mono net-worth-figure"
+      [ngClass]="{ danger: getNetWorth() < 0, success: getNetWorth() > 0 }"
+      >{{ getNetWorth() | currency : "INR" }}</span
+    >
+  </div>
+  }
+
+  <ion-list lines="none" class="calm-ledger-list">
+    @if (isLoading) {
+    <!-- Loading: flat skeleton rows, no spinner+text -->
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+    <div class="skeleton-row">
+      <div class="sk sk-avatar"></div>
+      <div class="sk-lines">
+        <div class="sk sk-line-1"></div>
+        <div class="sk sk-line-2"></div>
+      </div>
+      <div class="sk sk-amount"></div>
+    </div>
+    }
+    } @else if (hasError) {
+    <!-- Error: new state, this repo's error-fetch gap didn't exist before -->
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>Couldn&rsquo;t load accounts</h2>
+      <p>There was a problem reaching the server. Check your connection and try again.</p>
+      <a class="retry-link" (click)="retryLoadAccounts()">Retry</a>
+    </div>
+    } @else if (getGroupedAccounts().length > 0) {
+    <!-- Level 1 Groups - collapsible (tap the header to expand/collapse) -->
+    @for (level1Group of getLevel1Groups(); track level1Group.title) {
+    <div class="level1-item" (click)="toggleLevel1Group(level1Group.title)">
+      <ion-icon
+        name="chevron-down-outline"
+        class="level1-chevron"
+        [class.collapsed]="!isLevel1Expanded(level1Group.title)"
+      ></ion-icon>
+      <span class="level1-label">{{ level1Group.title }}</span>
+      <span
+        class="cl-mono level1-amount"
+        [ngClass]="{ danger: level1Group.amount < 0, success: level1Group.amount > 0 }"
+        >{{ level1Group.amount | currency : "INR" }}</span
+      >
+    </div>
+
+    @if (isLevel1Expanded(level1Group.title)) {
     @for (groupedAccount of getGroupedAccountsForLevel1(level1Group.title);
     track groupedAccount) {
-    <ion-item class="level2-item">
-      <ion-label class="level2-title">
-        {{ groupedAccount.level_2_title }}
-      </ion-label>
-      <div slot="end" class="amount-container">
-        <ion-chip
-          [ngClass]="{
-            danger: groupedAccount.level_2_amount < 0,
-            success: groupedAccount.level_2_amount > 0
-          }"
-        >
-          <ion-label>{{
-            groupedAccount.level_2_amount | currency : "INR"
-          }}</ion-label>
-        </ion-chip>
-      </div>
-    </ion-item>
+    <!-- Level 2 header - collapsed into level 1 when there's only one
+         level 2 subgroup (true for every level 1 group in current data) -->
+    @if (getGroupedAccountsForLevel1(level1Group.title).length > 1) {
+    <div class="level2-item">
+      <span class="level2-title">{{ groupedAccount.level_2_title }}</span>
+      <span
+        class="cl-mono level2-amount"
+        [ngClass]="{ danger: groupedAccount.level_2_amount < 0, success: groupedAccount.level_2_amount > 0 }"
+        >{{ groupedAccount.level_2_amount | currency : "INR" }}</span
+      >
+    </div>
+    }
 
     @for (account of groupedAccount.user_accounts; track account) {
     <ion-item
@@ -63,43 +89,31 @@
       button="true"
       lines="none"
     >
-      <ion-avatar slot="start">
-        <img alt="Account Icon" [src]="account.icon" />
-      </ion-avatar>
+      <div slot="start" class="account-avatar">{{ account.user_account_name.charAt(0) }}</div>
       <ion-label>
         <h4>{{ account.user_account_name }}</h4>
-        @if (account.latest_balance_date) {
-        <p>{{ account.latest_balance_date | date : "mediumDate" }}</p>
-        }
-        <ion-button
-          size="small"
-          fill="outline"
-          color="primary"
-          class="edit-options-button"
-          (click)="showAccountOptions(account, $event)"
-        >
-          Settings
-        </ion-button>
+        <div class="account-meta">
+          @if (account.latest_balance_date) {
+          <span>{{ account.latest_balance_date | date : "mediumDate" }}</span>
+          }
+          <a class="settings-link" (click)="showAccountOptions(account, $event)">Settings</a>
+        </div>
       </ion-label>
 
       <div slot="end" class="amount-container">
         @if (account.latest_balance != null && account.latest_balance != 0) {
-        <ion-chip
-          [ngClass]="{
-            danger: account.latest_balance < 0,
-            success: account.latest_balance > 0
-          }"
+        <span
+          class="cl-mono account-amount"
+          [ngClass]="{ danger: account.latest_balance < 0, success: account.latest_balance > 0 }"
+          >{{ account.latest_balance | currency : "INR" }}</span
         >
-          <ion-label>{{ account.latest_balance | currency : "INR" }}</ion-label>
-        </ion-chip>
         }
       </div>
     </ion-item>
-    }} } } @else if (isLoading) {
-    <ion-item>
-      <ion-label>Loading accounts...</ion-label>
-      <ion-spinner></ion-spinner>
-    </ion-item>
+    }
+    }
+    }
+    }
     } @else {
     <!-- Empty state when no accounts are available -->
     <div class="empty-state">

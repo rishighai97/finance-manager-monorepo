@@ -25,16 +25,48 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
+/* Calm Ledger theme tokens (ux/UX_DIRECTION.md, JIRA_12) - imported here,
+   AFTER Ionic's own core/normalize CSS above, not as a separate entry in
+   angular.json's `styles` array before this file: Ionic's core.css sets
+   its own --ion-color-* defaults on :root, and since both rules have
+   equal specificity, whichever loads LAST in the final concatenated
+   stylesheet wins the tie. Importing variables.scss earlier (as a
+   standalone angular.json style entry) let Ionic's defaults silently
+   override it - the app never actually looked like Calm Ledger despite
+   the tokens being "correct". */
+@import "./theme/variables.scss";
+
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
- * For more info, please see:
+ * Calm Ledger (ux/UX_DIRECTION.md) is a deliberately light, warm-off-white
+ * direction with no dark variant designed yet (see JIRA_12's "Private
+ * Wealth" direction, considered and set aside for now) - auto-switching to
+ * Ionic's generic dark palette on a device set to dark mode would clash
+ * with these tokens, so the system-dark import is intentionally left off.
+ * Re-enable (or design a real Calm Ledger dark variant) if that's wanted.
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* @import '@ionic/angular/css/palettes/dark.system.css'; */
+
+/* Calm Ledger typography (ux/UX_DIRECTION.md) - Source Serif 4 for screen
+   titles, IBM Plex Mono for every monetary/tabular figure. Loaded here
+   (not just in index.html) so Angular's build pipeline fingerprints it
+   alongside the rest of the app's CSS. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap");
+
+.cl-headline {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cl-mono {
+  font-family: "IBM Plex Mono", monospace;
+}
 
 .refreshing {
     animation: rotate 1s linear;

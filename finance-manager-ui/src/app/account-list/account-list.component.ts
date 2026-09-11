@@ -18,8 +18,6 @@ import {
   IonCardHeader,
   IonAvatar,
   IonCardContent,
-  IonChip,
-  IonSpinner,
   IonBackButton,
   IonButtons,
   IonButton,
@@ -47,6 +45,7 @@ import {
   trashOutline,
   documentTextOutline,
   refreshOutline,
+  alertCircleOutline,
 } from "ionicons/icons";
 import { UserAccount } from "src/model/user-account";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
@@ -89,8 +88,6 @@ interface Level1Group {
     IonCardHeader,
     IonAvatar,
     IonCardContent,
-    IonChip,
-    IonSpinner,
     IonBackButton,
     IonButtons,
     IonButton,
@@ -115,6 +112,7 @@ export class AccountListComponent implements OnInit {
   private groupedAccounts: GroupedUserAccount[] = [];
   private level1Groups: Level1Group[] = [];
   isLoading: boolean = true;
+  hasError: boolean = false;
   showTransactions: boolean = false;
   selectedAccountId: number | null = null;
   selectedAccountName: string = "";
@@ -171,21 +169,42 @@ export class AccountListComponent implements OnInit {
       trashOutline,
       documentTextOutline,
       refreshOutline,
+      alertCircleOutline,
     });
   }
 
   ngOnInit() {
     // Subscribe to user accounts
-    this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
-      this.groupedAccounts = accounts;
-      this.isLoading = false;
-      this.generateLevel1Groups();
+    this.userAccountService.groupedUserAccounts$.subscribe({
+      next: (accounts) => {
+        this.groupedAccounts = accounts;
+        this.isLoading = false;
+        this.hasError = false;
+        this.generateLevel1Groups();
+      },
+      error: (error) => {
+        console.error("Error loading accounts:", error);
+        this.isLoading = false;
+        this.hasError = true;
+      },
     });
 
     // Subscribe to available accounts
     this.accountService.groupedAccounts$.subscribe((accounts) => {
       this.accounts = accounts;
     });
+  }
+
+  // Retry after a failed load (Calm Ledger error state)
+  retryLoadAccounts() {
+    this.isLoading = true;
+    this.hasError = false;
+    this.refreshAccounts();
+  }
+
+  // Net worth: sum across every Level 1 group (Calm Ledger Option C)
+  getNetWorth(): number {
+    return this.level1Groups.reduce((total, group) => total + group.amount, 0);
   }
 
   // Generate Level 1 groups from grouped accounts
@@ -199,13 +218,18 @@ export class AccountListComponent implements OnInit {
       level1Map.set(group.level_1_title, currentAmount + group.level_2_amount);
     });
 
-    // Convert map to Level1Group array
+    // Convert map to Level1Group array - default expanded (Calm Ledger:
+    // collapsible sections default open), but preserve whatever a user has
+    // already toggled across data refreshes rather than resetting it.
     this.level1Groups = Array.from(level1Map.entries()).map(
-      ([title, amount]) => ({
-        title,
-        amount,
-        isExpanded: false, // Default to collapsed
-      })
+      ([title, amount]) => {
+        const existing = this.level1Groups.find((g) => g.title === title);
+        return {
+          title,
+          amount,
+          isExpanded: existing ? existing.isExpanded : true,
+        };
+      }
     );
   }
 

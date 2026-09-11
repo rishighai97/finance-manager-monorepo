@@ -23,6 +23,8 @@ Read `ux/UX_<page>.md` (and `ux/UX_DIRECTION.md`, which it must be built on). **
 
 Skip this step on every run after the first for a given `ux/UX_DIRECTION.md` version - check `finance-manager-ui/src/theme/variables.scss`'s current values against the spec rather than blindly re-writing it (a prior `ux-apply` run may have already applied it).
 
+**Wiring gotcha (this actually happened on the real `account-list` run - see `ux/UX_account-list.md`'s Implementation notes for the full story): `variables.scss` must be imported from *inside* `global.scss`** (via SCSS `@import "./theme/variables.scss";`, placed *after* `global.scss`'s own `@import "@ionic/angular/css/core.css"` and friends), **not added as its own entry in `angular.json`'s `styles` array before `global.scss`.** `core.css` sets Ionic's default `--ion-color-*` values on `:root` too; same specificity means whichever loads *last* in the final concatenated stylesheet wins. Get the order backwards and every token you set is silently overridden - the app looks completely unchanged, there's no build error, and nothing in `ng test` catches it, so this is easy to ship without noticing. After wiring it, actually check: grep the built `finance-manager-ui/www/styles.css` for `--ion-color-primary` and confirm the direction's value appears *after* Ionic's own `#0054e9` default, not before - and, if `claude-in-chrome` is connected, look at the running app (see Step 5) rather than trusting the diff alone.
+
 ## Step 3 - Implement the page
 
 For the page named in `ux/UX_<page>.md` (`finance-manager-ui/src/app/<page>/`):
@@ -36,12 +38,18 @@ For the page named in `ux/UX_<page>.md` (`finance-manager-ui/src/app/<page>/`):
 4. **Do not touch `src/service/*.service.ts`** - this is UI/UX only. If a state (e.g. a proper error state) seems to need a service change, that's out of scope for this skill; note it in the spec's `Implementation notes` instead of making the change.
 5. **Do not touch pages other than the one named** - `finance-manager-ui/src/app/tab2`, `tab3`, `explore-container`, `logout` are unrelated Ionic-starter leftovers, not in JIRA_12's scope; leave them alone.
 
-## Step 4 - Verify and hand off
+## Step 4 - Update tests
 
-1. Run `finance-manager-ui`'s existing checks against the change: `npm run lint` and `npm test` (from `finance-manager-ui/`) - a UX rewrite that breaks the existing component spec tests isn't done.
-2. If the local stack is reachable (`local-run`), pull the page up in a browser and sanity-check the happy/empty/error/loading states actually render as described - don't just trust the diff.
-3. **Don't create a branch, commit, or PR** - leave the changes on whatever branch is checked out, for the user to review and commit themselves (same as every other skill in this repo).
-4. Report back which states were implemented and whether lint/test passed. If this run was meant to produce the "after" state for a `jira/JIRA_12.md` proof comparison, say so and point at `ux-proof-capture` as the next step (run it with the same accounts/files as the "before" GIF for a fair comparison).
+Invoke the `unit-test-generate` skill (existing-feature mode - this is a UX restyle plus whatever small, deliberate logic additions Step 3 made, not a from-scratch TDD ticket) against the page's `.component.ts`. Point it specifically at what actually changed: new methods/fields Step 3 added, any behavior that moved (e.g. a toggle that used to be dead code and is now wired up), and any new error-handling path. Don't skip this because the change "is just styling" - a component's `.spec.ts` should still reflect what the component's TypeScript actually does today, and template-only changes (new classes/bindings) rarely need new tests, but new methods/state almost always do.
+
+## Step 5 - Verify and hand off
+
+1. `ng build --configuration development` from `finance-manager-ui/` - confirms the template/TS compile with no new errors. Check `ng lint` is actually configured before relying on it (`npm run lint` currently has no target in this project as of JIRA_12 - don't assume it exists; if it's been added since, use it).
+2. Run the page's own spec file (`npx ng test --browsers=ChromeHeadless --watch=false --include='**/<page>/**/*.spec.ts'` - set `CHROME_BIN` if Karma can't find a browser) and confirm everything passes, including whatever `unit-test-generate` just added.
+3. If `claude-in-chrome` is connected and the local stack is reachable (`local-run`), pull the page up in a browser and sanity-check the happy/empty/error/loading states actually render as described - don't just trust the diff. **If the extension isn't connected, say so explicitly in the handoff rather than claiming a visual check that didn't happen.**
+4. **Don't create a branch, commit, or PR** - leave the changes on whatever branch is checked out, for the user to review and commit themselves (same as every other skill in this repo).
+5. **Mark the spec Implemented**: update `ux/UX_<page>.md`'s `Status` to `Implemented`, bump `Last updated`, fill in `Implementation notes` with anything discovered while building (real deviations from the plan, pre-existing/dead code the new behavior turned out to reuse, a state that can't actually trigger given how the real data flows - see this ticket's own `ux/UX_account-list.md` for a worked example of both), and append a `Changelog` entry. Update `ux/README.md`'s row for this page to `Implemented` too.
+6. Report back which states were implemented, what verification actually ran (and what didn't, e.g. no live browser check), and whether tests passed. If this run was meant to produce the "after" state for a `jira/JIRA_12.md` proof comparison, say so and point at `ux-proof-capture` as the next step (run it with the same accounts/files as the "before" GIF for a fair comparison).
 
 ## Keeping this doc updated
 

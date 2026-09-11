@@ -1,2 +1,67 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
+
+// === Calm Ledger (ux/UX_DIRECTION.md, JIRA_12) ===
+// App-wide Calm Ledger tokens. Ionic's standard --ion-color-* variables are
+// mapped onto the direction's palette below; --app-* variables are custom
+// additions for tiers Ionic's default palette doesn't have (a third muted
+// gray, two divider weights). Applied once, here - individual page
+// components should reference these variables, not repeat literal hex
+// values in their own SCSS.
+:root {
+  // Page background / text
+  --ion-background-color: #faf9f6;
+  --ion-background-color-rgb: 250, 249, 246;
+  --ion-text-color: #1f1f1f;
+  --ion-text-color-rgb: 31, 31, 31;
+
+  // Custom tiers Ionic has no equivalent for
+  --app-color-muted: #9a968d;
+  --app-divider: #e5e3de;
+  --app-divider-subtle: #efeded;
+
+  // Accent (replaces Ionic's default blue)
+  --ion-color-primary: #b0603f;
+  --ion-color-primary-rgb: 176, 96, 63;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #8a4a32;
+  --ion-color-primary-tint: #c07958;
+
+  // Secondary text (Ionic's "medium" tier)
+  --ion-color-medium: #6b6b6b;
+  --ion-color-medium-rgb: 107, 107, 107;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #5d5d5d;
+  --ion-color-medium-tint: #7a7a7a;
+
+  // Credit / positive - muted sage, never a vivid alarm green
+  --ion-color-success: #5c7a5e;
+  --ion-color-success-rgb: 92, 122, 94;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #4d6650;
+  --ion-color-success-tint: #7a9484;
+
+  // Debit / negative - muted clay, never a vivid alarm red
+  --ion-color-danger: #a15c46;
+  --ion-color-danger-rgb: 161, 92, 70;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #8a4d3b;
+  --ion-color-danger-tint: #b4785f;
+
+  // Navigation
+  --ion-toolbar-background: var(--ion-background-color);
+  --ion-tab-bar-background: var(--ion-background-color);
+  --ion-tab-bar-color: #b3afa4;
+  --ion-tab-bar-color-selected: var(--ion-color-primary);
+  --ion-item-background: var(--ion-background-color);
+
+  // Body/UI font - Source Serif 4 (headline) and IBM Plex Mono (numerals)
+  // are applied per-element via the .cl-headline / .cl-mono utility classes
+  // in global.scss, not globally, since only specific elements use them.
+  --ion-font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
