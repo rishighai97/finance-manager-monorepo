@@ -9,9 +9,9 @@ exists as a parallel spec-driven flow rather than folding into jira/.
 
 # UX_auth: Auth (login / signup)
 
-**Status**: Ready for Dev <!-- Draft -> Options Presented -> Selected -> Ready for Dev -->
+**Status**: Implemented <!-- Draft -> Options Presented -> Selected -> Ready for Dev -> Implemented -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (round 2)
+**Last updated**: 2026-09-11 (ux-apply)
 **Direction**: [ux/UX_DIRECTION.md](UX_DIRECTION.md) - "Calm Ledger", Ready for Dev
 
 ## Page
@@ -48,6 +48,16 @@ Grounded against the real `finance-manager-ui/src/app/auth/auth.component.{html,
 6. **Error**: the real `errorMessage` `ion-text` (plain red text, no icon, no border) becomes a bordered muted-clay box with a small warning icon, matching every other page's error-text treatment. The mockup also shows the password field's underline turned `--ion-color-danger` on a credentials error - this is a nice-to-have visual cue, not present in the real component's error state; implement it only if it's a cheap conditional class on the password field's border color tied to `errorMessage` being non-empty, don't add new field-level validation logic to get there.
 7. **Button**: solid accent-filled rectangle (no `ion-button` default styling), same click handlers (`login()`/`signup()`), same `[disabled]="isLoading"`.
 
+## Implementation notes
+
+Built via `ux-apply`, grounded against the real `auth.component.{html,ts,scss}`. All 7 points implemented as specified, plus one required internal rename:
+
+1. **`ion-segment`'s removal required replacing `segmentChanged(event)` with `selectAuthMode(mode: string)`** - not called out explicitly in the spec, but a direct consequence of point 1 (dropping the card) plus point 3 (dropping `ion-segment`): there's no more Ionic segment-change `CustomEvent` to bind to, so the old handler's `event.detail.value` signature no longer has anything to receive. `selectAuthMode()` does exactly what `segmentChanged()`/`switchMode()` did (set `authMode`, clear errors) but takes the target mode directly from each tab's click handler. Updated the existing `auth.component.spec.ts` (this component already had solid coverage, unlike the other pages' fresh spec files) - renamed the `segmentChanged`/`switchMode` describe blocks to match, same assertions.
+2. **`ion-header`/`ion-toolbar` removed entirely** (point 2) - confirmed no other page depends on this component rendering inside a shared header/tab-bar shell; `auth` is a standalone route outside `/tabs/*`, so this is safe.
+3. **Loading enhancement (point 5)**: both the spinner and "Logging in…"/"Creating account…" text now render together during `isLoading`, replacing the old either/or (`*ngIf="isLoading"` spinner vs `*ngIf="!isLoading"` label). Confirmed live - see below.
+4. **Verification**: `ng build --configuration development` clean with zero warnings (first page this session with none at all - `auth` had no pre-existing unused-import cruft). Full suite `ng test --browsers=ChromeHeadless --watch=false` - 110/110 passing (existing `auth.component.spec.ts` coverage - login/signup validation, success, and error paths - kept intact and still green after the `selectAuthMode` rename). Live-checked via `claude-in-chrome` against the running `local-run` stack at `/auth`: confirmed the no-header/no-card layout, the Login/Sign Up underline-tab switch (heading and field labels updating correctly), and caught the "Logging in…" spinner+text transition mid-flight on a real successful login. **Could not force the credentials-error state live** - this session's browser kept re-authenticating past the login form on every attempt (a real, pre-existing app behavior - `UserService.loadUserFromStorage()` restoring a still-valid session from `localStorage`/a saved-password autofill, not a bug introduced here) - that path relies on the existing/updated unit tests instead, which already covered it before this change.
+
 ## Changelog
 - 2026-09-11: created, 2 options presented (Draft -> Options Presented)
 - 2026-09-11: user confirmed Option B; filled in Selected option and Implementation detail (grounded against the real `auth.component.*` - flagged the redundant dual-heading/header-bar to remove, and a small loading-state enhancement showing spinner+text together instead of either/or); marked Ready for Dev (Options Presented -> Ready for Dev)
+- 2026-09-11: implemented via `ux-apply` (Ready for Dev -> Implemented) - all 7 spec points built; `segmentChanged`/`switchMode` consolidated into `selectAuthMode()` as a required consequence of dropping `ion-segment`, with the existing test file updated to match. Verified build (zero warnings)/tests/live app; could not force the live error state due to session persistence unrelated to this change - relies on existing unit coverage instead. Updated `ux/README.md`.

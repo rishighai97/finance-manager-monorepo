@@ -15,7 +15,6 @@ import {
   IonFab,
   IonFabButton,
   IonModal,
-  IonAvatar,
   IonButtons,
   IonChip,
   IonCheckbox,
@@ -23,29 +22,39 @@ import {
   IonInput,
   IonRadio,
   IonRadioGroup,
-  IonSpinner,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
   addOutline,
   documentOutline,
   cloudUploadOutline,
-  trashOutline,
-  createOutline,
   arrowBackOutline,
   closeCircle,
   checkmarkCircle,
   refreshOutline,
-  alertCircleOutline,
+  alertCircle,
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
 import { UserAccountService } from "src/service/user.account.service";
-import { Statement, UploadResult } from "../../model/statement";
+import { Statement } from "../../model/statement";
 import { Router } from "@angular/router";
 import * as uuid from "uuid";
 import { ToastService } from "src/service/toast.service";
 import { StatementUploadService } from "src/service/statement-upload.service";
+
+// Calm Ledger (ux/UX_statement-uploader.md, Option B) - a queued statement
+// and its eventual result are now ONE row, tracked by status, instead of
+// two separate arrays (statementsToBeUploaded / uploadResults) the template
+// swapped between. UI-only fields live here, not on the shared Statement
+// model in src/model/statement.ts - the API payload sent on upload is still
+// just the plain Statement (see uploadAllStatements()/retryStatement()).
+export interface UploadableStatement {
+  statement: Statement;
+  status: "queued" | "uploading" | "success" | "failed";
+  transactionCount?: number;
+  errorMessage?: string;
+}
 
 @Component({
   selector: "app-statement-uploader",
@@ -68,7 +77,6 @@ import { StatementUploadService } from "src/service/statement-upload.service";
     IonFab,
     IonFabButton,
     IonModal,
-    IonAvatar,
     IonButtons,
     IonChip,
     IonCheckbox,
@@ -76,14 +84,13 @@ import { StatementUploadService } from "src/service/statement-upload.service";
     IonInput,
     IonRadio,
     IonRadioGroup,
-    IonSpinner,
   ],
 })
 export class StatementUploaderComponent implements OnInit {
   @ViewChild("accountModal") accountModal!: IonModal;
 
   groupedAccounts: GroupedUserAccount[] = [];
-  statementsToBeUploaded: Statement[] = [];
+  statements: UploadableStatement[] = [];
 
   // Upload form variables
   isUploadModalOpen = false;
@@ -94,8 +101,6 @@ export class StatementUploaderComponent implements OnInit {
   // Account selection
   isAccountModalOpen = false;
 
-  // Upload results tracking
-  uploadResults: UploadResult[] = [];
   isUploading = false;
 
   constructor(
@@ -108,13 +113,11 @@ export class StatementUploaderComponent implements OnInit {
       addOutline,
       documentOutline,
       cloudUploadOutline,
-      trashOutline,
-      createOutline,
       arrowBackOutline,
       closeCircle,
       checkmarkCircle,
       refreshOutline,
-      alertCircleOutline,
+      alertCircle,
     });
   }
 
@@ -200,61 +203,53 @@ export class StatementUploaderComponent implements OnInit {
           request_id: uuid.v4(),
         };
 
-        this.statementsToBeUploaded.push(statement);
+        this.statements.push({ statement, status: "queued" });
         this.resetUploadForm();
       };
       reader.readAsDataURL(this.selectedFile);
     }
   }
 
-  // Upload all statements to the API
+  hasQueuedItems(): boolean {
+    return this.statements.some((item) => item.status === "queued");
+  }
+
+  // Upload every queued statement. The real API (StatementUploadService.
+  // uploadAllStatements) takes the whole batch in one HTTP call - it does
+  // NOT upload sequentially item-by-item - so every queued row flips to
+  // 'uploading' together and resolves together when the single response
+  // array comes back; see ux/UX_statement-uploader.md's Implementation
+  // notes for why the mockup's "one row uploading at a time" framing
+  // doesn't match this.
   uploadAllStatements() {
-    if (this.statementsToBeUploaded.length === 0) {
+    const queuedItems = this.statements.filter((item) => item.status === "queued");
+    if (queuedItems.length === 0) {
       this.toastService.showError("No statements to upload");
       return;
     }
 
     this.isUploading = true;
-    this.uploadResults = []; // Clear previous results
+    queuedItems.forEach((item) => (item.status = "uploading"));
 
-    // Create a map of request_id to statement for easy lookup
-    const statementMap = new Map<string, Statement>();
-    this.statementsToBeUploaded.forEach((statement) => {
-      statementMap.set(statement.request_id, statement);
-    });
+    const itemByRequestId = new Map<string, UploadableStatement>();
+    queuedItems.forEach((item) => itemByRequestId.set(item.statement.request_id, item));
 
-    // Send all statements in a single API call
     this.statementUploadService
-      .uploadAllStatements(this.statementsToBeUploaded)
+      .uploadAllStatements(queuedItems.map((item) => item.statement))
       .subscribe(
         (responses) => {
           this.isUploading = false;
 
-          // Process each response and match with the corresponding statement
-          this.uploadResults = responses.map((response) => {
-            const statement = statementMap.get(response.request_id);
-            return {
-              statement: statement!,
-              response: response,
-            };
+          responses.forEach((response) => {
+            const item = itemByRequestId.get(response.request_id);
+            if (item) {
+              item.status = response.status ? "success" : "failed";
+              item.transactionCount = response.transaction_count;
+              item.errorMessage = response.error_messages?.[0];
+            }
           });
 
-          // Count successful uploads
           const successCount = responses.filter((r) => r.status).length;
-
-          // Remove successfully uploaded statements from the list
-          this.statementsToBeUploaded = this.statementsToBeUploaded.filter(
-            (statement) => {
-              // Find the response for this statement
-              const response = responses.find(
-                (r) => r.request_id === statement.request_id
-              );
-              // Keep only failed statements
-              return response ? !response.status : true;
-            }
-          );
-
-          // Show appropriate toast message
           if (successCount === responses.length) {
             this.toastService.showSuccess(
               `All ${successCount} statements uploaded successfully`
@@ -268,21 +263,43 @@ export class StatementUploaderComponent implements OnInit {
         (error) => {
           console.error("Error uploading statements:", error);
 
-          // Create failed responses for all statements
-          this.uploadResults = this.statementsToBeUploaded.map((statement) => ({
-            statement,
-            response: {
-              status: false,
-              request_id: statement.request_id,
-              transaction_count: 0,
-              error_messages: ["Network or server error occurred"],
-            },
-          }));
+          queuedItems.forEach((item) => {
+            item.status = "failed";
+            item.errorMessage = "Network or server error occurred";
+          });
 
           this.isUploading = false;
           this.toastService.showError("Failed to upload statements");
         }
       );
+  }
+
+  // Retry a single failed statement (new - the real per-item failure had
+  // no way to re-submit before, only a static error message).
+  retryStatement(item: UploadableStatement) {
+    item.status = "uploading";
+    item.errorMessage = undefined;
+
+    this.statementUploadService.uploadStatement(item.statement).subscribe(
+      (response) => {
+        item.status = response.status ? "success" : "failed";
+        item.transactionCount = response.transaction_count;
+        item.errorMessage = response.error_messages?.[0];
+        if (response.status) {
+          this.toastService.showSuccess(
+            `${item.statement.file_name} uploaded successfully`
+          );
+        } else {
+          this.toastService.showError(`Failed to upload ${item.statement.file_name}`);
+        }
+      },
+      (error) => {
+        console.error("Error retrying statement upload:", error);
+        item.status = "failed";
+        item.errorMessage = "Network or server error occurred";
+        this.toastService.showError(`Failed to upload ${item.statement.file_name}`);
+      }
+    );
   }
 
   // Reset Upload Form
@@ -291,32 +308,31 @@ export class StatementUploaderComponent implements OnInit {
     this.selectedFile = null;
     this.fileTypeError = false;
     this.isUploadModalOpen = false;
-    this.uploadResults = []; // Clear upload results
   }
 
-  // Delete Statement
+  // Delete Statement (only ever called on a queued row - see template)
   deleteStatement(index: number) {
-    this.statementsToBeUploaded.splice(index, 1);
+    this.statements.splice(index, 1);
   }
 
   // Edit Statement (Open Upload Modal with Existing Data)
-  editStatement(statement: Statement, index: number) {
-    this.selectedAccount = this.getUserAccountById(statement.user_account_id);
+  editStatement(item: UploadableStatement, index: number) {
+    this.selectedAccount = this.getUserAccountById(item.statement.user_account_id);
     this.isUploadModalOpen = true;
     // Remove the existing statement to replace it
-    this.statementsToBeUploaded.splice(index, 1);
+    this.statements.splice(index, 1);
   }
 
-  // Clear All Statements
+  // Clear All Statements (also used post-submit - "Clear All & Start Over"
+  // is one action now, not two differently-worded ones; see Implementation
+  // detail point 3)
   clearAllStatements() {
-    this.statementsToBeUploaded = [];
-    this.uploadResults = []; // Also clear upload results
+    this.statements = [];
   }
 
   // Reset uploader completely
   resetUploader() {
-    this.statementsToBeUploaded = [];
-    this.uploadResults = [];
+    this.statements = [];
     this.resetUploadForm();
   }
 

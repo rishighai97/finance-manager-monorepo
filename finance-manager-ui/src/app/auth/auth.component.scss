@@ -1,94 +1,123 @@
-// Import font
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+// Calm Ledger (ux/UX_DIRECTION.md, ux/UX_auth.md, Option B) - no bounding
+// card, direct on the page background. Font-family is inherited from
+// --ion-font-family (src/theme/variables.scss) - no local font import.
 
-// Set font family for all elements
-* {
-  font-family: 'Nunito', sans-serif;
+.auth-content {
+  --background: var(--ion-background-color);
 }
 
-ion-content {
-  --background: #f5f7fa;
-  
-  ion-card {
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin: 20px;
-    overflow: hidden;
-    
-    ion-card-header {
-      padding-top: 24px;
-      
-      ion-card-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--ion-color-dark);
-      }
-    }
-    
-    ion-card-content {
-      padding: 24px;
+.auth-wrapper {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 72px 24px 24px;
+}
+
+.auth-heading {
+  font-size: 26px;
+  text-align: center;
+  margin: 0 0 28px;
+}
+
+// Segment replacement - plain underline tabs, same pattern as filter rows
+.auth-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  border-bottom: 1px solid var(--app-divider);
+  margin-bottom: 24px;
+
+  .auth-tab {
+    padding: 10px 2px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--app-color-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+
+    &.active {
+      color: var(--ion-color-primary);
+      border-bottom-color: var(--ion-color-primary);
     }
   }
 }
 
-ion-segment {
+// Error - bordered muted-clay box with a small warning icon, matching
+// every other page's error-text treatment
+.auth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin-bottom: 20px;
+  padding: 10px 12px;
+  background: rgba(var(--ion-color-danger-rgb), 0.05);
+  border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--ion-color-danger);
+
+  .auth-error-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
 }
 
 .auth-form {
-  margin-top: 16px;
-  
-  ion-item {
-    --padding-start: 0;
-    --background: transparent;
-    --border-color: rgba(0, 0, 0, 0.1);
-    margin-bottom: 16px;
-    
-    ion-label {
-      color: var(--ion-color-medium);
-      font-weight: 500;
+  .auth-field {
+    margin-bottom: 18px;
+
+    label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--app-color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
     }
-    
+
     ion-input {
-      --padding-start: 8px;
+      --border-radius: 0;
+      --background: transparent;
+      --padding-start: 0;
+      --padding-top: 6px;
+      --padding-bottom: 6px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--app-divider);
+
+      &.field-error {
+        border-bottom-color: var(--ion-color-danger);
+      }
     }
   }
 }
 
 .auth-button {
-  margin-top: 24px;
-  height: 48px;
-  --border-radius: 12px;
-  --box-shadow: 0 4px 8px rgba(var(--ion-color-primary-rgb), 0.2);
+  margin-top: 8px;
+  height: 46px;
+  --border-radius: 4px;
+  --box-shadow: none;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14.5px;
+
+  ion-spinner {
+    --spinner-size: 18px;
+    margin-right: 8px;
+  }
 }
 
 .auth-link {
   text-align: center;
-  margin-top: 16px;
-  font-size: 14px;
-  
-  ion-text[color="primary"] {
-    font-weight: 600;
-    cursor: pointer;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--app-color-muted);
+
+  .text-link {
     margin-left: 4px;
+
+    &.accent {
+      color: var(--ion-color-primary);
+    }
   }
-}
-
-.error-message {
-  display: block;
-  margin: 16px 0;
-  padding: 12px;
-  background-color: rgba(var(--ion-color-danger-rgb), 0.1);
-  border-left: 3px solid var(--ion-color-danger);
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-// Animation for the spinner
-ion-spinner {
-  --spinner-size: 24px;
-  margin-right: 8px;
 }

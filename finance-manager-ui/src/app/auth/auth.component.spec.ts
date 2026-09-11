@@ -58,25 +58,21 @@ describe('AuthComponent', () => {
     });
   });
 
-  describe('segmentChanged', () => {
+  describe('selectAuthMode (replaces segmentChanged/switchMode now that the mode switch is two plain underline tabs, not an ion-segment)', () => {
     it('switches auth mode and clears any error message', () => {
       component.errorMessage = 'stale error';
 
-      component.segmentChanged({ detail: { value: 'signup' } });
+      component.selectAuthMode('signup');
 
       expect(component.authMode).toBe('signup');
       expect(component.errorMessage).toBe('');
     });
-  });
 
-  describe('switchMode', () => {
-    it('toggles between login and signup', () => {
-      component.authMode = 'login';
+    it('switches back to login from signup', () => {
+      component.authMode = 'signup';
 
-      component.switchMode();
-      expect(component.authMode).toBe('signup');
+      component.selectAuthMode('login');
 
-      component.switchMode();
       expect(component.authMode).toBe('login');
     });
   });

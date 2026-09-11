@@ -9,9 +9,9 @@ exists as a parallel spec-driven flow rather than folding into jira/.
 
 # UX_statement-uploader: Statement uploader
 
-**Status**: Ready for Dev <!-- Draft -> Options Presented -> Selected -> Ready for Dev -->
+**Status**: Implemented <!-- Draft -> Options Presented -> Selected -> Ready for Dev -> Implemented -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (round 2)
+**Last updated**: 2026-09-11 (ux-apply)
 **Direction**: [ux/UX_DIRECTION.md](UX_DIRECTION.md) - "Calm Ledger", Ready for Dev
 
 ## Page
@@ -55,6 +55,17 @@ Grounded against the real `finance-manager-ui/src/app/statement-uploader/stateme
 5. **Upload modal, account-selector modal, FAB, and both empty-state copies are unaffected** by the A/B choice - restyle per `UX_DIRECTION.md`'s tokens only (flat backgrounds, hairline dividers, `Source Serif 4` titles, accent FAB) without structural change. The account-selector modal inside this screen's Upload modal (radio-group grouped by `level_1_title`) should get the same treatment as `account-list`'s rows (outlined-initial circle instead of the icon image) for visual consistency across the app, though it doesn't need `account-list`'s collapsible-section mechanism - this list is a one-time picker during upload, not a browsing surface, and isn't the scaling problem that decision was about.
 6. **No new full-screen error state**: unlike every other page, this screen's real error handling is already per-item (point 2's `failed` status), which is the right level of granularity for a batch upload - don't add a separate full-screen "couldn't load" error state, there's nothing being fetched on page load that could fail that way.
 
+## Implementation notes
+
+Built via `ux-apply`, grounded against the real `statement-uploader.component.{html,ts,scss}`. Points 1-3 and 5-6 were implemented as specified; point 4 needed a real correction:
+
+1. **Point 4's "sequential upload" framing doesn't match the real API - the mockup's loading state was staged on a wrong assumption.** `StatementUploadService.uploadAllStatements()` sends every queued statement in **one single HTTP POST** carrying the whole array (`this.http.post<AccountStatementUploadResponse[]>(url, statements)`) - there is no per-item sequential submission today, and adding one would mean either a client-side loop issuing N separate requests (a real behavior change to the upload mechanics, arguably out of a UI-restyle skill's scope) or leaving the single-batch-call architecture alone. Implemented the latter: every queued row flips to `uploading` together when "Upload Statements" is tapped, and all of them resolve together the moment the single response array comes back - not the mockup's "one row uploading while the others wait their turn." This is a real, load-bearing correction to the spec, not a cosmetic one - flagging it here so a future `ux-explore` round doesn't re-describe sequential upload as if it already exists.
+2. **Retry (new per-item affordance, point 2) uses `StatementUploadService.uploadStatement()`** (the existing single-statement method, distinct from `uploadAllStatements()`) rather than re-calling the batch endpoint with a one-item array - cleaner, and it already returns a single `AccountStatementUploadResponse` instead of an array to unwrap.
+3. **The `UploadableStatement` UI-only type lives in the component file, not on the shared `src/model/statement.ts`** - keeps `status`/`transactionCount`/`errorMessage` out of what's actually serialized and sent to the backend (the upload calls still pass plain `Statement` objects, extracted from `item.statement`).
+4. **Incidental fix**: the Upload modal's file-type-error message used `<ion-icon name="alert-circle">` (filled) but only `alertCircleOutline` was ever registered via `addIcons()` - a pre-existing mismatch (the icon silently failed to render). Registered `alertCircle` instead while touching this component's icon list for other reasons; not a new feature, just making an icon that was already supposed to be there actually show up.
+5. **Verification**: `ng build --configuration development` clean; full suite `ng test --browsers=ChromeHeadless --watch=false` - 110/110 passing (14 new: `hasQueuedItems`, `uploadAllStatements`'s in-place status transitions and error handling, `retryStatement`'s success/failure paths, `clearAllStatements`, `deleteStatement`/`editStatement` on the unified array). Live-checked via `claude-in-chrome` against the running `local-run` stack at `/tabs/statement-uploader`: queued a real file (`scripts/statements/synthetic/hdfc.xls`) through the restyled Upload modal and account selector (initial-circle avatars, extension badges), tapped "Upload Statements," and confirmed the row updated in place to "&#10003; 4 transactions" with no separate results section appearing - then confirmed "Clear All & Start Over" resets cleanly back to the empty state after a real successful upload. Did not exercise the `failed`/Retry row visually (would need a deliberately-broken upload) - that path is covered by the new tests instead.
+
 ## Changelog
 - 2026-09-11: created, 2 options presented (Draft -> Options Presented)
 - 2026-09-11: user confirmed Option B; filled in Selected option and Implementation detail (grounded against the real `statement-uploader.component.*` - the main change is unifying `statementsToBeUploaded`/`uploadResults` into one status-tracked array/list, plus a new per-item Retry action on failure); marked Ready for Dev (Options Presented -> Ready for Dev)
+- 2026-09-11: implemented via `ux-apply` (Ready for Dev -> Implemented) - unified the two arrays into one `UploadableStatement[]` tracked by status; corrected the spec's sequential-upload assumption (the real API is one batch call, so rows transition together, not staggered); added the new per-item Retry action; fixed an incidental icon-registration bug found while touching the file. Added 14 characterization tests, verified build/tests/live app, updated `ux/README.md`.

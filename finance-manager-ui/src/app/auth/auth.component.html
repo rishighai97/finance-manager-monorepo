@@ -1,78 +1,98 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>{{ authMode === 'login' ? 'Login' : 'Sign Up' }}</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="auth-content">
+  <div class="auth-wrapper">
+    <h1 class="cl-headline auth-heading">
+      {{ authMode === 'login' ? 'Welcome back' : 'Create account' }}
+    </h1>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title class="ion-text-center">
-        {{ authMode === 'login' ? 'Welcome Back' : 'Create Account' }}
-      </ion-card-title>
-    </ion-card-header>
+    <!-- Segment replaced with the same underline-tab pattern used in
+         filter rows elsewhere - same authMode state, cleared errors on
+         switch (see selectAuthMode(), replacing the old segmentChanged()
+         now that there's no ion-segment change event to bind to) -->
+    <div class="auth-tabs">
+      <a
+        class="auth-tab"
+        [class.active]="authMode === 'login'"
+        (click)="selectAuthMode('login')"
+        >Login</a
+      >
+      <a
+        class="auth-tab"
+        [class.active]="authMode === 'signup'"
+        (click)="selectAuthMode('signup')"
+        >Sign Up</a
+      >
+    </div>
 
-    <ion-card-content>
-      <!-- Segment buttons for switching between login and signup -->
-      <ion-segment [(ngModel)]="authMode" (ionChange)="segmentChanged($event)">
-        <ion-segment-button value="login">
-          <ion-label>Login</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="signup">
-          <ion-label>Sign Up</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+    <!-- Error message -->
+    @if (errorMessage) {
+    <div class="auth-error">
+      <ion-icon name="alert-circle-outline" class="auth-error-icon"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+    }
 
-      <!-- Error message display -->
-      <ion-text color="danger" *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </ion-text>
-
-      <!-- LOGIN FORM -->
-      <div *ngIf="authMode === 'login'" class="auth-form">
-        <ion-item>
-          <!-- <ion-label position="floating">Username</ion-label> -->
-          <ion-input [(ngModel)]="loginUsername" placeholder="Enter your username"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <!-- <ion-label position="floating">Password</ion-label> -->
-          <ion-input [(ngModel)]="loginPassword" type="password" placeholder="Enter your password"></ion-input>
-        </ion-item>
-
-        <ion-button expand="block" (click)="login()" [disabled]="isLoading" class="auth-button">
-          <ion-spinner *ngIf="isLoading" name="circles"></ion-spinner>
-          <span *ngIf="!isLoading">Login</span>
-        </ion-button>
-
-        <div class="auth-link">
-          <ion-text>Don't have an account? </ion-text>
-          <ion-text color="primary" (click)="switchMode()">Sign up</ion-text>
-        </div>
+    <!-- LOGIN FORM -->
+    @if (authMode === 'login') {
+    <div class="auth-form">
+      <div class="auth-field">
+        <label>Username</label>
+        <ion-input [(ngModel)]="loginUsername" placeholder="Enter your username"></ion-input>
       </div>
 
-      <!-- SIGNUP FORM -->
-      <div *ngIf="authMode === 'signup'" class="auth-form">
-        <ion-item>
-          <!-- <ion-label position="floating">Username</ion-label> -->
-          <ion-input [(ngModel)]="signupUsername" placeholder="Choose a username"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <!-- <ion-label position="floating">Password</ion-label> -->
-          <ion-input [(ngModel)]="signupPassword" type="password" placeholder="Choose a password"></ion-input>
-        </ion-item>
-
-        <ion-button expand="block" (click)="signup()" [disabled]="isLoading" class="auth-button">
-          <ion-spinner *ngIf="isLoading" name="circles"></ion-spinner>
-          <span *ngIf="!isLoading">Create Account</span>
-        </ion-button>
-
-        <div class="auth-link">
-          <ion-text>Already have an account? </ion-text>
-          <ion-text color="primary" (click)="switchMode()">Login</ion-text>
-        </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <ion-input
+          [(ngModel)]="loginPassword"
+          type="password"
+          placeholder="Enter your password"
+          [class.field-error]="!!errorMessage"
+        ></ion-input>
       </div>
-    </ion-card-content>
-  </ion-card>
+
+      <ion-button expand="block" fill="solid" color="primary" (click)="login()" [disabled]="isLoading" class="auth-button">
+        @if (isLoading) {
+        <ion-spinner name="circles"></ion-spinner>
+        }
+        <span>{{ isLoading ? 'Logging in…' : 'Login' }}</span>
+      </ion-button>
+
+      <div class="auth-link">
+        <span>Don&rsquo;t have an account?</span>
+        <a class="text-link accent" (click)="selectAuthMode('signup')">Sign up</a>
+      </div>
+    </div>
+    }
+
+    <!-- SIGNUP FORM -->
+    @if (authMode === 'signup') {
+    <div class="auth-form">
+      <div class="auth-field">
+        <label>Username</label>
+        <ion-input [(ngModel)]="signupUsername" placeholder="Choose a username"></ion-input>
+      </div>
+
+      <div class="auth-field">
+        <label>Password</label>
+        <ion-input
+          [(ngModel)]="signupPassword"
+          type="password"
+          placeholder="Choose a password"
+          [class.field-error]="!!errorMessage"
+        ></ion-input>
+      </div>
+
+      <ion-button expand="block" fill="solid" color="primary" (click)="signup()" [disabled]="isLoading" class="auth-button">
+        @if (isLoading) {
+        <ion-spinner name="circles"></ion-spinner>
+        }
+        <span>{{ isLoading ? 'Creating account…' : 'Create Account' }}</span>
+      </ion-button>
+
+      <div class="auth-link">
+        <span>Already have an account?</span>
+        <a class="text-link accent" (click)="selectAuthMode('login')">Login</a>
+      </div>
+    </div>
+    }
+  </div>
 </ion-content>

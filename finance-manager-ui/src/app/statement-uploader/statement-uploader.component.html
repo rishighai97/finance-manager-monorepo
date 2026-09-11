@@ -1,8 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Statement Uploader</ion-title>
+    <ion-title class="cl-headline">Statement Uploader</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="refreshWithAnimation($event)">
+      <ion-button (click)="refreshWithAnimation($event)" color="medium">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -11,7 +11,7 @@
 
 <ion-content [fullscreen]="true">
   <!-- No Statements Placeholder -->
-  @if (statementsToBeUploaded.length === 0 && uploadResults.length === 0) {
+  @if (statements.length === 0) {
   <div class="empty-state">
     <ion-icon name="document-outline" class="empty-icon"></ion-icon>
     <h2>No Statements Uploaded</h2>
@@ -19,120 +19,74 @@
   </div>
   }
 
-  <!-- Statements List -->
-  @if (statementsToBeUploaded.length > 0) {
-  <ion-list>
-    @for (statement of statementsToBeUploaded; track statement) {
-    <ion-item class="statement-item">
-      <ion-avatar slot="start">
-        <img [src]="getUserAccountById(statement.user_account_id)?.icon" />
-      </ion-avatar>
+  <!-- Unified statement list - one row per queued/uploading/success/failed
+       statement (Calm Ledger Option B: no separate queue/results phases,
+       see ux/UX_statement-uploader.md) -->
+  @if (statements.length > 0) {
+  <ion-list class="calm-ledger-list">
+    @for (item of statements; track item.statement.request_id) {
+    <ion-item class="statement-item" [class.failed-item]="item.status === 'failed'" lines="none">
+      <div class="statement-avatar" slot="start">
+        {{ getUserAccountById(item.statement.user_account_id)?.user_account_name?.charAt(0) }}
+      </div>
 
       <ion-label>
-        {{ statement.file_name }}
+        <h2>{{ item.statement.file_name }}</h2>
+        <p>{{ getUserAccountById(item.statement.user_account_id)?.user_account_name }}</p>
+        @if (item.status === 'failed') {
+        <p class="failed-subtitle">Failed to upload statement</p>
+        }
       </ion-label>
 
-      <div slot="end" class="statement-actions">
-        <ion-button
-          fill="clear"
-          color="primary"
-          (click)="
-            editStatement(statement, statementsToBeUploaded.indexOf(statement))
-          "
-        >
-          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-        </ion-button>
-        <ion-button
-          fill="clear"
-          color="danger"
-          (click)="deleteStatement(statementsToBeUploaded.indexOf(statement))"
-        >
-          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-        </ion-button>
+      <div slot="end" class="statement-status">
+        @switch (item.status) {
+          @case ('queued') {
+          <a class="text-link accent" (click)="editStatement(item, statements.indexOf(item))">Edit</a>
+          <span class="dot-separator">&middot;</span>
+          <a class="text-link danger" (click)="deleteStatement(statements.indexOf(item))">Delete</a>
+          }
+          @case ('uploading') {
+          <span class="cl-mono status-text muted">Uploading&hellip;</span>
+          }
+          @case ('success') {
+          <span class="cl-mono status-text success">&#10003; {{ item.transactionCount }} transactions</span>
+          }
+          @case ('failed') {
+          <a class="text-link danger retry-link" (click)="retryStatement(item)">Retry</a>
+          }
+        }
       </div>
     </ion-item>
     }
   </ion-list>
 
-  <!-- Action Buttons -->
+  <!-- Bottom actions - no longer phase-gated by which array is non-empty;
+       "Upload Statements" is enabled whenever a queued item exists, and
+       "Clear All & Start Over" is the one label for both the pre- and
+       post-submit case (see Implementation detail point 3) -->
   <div class="action-buttons">
-    <ion-button expand="block" color="danger" (click)="clearAllStatements()">
-      <ion-icon name="trash-outline" slot="start"></ion-icon>
-      Clear All Statements
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="medium"
+      (click)="clearAllStatements()"
+    >
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Clear All &amp; Start Over
     </ion-button>
 
-    <ion-button expand="block" color="primary" (click)="uploadAllStatements()">
+    <ion-button
+      expand="block"
+      fill="solid"
+      color="primary"
+      [disabled]="!hasQueuedItems()"
+      (click)="uploadAllStatements()"
+    >
       <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
       Upload Statements
     </ion-button>
   </div>
   }
-
-  <!-- Upload Results List -->
-  <div class="upload-results-container" *ngIf="uploadResults.length > 0">
-    <div class="section-title">
-      <h4>Statement Upload Summary</h4>
-    </div>
-
-    <ion-list>
-      <ion-item
-        *ngFor="let result of uploadResults"
-        class="result-item"
-        [ngClass]="{
-          'success-result': result.response.status,
-          'error-result': !result.response.status
-        }"
-      >
-        <ion-avatar slot="start">
-          <img
-            [src]="getUserAccountById(result.statement.user_account_id)?.icon"
-          />
-        </ion-avatar>
-
-        <ion-label>
-          <h2>{{ result.statement.file_name }}</h2>
-          <p *ngIf="result.response.status">
-            Transactions: {{ result.response.transaction_count }}
-          </p>
-          <div *ngIf="!result.response.status" class="error-messages">
-            <p class="error-message">
-              <ion-icon name="alert-circle-outline"></ion-icon> Failed to upload
-              statement
-            </p>
-          </div>
-        </ion-label>
-
-        <div slot="end" class="status-indicator">
-          <ion-icon
-            *ngIf="result.response.status"
-            name="checkmark-circle"
-            color="success"
-          ></ion-icon>
-          <ion-icon
-            *ngIf="!result.response.status"
-            name="close-circle"
-            color="danger"
-          ></ion-icon>
-        </div>
-      </ion-item>
-    </ion-list>
-
-    <ion-button
-      expand="block"
-      color="medium"
-      (click)="resetUploader()"
-      class="reset-button"
-    >
-      <ion-icon name="refresh-outline" slot="start"></ion-icon>
-      Clear All & Start Over
-    </ion-button>
-  </div>
-
-  <!-- Loading indicator during upload -->
-  <div class="loading-container" *ngIf="isUploading">
-    <ion-spinner name="circles"></ion-spinner>
-    <p>Uploading statements...</p>
-  </div>
 
   <!-- Upload Modal -->
   <ion-modal [isOpen]="isUploadModalOpen" (didDismiss)="resetUploadForm()">
@@ -255,9 +209,7 @@
 
             @for (account of group.user_accounts; track account) {
             <ion-item button (click)="selectAccount(account)">
-              <ion-avatar slot="start">
-                <img [src]="account.icon" [alt]="account.user_account_name" />
-              </ion-avatar>
+              <div class="account-avatar" slot="start">{{ account.user_account_name.charAt(0) }}</div>
               <ion-label>
                 <h2>{{ account.user_account_name }}</h2>
                 <p>

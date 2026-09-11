@@ -1,221 +1,180 @@
-// Import font
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+// Calm Ledger (ux/UX_DIRECTION.md, ux/UX_statement-uploader.md) - flat,
+// hairline-divided rows, no cards/shadows. Font-family is inherited from
+// --ion-font-family (src/theme/variables.scss) - no local font import.
 
-// Set font family for all elements
-* {
-  font-family: 'Nunito', sans-serif;
+ion-content {
+  --background: var(--ion-background-color);
 }
 
-// Add validation icon styling
-.validation-icon {
-  font-size: 22px;
-  margin-right: 8px;
-}
+.text-link {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 
-// Error message styling
-.error-message-item {
-  margin: 10px 0;
-  --background: rgba(var(--ion-color-danger-rgb), 0.05);
-  --border-radius: 8px;
-  
-  ion-icon {
-    font-size: 24px;
-    margin-right: 8px;
+  &.accent {
+    color: var(--ion-color-primary);
   }
-  
-  ion-label {
-    font-family: 'Nunito', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 0;
-    line-height: 1.5;
-    white-space: normal;
+
+  &.danger {
+    color: var(--ion-color-danger);
+  }
+
+  &.muted {
+    color: var(--ion-color-medium);
   }
 }
 
+.retry-link {
+  border-bottom: 1px solid var(--ion-color-danger);
+}
+
+.dot-separator {
+  color: var(--app-divider);
+  font-size: 13px;
+}
+
+// Empty state
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: calc(100% - 56px); // Adjust for header height
+  height: calc(100% - 100px);
   text-align: center;
   padding: 20px;
-  color: var(--ion-color-medium);
 
   .empty-icon {
-    font-size: 100px;
-    color: var(--ion-color-light-shade);
-    margin-bottom: 20px;
+    font-size: 30px;
+    color: #d8d5cc;
+    margin-bottom: 14px;
   }
 
   h2 {
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #333;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ion-text-color);
+    margin-bottom: 8px;
   }
 
   p {
-    color: var(--ion-color-medium);
-    font-size: 14px;
+    color: var(--app-color-muted);
+    font-size: 12.5px;
+    margin-bottom: 16px;
   }
 }
 
-// Action buttons styling
+// Unified statement list
+ion-list.calm-ledger-list {
+  background: transparent;
+  padding: 0 20px;
+}
+
+.statement-item {
+  --background: transparent;
+  --border-color: var(--app-divider-subtle);
+  --padding-start: 4px;
+  --inner-padding-end: 4px;
+  --min-height: 0;
+
+  &::part(native) {
+    border-bottom: 1px solid var(--app-divider-subtle);
+    padding: 10px 0;
+  }
+
+  &.failed-item::part(native) {
+    border-left: 2px solid var(--ion-color-danger);
+    padding-left: 8px;
+  }
+
+  .statement-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid #d8d5cc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  ion-label {
+    h2 {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ion-text-color);
+      margin: 0 0 2px;
+    }
+
+    p {
+      font-size: 11.5px;
+      color: var(--app-color-muted);
+      margin: 0;
+    }
+
+    .failed-subtitle {
+      color: var(--ion-color-danger);
+    }
+  }
+
+  .statement-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .status-text {
+    font-size: 12px;
+
+    &.muted {
+      color: var(--app-color-muted);
+    }
+
+    &.success {
+      color: var(--ion-color-success);
+    }
+  }
+}
+
+// Bottom actions - flat, no rounded-12px/shadow treatment
 .action-buttons {
-  padding: 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 
   ion-button {
     margin: 0;
-    --border-radius: 12px;
-    height: 48px;
+    --border-radius: 4px;
   }
 }
 
-// Match transaction item styling
-ion-list {
-  background: transparent;
-  padding: 0 16px;
-}
-
-ion-item.statement-item {
-  margin: 4px auto;
-  --background: #ffffff;
-  --border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  width: 100%;
-
-  &:last-of-type {
-    margin-bottom: 8px;
-  }
-
-  ion-avatar {
-    width: 40px;
-    height: 40px;
-    margin-right: 12px;
-  }
-
-  ion-label {
-    margin-left: 4px;
-    font-size: 15px;
-    font-weight: 500;
-  }
-
-  .statement-actions {
-    display: flex;
-    align-items: center;
-
-    ion-button {
-      --padding-start: 8px;
-      --padding-end: 8px;
-      height: 32px;
-      margin: 0;
-    }
-  }
-}
-
-// Upload results container
-.upload-results-container {
-  margin-top: 16px;
-  padding: 0 16px 16px;
-  
-  .section-title {
-    margin-bottom: 10px;
-    
-    h4 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      margin: 0;
-      padding: 16px 0 8px;
-    }
-  }
-  
-  .result-item {
-    margin: 4px auto;
-    --background: #ffffff;
-    --border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    border-left: 4px solid transparent;
-    
-    &.success-result {
-      border-left-color: var(--ion-color-success);
-    }
-    
-    &.error-result {
-      border-left-color: var(--ion-color-danger);
-    }
-    
-    ion-avatar {
-      width: 40px;
-      height: 40px;
-      margin-right: 12px;
-    }
-    
-    ion-label {
-      h2 {
-        font-size: 15px;
-        font-weight: 500;
-        margin-bottom: 4px;
-      }
-      
-      p {
-        font-size: 13px;
-        color: var(--ion-color-medium);
-        margin: 0;
-      }
-      
-      .error-messages {
-        margin-top: 4px;
-        
-        .error-message {
-          color: var(--ion-color-danger);
-          font-size: 12px;
-          margin: 3px 0;
-          display: flex;
-          align-items: center;
-          
-          ion-icon {
-            margin-right: 4px;
-          }
-        }
-      }
-    }
-    
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      
-      ion-icon {
-        font-size: 24px;
-      }
-    }
-  }
-  
-  .reset-button {
-    margin-top: 16px;
-    --border-radius: 12px;
-    height: 48px;
-  }
-}
-
-// Modal styling to match transactions page
+// Upload modal + Account selector modal - direction tokens only, no
+// structural change (ux/UX_statement-uploader.md's Implementation detail
+// point 5)
 ion-modal {
   --border-radius: 16px 16px 0 0;
 
+  ion-header {
+    --background: var(--ion-background-color);
+  }
+
   ion-content {
-    --background: #f5f7fa;
+    --background: var(--ion-background-color);
   }
 
   ion-item-divider {
     --padding-start: 16px;
-    --background: #f5f7fa;
-    --color: #666;
+    --background: var(--ion-background-color);
+    --color: var(--app-color-muted);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     min-height: 32px;
     margin-top: 8px;
   }
@@ -224,54 +183,68 @@ ion-modal {
     --padding-start: 16px;
     --inner-padding-end: 16px;
     --min-height: 56px;
-
-    ion-avatar {
-      width: 32px;
-      height: 32px;
-      margin-right: 12px;
-    }
+    --background: transparent;
 
     ion-label {
       font-size: 14px;
       margin-left: 8px;
+    }
 
-      // Style for supported file types
-      &:has(h2:contains("Supported File Types")) {
-        h2 {
-          font-size: 14px;
-          font-weight: 600;
-          color: #333;
-          margin-bottom: 4px;
-        }
-        
-        p {
-          font-size: 13px;
-          color: var(--ion-color-medium);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-      }
+    // File type error message
+    &[color="danger"],
+    ion-label[color="danger"] {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+  }
 
-      // Style for error message
-      &[color="danger"] {
-        font-size: 13px;
-        font-weight: 500;
-        line-height: 1.4;
-        font-font-family: 'Nunito', sans-serif;
-        
-        // Improved error message styling to match app theme
-        padding: 12px 16px;
-        margin: -12px -16px;
-        background-color: rgba(var(--ion-color-danger-rgb), 0.05);
-        border-left: 3px solid var(--ion-color-danger);
-        border-radius: 0 4px 4px 0;
-      }
+  .error-message-item {
+    margin: 10px 16px;
+    --background: rgba(var(--ion-color-danger-rgb), 0.05);
+    --border-radius: 4px;
+
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+
+    ion-label {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 0;
+      line-height: 1.5;
+      white-space: normal;
     }
   }
 }
 
-// Account list modal item styling for file extensions
+.validation-icon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+// Account selector modal rows - outlined-initial circle, same treatment
+// as account-list's rows, for visual consistency (this list is a
+// one-time picker during upload, not a browsing surface, so it doesn't
+// need account-list's collapsible-section mechanism)
 ion-radio-group {
+  .account-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #d8d5cc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+
   ion-item {
     ion-label {
       h2 {
@@ -279,7 +252,7 @@ ion-radio-group {
         font-weight: 600;
         margin-bottom: 2px;
       }
-      
+
       p {
         font-size: 12px;
         color: var(--ion-color-medium);
@@ -289,7 +262,7 @@ ion-radio-group {
   }
 }
 
-// File extension badges on account selection
+// File extension badges
 .file-extensions-badge {
   display: inline-block;
   font-size: 11px;
@@ -304,25 +277,26 @@ ion-radio-group {
   font-weight: 600;
 }
 
-// Supported file types container
 .supported-files-container {
   background: transparent;
-  border-radius: 8px;
   margin: 8px 16px;
-  padding: 12px 16px;
-  
+  padding: 12px 0;
+  border-top: 1px solid var(--app-divider-subtle);
+
   h4 {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--ion-color-primary);
-    margin: 0 0 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 8px 0;
   }
-  
+
   .extension-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    
+
     .extension-chip {
       font-size: 12px;
       background: transparent;
@@ -336,46 +310,8 @@ ion-radio-group {
   }
 }
 
-// Floating Action Button styling
-// ion-fab-button {
-//   --border-radius: 50%;
-//   --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-// }
-
+// Floating Action Button
 ion-fab {
   margin-bottom: 16px;
   margin-right: 16px;
-  
-  ion-fab-button {
-    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-}
-
-// Content background
-ion-content {
-  --background: #f5f7fa;
-  --padding-top: 12px;
-  --padding-bottom: 16px;
-}
-
-// Loading container
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  
-  ion-spinner {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 16px;
-  }
-  
-  p {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--ion-color-medium);
-    margin: 0;
-  }
 }

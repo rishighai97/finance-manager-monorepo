@@ -2,24 +2,9 @@ import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonButton,
-  IonSegment,
-  IonSegmentButton,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonText,
-  IonSpinner,
-} from "@ionic/angular/standalone";
+import { IonContent, IonInput, IonButton, IonIcon, IonSpinner } from "@ionic/angular/standalone";
+import { addIcons } from "ionicons";
+import { alertCircleOutline } from "ionicons/icons";
 import { UserService } from "../../service/user.service";
 import { ToastService } from "../../service/toast.service";
 
@@ -28,26 +13,7 @@ import { ToastService } from "../../service/toast.service";
   templateUrl: "./auth.component.html",
   styleUrls: ["./auth.component.scss"],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonButton,
-    IonSegment,
-    IonSegmentButton,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonText,
-    IonSpinner,
-  ],
+  imports: [CommonModule, FormsModule, IonContent, IonInput, IonButton, IonIcon, IonSpinner],
 })
 export class AuthComponent implements OnInit {
   authMode: string = "login"; // Default to login mode
@@ -67,7 +33,9 @@ export class AuthComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private toastService: ToastService
-  ) {}
+  ) {
+    addIcons({ alertCircleOutline });
+  }
 
   ngOnInit() {
     // Check if already authenticated
@@ -78,13 +46,11 @@ export class AuthComponent implements OnInit {
     });
   }
 
-  segmentChanged(event: any) {
-    this.authMode = event.detail.value;
-    this.clearErrors();
-  }
-
-  switchMode() {
-    this.authMode = this.authMode === "login" ? "signup" : "login";
+  // Replaces segmentChanged() now that the mode switch is two plain
+  // underline tabs, not an ion-segment - same authMode state and
+  // clear-errors-on-switch behavior as before.
+  selectAuthMode(mode: string) {
+    this.authMode = mode;
     this.clearErrors();
   }
 
