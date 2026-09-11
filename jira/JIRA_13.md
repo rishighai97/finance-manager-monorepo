@@ -1,8 +1,8 @@
 # JIRA_13: Revamp transaction-list's search/filter section
 
-**Status**: In Refinement <!-- Draft -> In Refinement -> Ready for Dev -> In Progress -> Done -->
+**Status**: Ready for Dev <!-- Draft -> In Refinement -> Ready for Dev -> In Progress -> Done -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (round 1)
+**Last updated**: 2026-09-11 (confirmed Ready for Dev)
 
 ## One-liner
 Revamp the search/filter section above the transaction list (date range, account/category selectors, search bar, batch-categorize toolbar) for a better UX.
@@ -45,3 +45,5 @@ None outstanding - resolved during refinement (see Changelog).
 ## Changelog
 - 2026-09-11: created from one-liner (Draft)
 - 2026-09-11: refinement round 1 - resolved both open questions: driving complaint is density/clutter (not mobile-specific or open-ended), and the filter controls vs. batch-categorize toolbar should stay two visually distinct sections rather than merging into one block (In Refinement)
+- 2026-09-11: user confirmed the spec - marked Ready for Dev. Per Scope, its `ux-explore`/`ux-apply` run should target the `transaction-search` component JIRA_14 produces, not the current merged `transaction-list.component.*` (Ready for Dev)
+- 2026-09-11: JIRA_14 (the component split this ticket depends on) is now Done - `finance-manager-ui/src/app/transaction-search/` exists as its own routed component (`/tabs/transactions/search`), separate from `transaction-list`. This ticket's `ux-explore` should target that component directly; the batch-categorize toolbar stayed on `transaction-list` (a scope correction made during JIRA_14's implementation - it acts on visible rows, which aren't visible from a separate route), so this ticket's "two visually distinct sections" framing is now moot for the toolbar specifically - it's simply not part of `transaction-search` at all. No longer blocked (Ready for Dev)

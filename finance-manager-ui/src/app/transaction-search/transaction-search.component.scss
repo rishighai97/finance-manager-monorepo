@@ -1,0 +1,169 @@
+// Moved from transaction-list.component.scss as part of JIRA_14's
+// component split - styling/behavior unchanged from the original filter
+// row, just relocated with the markup. Font-family inherited from
+// --ion-font-family (src/theme/variables.scss).
+
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+.force-center-modal::part(content),
+.force-center-modal .modal-wrapper {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  min-height: 300px;
+  max-height: 90vh;
+  width: 95vw;
+  max-width: 500px;
+  border-radius: 8px;
+  background: var(--ion-background-color);
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.force-center-modal-scroll {
+  max-height: 70vh;
+  overflow-y: auto !important;
+}
+
+.date-filter-container {
+  display: flex;
+  align-items: flex-end;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--app-divider);
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .date-picker-item,
+  .account-selector-item,
+  .category-selector-item,
+  .debit-credit-selector-item {
+    flex: 1;
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    border-bottom: 1px solid var(--app-divider);
+
+    ion-label {
+      color: var(--app-color-muted);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 4px;
+    }
+
+    ion-input,
+    ion-select {
+      --padding-start: 0;
+      --padding-end: 0;
+      --placeholder-color: var(--app-color-muted);
+      font-size: 13px;
+      color: var(--ion-text-color);
+    }
+  }
+
+  .account-selector-item,
+  .category-selector-item {
+    ion-input {
+      cursor: pointer;
+    }
+  }
+}
+
+.apply-container {
+  padding: 16px 20px;
+
+  ion-button {
+    margin: 0;
+    --border-radius: 4px;
+  }
+}
+
+// Account/Category modals
+ion-modal {
+  --border-radius: 16px 16px 0 0;
+
+  ion-header {
+    padding-top: 8px;
+    --background: var(--ion-background-color);
+  }
+
+  ion-item-divider {
+    --padding-start: 4px;
+    --background: transparent;
+    --color: var(--app-color-muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    min-height: 32px;
+    margin-top: 8px;
+  }
+
+  ion-item {
+    --padding-start: 4px;
+    --inner-padding-end: 4px;
+    --min-height: 0;
+    --border-color: var(--app-divider-subtle);
+
+    ion-label {
+      font-size: 14px;
+      margin-left: 8px;
+    }
+  }
+}
+
+// Collapsible account groups inside the "Select Accounts" modal - same
+// mechanism/styling as account-list's Level 1 sections.
+.account-modal-list {
+  padding: 0 16px;
+
+  .level1-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 4px 8px;
+    border-bottom: 1px solid var(--app-divider);
+    cursor: pointer;
+
+    .level1-chevron {
+      font-size: 12px;
+      color: var(--app-color-muted);
+      transition: transform 0.15s ease;
+
+      &.collapsed {
+        transform: rotate(-90deg);
+      }
+    }
+
+    .level1-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+  }
+
+  .account-item {
+    --padding-start: 0;
+    border-bottom: 1px solid var(--app-divider-subtle);
+  }
+}
+
+.account-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #d8d5cc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-right: 12px;
+}

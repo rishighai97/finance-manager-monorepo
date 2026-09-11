@@ -1,22 +1,16 @@
-@if (!showTransactions) {
-
-  <ion-header [translucent]="true">
-    <ion-toolbar>
-      <ion-title class="cl-headline">Accounts</ion-title>
-      <ion-buttons slot="end">
-        <span class="cl-mono meta-count">{{ getGroupedAccounts().length }} linked</span>
-        <ion-button (click)="refreshWithAnimation($event)" color="medium">
-          <ion-icon name="refresh-outline"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-
-}
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title class="cl-headline">Accounts</ion-title>
+    <ion-buttons slot="end">
+      <span class="cl-mono meta-count">{{ getGroupedAccounts().length }} linked</span>
+      <ion-button (click)="refreshWithAnimation($event)" color="medium">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
 <ion-content [fullscreen]="true">
-  @if (!showTransactions) {
-
   @if (!isLoading && !hasError && getGroupedAccounts().length > 0) {
   <div class="net-worth-row">
     <span class="net-worth-label">Net worth</span>
@@ -284,13 +278,4 @@
     message="This account will be deleted permanently. This action cannot be undone."
     [buttons]="deleteAccountButtons"
   ></ion-alert>
-
-  } @else {
-  <app-transaction-list
-    [accountId]="selectedAccountId"
-    [groupedAccounts]="getGroupedAccounts()"
-    (backClicked)="backFromTransactions()"
-  >
-  </app-transaction-list>
-  }
 </ion-content>

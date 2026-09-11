@@ -3,6 +3,9 @@
     <ion-title class="cl-headline">Transactions</ion-title>
     <ion-buttons slot="end">
       <span class="cl-mono meta-count">{{ getTransactions().length }} rows</span>
+      <ion-button (click)="navigateToSearch()" color="medium">
+        <ion-icon name="filter-outline"></ion-icon>
+      </ion-button>
       <ion-button (click)="refreshWithAnimation($event)" color="medium">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>
@@ -11,120 +14,13 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-no-padding">
-  <!-- Date Filter Row -->
-  <div class="date-filter-container">
-    <ion-item lines="none" class="date-picker-item">
-      <ion-label position="stacked">From</ion-label>
-      <ion-input
-        type="date"
-        [(ngModel)]="startDateInput"
-        (ionChange)="onStartDateChange()"
-      ></ion-input>
-    </ion-item>
-
-    <ion-item lines="none" class="date-picker-item">
-      <ion-label position="stacked">To</ion-label>
-      <ion-input
-        type="date"
-        [(ngModel)]="endDateInput"
-        (ionChange)="onEndDateChange()"
-      ></ion-input>
-    </ion-item>
-
-    <!-- Account Selector (Custom) -->
-    <ion-item
-      lines="none"
-      class="account-selector-item"
-      (click)="openAccountSelector()"
-    >
-      <ion-label position="stacked">Accounts</ion-label>
-      <ion-input
-        readonly
-        [value]="getSelectedAccountsText()"
-        placeholder="Select accounts"
-      ></ion-input>
-    </ion-item>
-
-    <!-- Category Selector -->
-    <ion-item
-      lines="none"
-      class="category-selector-item"
-      (click)="openCategorySelector()"
-    >
-      <ion-label position="stacked">Category</ion-label>
-      <ion-input readonly [value]="getSelectedCategoriesText()" placeholder="Select categories"></ion-input>
-    </ion-item>
-
-    <!-- Category Modal -->
-    <ion-modal
-      #categoryModal
-      [isOpen]="isCategoryModalOpen"
-      [initialBreakpoint]="0.5"
-      [breakpoints]="[0, 0.5, 0.75]"
-      (didDismiss)="closeCategorySelector()"
-      class="force-center-modal"
-    >
-      <ng-template>
-        <ion-header class="ion-no-border">
-          <ion-toolbar>
-            <ion-title>Search Categories</ion-title>
-            <ion-buttons slot="end">
-              <ion-button (click)="closeCategorySelector()">
-                <ion-icon name="close-outline"></ion-icon>
-              </ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <ion-searchbar
-              placeholder="Search categories"
-              [(ngModel)]="categorySearchTerm"
-              (ionInput)="filterCategories()"
-              showClearButton="always"
-              class="modal-searchbar"
-              style="flex: 1 1 auto;"
-            ></ion-searchbar>
-            <ion-button size="small" fill="outline" (click)="clearAllCategories()">Clear All</ion-button>
-            <ion-button size="small" fill="outline" (click)="selectAllCategories()">Select All</ion-button>
-            <ion-button size="small" color="primary" (click)="applyFilter(); closeCategorySelector();">Apply</ion-button>
-          </div>
-          <ion-list class="force-center-modal-scroll">
-            <ion-item (click)="toggleCategorySelection(-1)">
-              <ion-label>Uncategorized</ion-label>
-              <ion-checkbox slot="end" [checked]="isCategorySelected(-1)"></ion-checkbox>
-            </ion-item>
-            <ion-item *ngFor="let cat of filteredUserCategories" (click)="toggleCategorySelection(cat.id)">
-              <ion-label>{{ cat.category_title }}</ion-label>
-              <ion-checkbox slot="end" [checked]="isCategorySelected(cat.id)"></ion-checkbox>
-            </ion-item>
-          </ion-list>
-        </ion-content>
-      </ng-template>
-    </ion-modal>
-
-    <!-- Debit/Credit Selector -->
-    <ion-item lines="none" class="debit-credit-selector-item">
-      <ion-label position="stacked">DR/CR</ion-label>
-      <ion-select [(ngModel)]="debitCreditIndicator" (ionChange)="onDebitCreditIndicatorChange($event.detail.value)">
-        <ion-select-option [value]="null">All</ion-select-option>
-        <ion-select-option value="DR">Debit</ion-select-option>
-        <ion-select-option value="CR">Credit</ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <ion-button class="refresh-button" (click)="refreshTransactions()">
-      <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
-    </ion-button>
-  </div>
-
   <!-- No accounts selected - distinct from "no transactions match" (see
        ux/UX_transaction-list.md point 8: two distinct empty conditions) -->
   <div *ngIf="noAccountsSelected" class="no-accounts-warning">
     <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
     <h3>No accounts selected</h3>
     <p>Select at least one account to view transactions.</p>
-    <a class="text-link" (click)="openAccountSelector()">Select accounts</a>
+    <a class="text-link" (click)="navigateToSearch()">Select accounts</a>
   </div>
 
   <!-- Only show Summary and Transactions when accounts are selected -->
@@ -184,7 +80,9 @@
         <span class="regex-label">Regex</span>
       </div>
 
-      <!-- New: Batch Categorize Input and Buttons -->
+      <!-- Batch Categorize Input and Buttons - stays here (not in
+           transaction-search), since it acts on the rows currently
+           visible on this list; see JIRA_14's Implementation notes. -->
       <div class="batch-categorize-row">
         <ion-select
           placeholder="Select category to apply"
@@ -235,19 +133,6 @@
         </ion-button>
       </div>
     </div>
-
-    <!-- Category Changes Actions -->
-    <!-- <div class="category-changes-container" *ngIf="hasCategoryChanges">
-      <ion-button
-        fill="outline"
-        color="medium"
-        size="small"
-        (click)="resetCategoryChanges()"
-      >
-        <ion-icon name="refresh-outline" slot="start"></ion-icon>
-        Reset Changes
-      </ion-button>
-    </div> -->
   </ng-container>
 
   <ion-list lines="none" class="calm-ledger-list">
@@ -342,102 +227,7 @@
     </div>
     }
   </ion-list>
-<!-- removed duplicate closing ion-content tag -->
-
-<!-- Account Selector Modal -->
-<ion-modal
-  #accountModal
-  [isOpen]="isAccountModalOpen"
-  [initialBreakpoint]="0.75"
-  [breakpoints]="[0, 0.25, 0.5, 0.75]"
-  (didDismiss)="closeAccountSelector()"
->
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-title>Select Accounts</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="closeAccountSelector()">Done</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content>
-      <ion-list class="calm-ledger-list account-modal-list">
-        @for (group of groupedAccounts; track group) {
-        <div class="level1-item" (click)="toggleAccountGroup(group.level_1_title)">
-          <ion-icon
-            name="chevron-down-outline"
-            class="level1-chevron"
-            [class.collapsed]="!isAccountGroupExpanded(group.level_1_title)"
-          ></ion-icon>
-          <span class="level1-label">{{ group.level_1_title }}</span>
-        </div>
-
-        @if (isAccountGroupExpanded(group.level_1_title)) {
-        @for (account of group.user_accounts; track account) {
-        <ion-item (click)="toggleAccountSelection(account.user_account_id)" lines="none" class="account-item">
-          <div class="account-avatar" slot="start">{{ account.user_account_name.charAt(0) }}</div>
-          <ion-label>{{ account.user_account_name }}</ion-label>
-          <ion-checkbox
-            slot="end"
-            [checked]="isAccountSelected(account.user_account_id)"
-          ></ion-checkbox>
-        </ion-item>
-        }
-        }
-        }
-      </ion-list>
-    </ion-content>
-  </ng-template>
-</ion-modal>
-
-<!-- Category Selector Modal (old) removed: now using only ion-select dropdown for categories -->
-<!--
-<ion-modal
-  #categoryModal
-  [isOpen]="isCategoryModalOpen"
-  [initialBreakpoint]="0.75"
-  [breakpoints]="[0, 0.25, 0.5, 0.75]"
-  (didDismiss)="closeCategorySelector()"
->
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-title>Select Categories</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="closeCategorySelector()">Done</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content>
-      <ion-list>
-        @if (userCategories.length === 0) {
-        <ion-item>
-          <ion-label class="ion-text-center">
-            No categories available. Add categories from the Categories tab.
-          </ion-label>
-        </ion-item>
-        } @else { @for (category of userCategories; track category.id) {
-        <ion-item (click)="toggleCategorySelection(category.id)">
-          <ion-icon
-            name="pricetags-outline"
-            slot="start"
-            color="primary"
-          ></ion-icon>
-          <ion-label>{{ category.category_title }}</ion-label>
-          <ion-checkbox
-            slot="end"
-            [checked]="isCategorySelected(category.id)"
-          ></ion-checkbox>
-        </ion-item>
-        } }
-      </ion-list>
-    </ion-content>
-  </ng-template>
-</ion-modal>
--->
+</ion-content>
 
 <!-- Add Category Modal -->
 <ion-modal

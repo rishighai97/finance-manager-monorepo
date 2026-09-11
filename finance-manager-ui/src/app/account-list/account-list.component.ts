@@ -51,7 +51,6 @@ import { UserAccount } from "src/model/user-account";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccountService } from "src/service/user.account.service";
 import { AccountService } from "src/service/account.service";
-import { TransactionListComponent } from "../transaction-list/transaction-list.component";
 import { Router } from "@angular/router";
 import { Account } from "src/model/account";
 import { GroupedAccount } from "src/model/grouped-account";
@@ -92,7 +91,6 @@ interface Level1Group {
     IonButtons,
     IonButton,
     CommonModule,
-    TransactionListComponent,
     IonFab,
     IonFabButton,
     IonModal,
@@ -113,9 +111,6 @@ export class AccountListComponent implements OnInit {
   private level1Groups: Level1Group[] = [];
   isLoading: boolean = true;
   hasError: boolean = false;
-  showTransactions: boolean = false;
-  selectedAccountId: number | null = null;
-  selectedAccountName: string = "";
 
   // Account selection modal
   isAccountModalOpen = false;
@@ -453,13 +448,6 @@ export class AccountListComponent implements OnInit {
           this.accountToDelete = null;
         }
       );
-  }
-
-  // For backward compatibility
-  backFromTransactions() {
-    this.showTransactions = false;
-    this.selectedAccountId = null;
-    this.selectedAccountName = "";
   }
 
   refreshWithAnimation(event: any) {

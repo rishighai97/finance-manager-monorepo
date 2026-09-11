@@ -1,16 +1,7 @@
 
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import {
-  Component,
-  Input,
-  OnInit,
-  OnChanges,
-  SimpleChanges,
-  Output,
-  EventEmitter,
-  ViewChild,
-} from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import {
   IonHeader,
   IonToolbar,
@@ -22,7 +13,6 @@ import {
   IonIcon,
   IonButtons,
   IonButton,
-  IonInput,
   IonSelect,
   IonSelectOption,
   IonModal,
@@ -53,7 +43,6 @@ import {
   addOutline,
   ellipsisVerticalOutline,
   alertCircleOutline,
-  chevronDownOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
@@ -68,6 +57,7 @@ import {
   TransactionUserCategoryAction,
 } from "src/model/transaction-user-category";
 import { ToastService } from "src/service/toast.service";
+import { TransactionFilters } from "../transaction-search/transaction-search.component";
 
 @Component({
   selector: "app-transaction-list",
@@ -87,7 +77,6 @@ import { ToastService } from "src/service/toast.service";
     IonIcon,
     IonButtons,
     IonButton,
-    IonInput,
     IonSelect,
     IonSelectOption,
     IonModal,
@@ -98,15 +87,14 @@ import { ToastService } from "src/service/toast.service";
     IonPopover,
     IonSearchbar,
     IonRadioGroup,
-  IonRadio,
-  IonFooter,
+    IonRadio,
+    IonFooter,
   ],
 })
-export class TransactionListComponent implements OnInit, OnChanges {
+export class TransactionListComponent implements OnInit {
   // For Add Category modal search and select/clear all
   addCategorySearchTerm: string = '';
   filteredAddUserCategories: UserCategory[] = [];
-
 
   filterAddCategories() {
     const term = this.addCategorySearchTerm.toLowerCase();
@@ -132,34 +120,11 @@ export class TransactionListComponent implements OnInit, OnChanges {
       this.batchAddCategories = allIds;
     }
   }
-  // Clear all selected categories in modal
-  clearAllCategories() {
-    this.selectedCategoryIds = [];
-  }
-
-  // Select all filtered categories in modal
-  selectAllCategories() {
-    // Always include -1 (Uncategorized) if present in filtered list
-    const allIds = this.filteredUserCategories.map(cat => cat.id);
-    if (this.filteredUserCategories.some(cat => cat.id === -1)) {
-      this.selectedCategoryIds = [-1, ...allIds.filter(id => id !== -1)];
-    } else {
-      this.selectedCategoryIds = allIds;
-    }
-  }
-
-  filterCategories() {
-    const term = this.categorySearchTerm.toLowerCase();
-    this.filteredUserCategories = this.userCategories.filter(cat =>
-      cat.category_title.toLowerCase().includes(term)
-    );
-  }
 
   // For category modal search
   categorySearchTerm: string = '';
   filteredUserCategories: UserCategory[] = [];
 
-  
   /**
    * Marks the selected batch category for deletion on all searched transactions,
    * using the same logic as the cross button (removeCategory).
@@ -223,11 +188,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
     });
     this.checkCategoryChanges();
   }
-  @Input() accountId: number | null = null;
-  @Input() groupedAccounts: GroupedUserAccount[] = [];
-  @Input() startDate: string = "";
-  @Input() endDate: string = "";
-  @Output() backClicked = new EventEmitter<void>();
+
   batchCategoryInput: string = "";
 
   /**
@@ -279,29 +240,29 @@ export class TransactionListComponent implements OnInit, OnChanges {
     }
     this.batchCategoryInput = "";
   }
-  @ViewChild("accountModal") accountModal!: IonModal;
-  @ViewChild("categoryModal") categoryModal!: IonModal;
-  @ViewChild("addCategoryModal") addCategoryModal!: IonModal;
 
   selectedAccountIds: number[] = [];
-  isAccountModalOpen: boolean = false;
-  isCategoryModalOpen: boolean = false;
   isAddCategoryModalOpen: boolean = false;
   accountMap: Map<number, UserAccount> = new Map();
+  groupedAccounts: GroupedUserAccount[] = [];
 
-  // Transaction search
+  // Transaction search (client-side narrowing of already-fetched rows -
+  // stays here, not in transaction-search, since it needs live visual
+  // feedback against visible rows; see JIRA_14's Implementation notes)
   searchTerm: string = "";
   filteredTransactions: Transaction[] = [];
   regexSearch: boolean = false;
 
-  // New properties for date inputs
-  startDateInput: string = "";
-  endDateInput: string = "";
-
-  // New properties for category filter
+  // Query-defining filters (date range, accounts, categories, DR/CR) -
+  // held here (needed for loadTransactions()'s API call and for
+  // getTransactions()'s local filtering) but edited on transaction-search;
+  // see applyFilters() below for how they arrive.
+  startDate: string = "";
+  endDate: string = "";
   userCategories: UserCategory[] = [];
   selectedCategoryIds: number[] = [];
   categoryMap: Map<number, UserCategory> = new Map();
+  debitCreditIndicator: 'DR' | 'CR' | null = null;
 
   // New properties for category management
   selectedTransaction: Transaction | null = null;
@@ -311,29 +272,15 @@ export class TransactionListComponent implements OnInit, OnChanges {
   hasCategoryChanges: boolean = false;
   batchAddCategories: number[] = [];
 
-  // New property to track if no accounts are selected
-  noAccountsSelected: boolean = true;
-
   private transactions: Transaction[] = [];
   isLoading: boolean = false;
   isSaving: boolean = false;
   hasError: boolean = false;
 
-  // Collapsible groups in the "Select Accounts" modal (Calm Ledger - same
-  // mechanism as account-list's Level 1 groups, reused here per
-  // ux/UX_transaction-list.md point 6). Default expanded; a title not yet
-  // in the set is treated as expanded too.
-  private collapsedAccountGroups: Set<string> = new Set();
-
   openingBalance?: number;
   totalDebit?: number;
   totalCredit?: number;
   closingBalance?: number;
-
-  private accountSelectionChanged = false;
-  private categorySelectionChanged = false;
-
-  debitCreditIndicator: 'DR' | 'CR' | null = null;
 
   constructor(
     private transactionService: TransactionService,
@@ -359,8 +306,11 @@ export class TransactionListComponent implements OnInit, OnChanges {
       addOutline,
       ellipsisVerticalOutline,
       alertCircleOutline,
-      chevronDownOutline,
     });
+  }
+
+  get noAccountsSelected(): boolean {
+    return this.selectedAccountIds.length === 0;
   }
 
   ngOnInit() {
@@ -378,18 +328,17 @@ export class TransactionListComponent implements OnInit, OnChanges {
       }
     );
 
-
     // Subscribe to categories
     this.categoryService.userCategories$.subscribe(
       (categories: UserCategory[]) => {
         this.userCategories = categories;
         this.createCategoryMap();
-        this.filteredUserCategories = this.userCategories.slice();
         this.filteredAddUserCategories = this.userCategories.slice();
       }
     );
 
-    // Subscribe to query params
+    // Subscribe to query params (still supports ?userAccountId=<id>, the
+    // same query param account-list's drill-in navigates with)
     this.route.queryParams.subscribe((params) => {
       let userAccountId = Number(params["userAccountId"]);
 
@@ -399,171 +348,36 @@ export class TransactionListComponent implements OnInit, OnChanges {
       }
 
       if (userAccountId) {
-        this.accountId = userAccountId; // You might want to rename this variable to userAccountId for clarity
         this.selectedAccountIds = [userAccountId];
-        this.noAccountsSelected = false;
         this.loadTransactions();
       }
 
       // Only override default dates if provided in params
       if (params["startDate"]) {
         this.startDate = params["startDate"];
-        this.startDateInput = params["startDate"];
       }
       if (params["endDate"]) {
         this.endDate = params["endDate"];
-        this.endDateInput = params["endDate"];
       }
     });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes["groupedAccounts"]) {
-      this.processAccountIcons();
-      this.createAccountMap();
-    }
-    // Update local date inputs when parent inputs change
-    if (changes["startDate"]) {
-      this.startDateInput = this.startDate;
-    }
-    if (changes["endDate"]) {
-      this.endDateInput = this.endDate;
-    }
-
-    // Only reload on accountId change for initial load
-    if (changes["accountId"]) {
-      this.loadTransactions();
-    }
-  // Update filteredUserCategories if userCategories changes
-  this.filteredUserCategories = this.userCategories.slice();
-  this.filteredAddUserCategories = this.userCategories.slice();
+  // Called by TransactionsShellComponent (via the router-outlet's
+  // (activate) event) when transaction-search's Apply emits new filters -
+  // see JIRA_14's Implementation notes for why this isn't a template
+  // @Input given the two components are now on separate routes.
+  applyFilters(filters: TransactionFilters) {
+    this.selectedAccountIds = [...filters.selectedAccountIds];
+    this.startDate = filters.startDate;
+    this.endDate = filters.endDate;
+    this.selectedCategoryIds = [...filters.selectedCategoryIds];
+    this.debitCreditIndicator = filters.debitCreditIndicator;
+    this.resetCategoryChanges();
   }
 
-   filterCategoryOptions(): void {
-    const term = this.categorySearchTerm?.toLowerCase() || '';
-    if (!term) {
-      this.filteredUserCategories = this.userCategories ? [...this.userCategories] : [];
-    } else {
-      this.filteredUserCategories = (this.userCategories || []).filter((cat: UserCategory) =>
-        cat.category_title.toLowerCase().includes(term)
-      );
-    }
+  navigateToSearch() {
+    this.router.navigate(["/tabs/transactions/search"]);
   }
-
-  openAccountSelector() {
-    this.isAccountModalOpen = true;
-  }
-
-  closeAccountSelector() {
-    if (this.accountSelectionChanged) {
-      // Only clear if selection changed
-      this.clearTransactions();
-      this.accountSelectionChanged = false; // Reset the flag
-    }
-    this.isAccountModalOpen = false;
-
-    // Update the noAccountsSelected flag
-    this.noAccountsSelected = this.selectedAccountIds.length === 0;
-  }
-
-  // New methods for category selector
-  openCategorySelector() {
-    this.isCategoryModalOpen = true;
-  }
-
-  closeCategorySelector() {
-    if (this.categorySelectionChanged) {
-      // Only clear if selection changed
-      this.clearTransactions();
-      this.categorySelectionChanged = false; // Reset the flag
-    }
-    this.isCategoryModalOpen = false;
-  }
-
-  toggleAccountSelection(accountId: number) {
-    const index = this.selectedAccountIds.indexOf(accountId);
-    if (index > -1) {
-      this.selectedAccountIds.splice(index, 1);
-    } else {
-      this.selectedAccountIds.push(accountId);
-    }
-    this.accountSelectionChanged = true; // Set flag when selection changes
-  }
-
-  // Method to toggle category selection
-  toggleCategorySelection(categoryId: number) {
-    const index = this.selectedCategoryIds.indexOf(categoryId);
-    if (index > -1) {
-      this.selectedCategoryIds.splice(index, 1);
-    } else {
-      this.selectedCategoryIds.push(categoryId);
-    }
-    this.categorySelectionChanged = true; // Set flag when selection changes
-  }
-
-  isAccountSelected(accountId: number): boolean {
-    return this.selectedAccountIds.includes(accountId);
-  }
-
-  // Method to check if a category is selected
-  isCategorySelected(categoryId: number): boolean {
-    return this.selectedCategoryIds.includes(categoryId);
-  }
-
-  getSelectedAccountsText(): string {
-    if (this.selectedAccountIds.length === 0) return "Select accounts";
-    if (this.selectedAccountIds.length === 1) {
-      const account = this.accountMap.get(this.selectedAccountIds[0]);
-      return account ? account.user_account_name : "One account selected";
-    }
-    return `${this.selectedAccountIds.length} accounts selected`;
-  }
-
-  // Method to get selected categories text
-  getSelectedCategoriesText(): string {
-    if (this.selectedCategoryIds.length === 0) return "Select categories";
-    if (this.selectedCategoryIds.length === 1) {
-      const category = this.categoryMap.get(this.selectedCategoryIds[0]);
-      return category ? category.category_title : "One category selected";
-    }
-    return `${this.selectedCategoryIds.length} categories selected`;
-  }
-
-  // Update the refreshTransactions method in transaction-list.component.ts
-
-refreshTransactions() {
-  if (this.startDateInput && this.endDateInput) {
-    this.startDate = this.startDateInput;
-    this.endDate = this.endDateInput;
-
-    // Refresh user accounts first
-    this.userAccountService.refreshAccounts();
-    
-    // After a short delay to allow accounts to load
-    setTimeout(() => {
-      // If no accounts were previously selected or refresh was clicked
-      if (this.selectedAccountIds.length === 0) {
-        // Get the first account ID from the service
-        const firstAccountId = this.userAccountService.getFirstAccountId();
-        if (firstAccountId) {
-          this.selectedAccountIds = [firstAccountId];
-          this.noAccountsSelected = false;
-        } else {
-          this.noAccountsSelected = true;
-          this.toastService.showError("No accounts available");
-          return;
-        }
-      }
-
-      this.noAccountsSelected = false;
-      // Load transactions with either the selected accounts or first account
-      this.loadTransactions();
-
-      // Clear category changes when refreshing
-      this.resetCategoryChanges();
-    }, 300); // Short delay to allow accounts to refresh
-  }
-}
 
   // Search transactions
   onSearchChange(event: any) {
@@ -580,7 +394,7 @@ refreshTransactions() {
       filtered = filtered.filter((tx) => {
         if (!tx.user_category_ids) return true;
         if (tx.user_category_ids instanceof Set) return tx.user_category_ids.size === 0;
-  if (Array.isArray(tx.user_category_ids)) return (tx.user_category_ids as number[]).length === 0;
+        if (Array.isArray(tx.user_category_ids)) return (tx.user_category_ids as number[]).length === 0;
         return false;
       });
     } else if (this.selectedCategoryIds && this.selectedCategoryIds.length > 0) {
@@ -974,7 +788,6 @@ refreshTransactions() {
   private loadTransactions() {
     if (this.selectedAccountIds.length > 0 && this.startDate && this.endDate) {
       this.isLoading = true;
-      this.noAccountsSelected = false;
 
       this.transactionService
         .fetchAllTransactions(
@@ -1002,8 +815,6 @@ refreshTransactions() {
           }
         );
     } else if (this.selectedAccountIds.length === 0) {
-      // Set noAccountsSelected flag if no accounts are selected
-      this.noAccountsSelected = true;
       this.clearTransactions();
     }
   }
@@ -1015,20 +826,6 @@ refreshTransactions() {
   retryLoadTransactions() {
     this.hasError = false;
     this.loadTransactions();
-  }
-
-  // Collapsible "Select Accounts" modal groups (Calm Ledger scaling
-  // mechanism, reused from account-list - see ux/UX_transaction-list.md).
-  isAccountGroupExpanded(level1Title: string): boolean {
-    return !this.collapsedAccountGroups.has(level1Title);
-  }
-
-  toggleAccountGroup(level1Title: string) {
-    if (this.collapsedAccountGroups.has(level1Title)) {
-      this.collapsedAccountGroups.delete(level1Title);
-    } else {
-      this.collapsedAccountGroups.add(level1Title);
-    }
   }
 
   // Account name for a transaction row (Calm Ledger - shown as a muted tag
@@ -1090,15 +887,6 @@ refreshTransactions() {
     this.closingBalance = 0;
   }
 
-  // Update date change handlers
-  onStartDateChange() {
-    this.clearTransactions();
-  }
-
-  onEndDateChange() {
-    this.clearTransactions();
-  }
-
   // Add method to set financial year dates
   private setFinancialYearDates() {
     const today = new Date();
@@ -1112,8 +900,6 @@ refreshTransactions() {
 
     this.startDate = `${fyStartYear}-04-01`;
     this.endDate = `${fyStartYear + 1}-03-31`;
-    this.startDateInput = this.startDate;
-    this.endDateInput = this.endDate;
   }
 
   navigateToStatementUploader() {
@@ -1126,22 +912,15 @@ refreshTransactions() {
     const button = event.target.closest("ion-button");
     const icon = button.querySelector("ion-icon") || button; // Fallback if icon not found
     icon.classList.add("refreshing");
-    
-    // Refresh accounts first
+
+    // Refresh accounts, then reload with the currently-applied filters
     this.userAccountService.refreshAccounts();
-    
-    // After a short delay, refresh transactions
+
     setTimeout(() => {
-      this.refreshTransactions();
-      
-      // Remove the animation class after animation completes
+      this.loadTransactions();
       setTimeout(() => {
         icon.classList.remove("refreshing");
       }, 1000);
     }, 300);
-  }
-
-  onDebitCreditIndicatorChange(value: 'DR' | 'CR' | null) {
-    this.debitCreditIndicator = value;
   }
 }

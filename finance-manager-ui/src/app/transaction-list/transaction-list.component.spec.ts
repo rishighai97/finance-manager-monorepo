@@ -120,23 +120,64 @@ describe("TransactionListComponent", () => {
     });
   });
 
-  describe("Collapsible groups in the Select Accounts modal (reused from account-list, ux/UX_transaction-list.md point 6)", () => {
-    it("defaults every group to expanded", () => {
-      expect(component.isAccountGroupExpanded("cash")).toBe(true);
+  describe("noAccountsSelected (JIRA_14 - now a derived getter, not a field toggled by the removed account-selector modal)", () => {
+    it("is true by default before any account is applied", () => {
+      // getFirstAccountId() stub returns 1, and ngOnInit's queryParams
+      // subscription selects it immediately - reset to an empty state to
+      // exercise the derived getter directly.
+      component.selectedAccountIds = [];
+      expect(component.noAccountsSelected).toBe(true);
     });
 
-    it("flips a group's expanded state when toggled", () => {
-      component.toggleAccountGroup("cash");
-      expect(component.isAccountGroupExpanded("cash")).toBe(false);
+    it("is false once an account is selected", () => {
+      component.selectedAccountIds = [1];
+      expect(component.noAccountsSelected).toBe(false);
+    });
+  });
 
-      component.toggleAccountGroup("cash");
-      expect(component.isAccountGroupExpanded("cash")).toBe(true);
+  describe("applyFilters (JIRA_14 - receives the query-defining filters from transaction-search via TransactionsShellComponent, since the two are now on separate routes rather than template siblings)", () => {
+    it("adopts the given filters and triggers a reload", () => {
+      const freshResult$ = new Subject<Transactions>();
+      transactionServiceStub.fetchAllTransactions.and.returnValue(freshResult$);
+
+      component.applyFilters({
+        selectedAccountIds: [2, 3],
+        startDate: "2026-04-01",
+        endDate: "2027-03-31",
+        selectedCategoryIds: [5],
+        debitCreditIndicator: "DR",
+      });
+
+      expect(component.selectedAccountIds).toEqual([2, 3]);
+      expect(component.startDate).toBe("2026-04-01");
+      expect(component.endDate).toBe("2027-03-31");
+      expect(component.selectedCategoryIds).toEqual([5]);
+      expect(component.debitCreditIndicator).toBe("DR");
+      expect(transactionServiceStub.fetchAllTransactions).toHaveBeenCalledWith(
+        [2, 3],
+        "2026-04-01",
+        "2027-03-31",
+        [5],
+        "DR"
+      );
     });
 
-    it("only affects the toggled group, not others", () => {
-      component.toggleAccountGroup("cash");
-      expect(component.isAccountGroupExpanded("cash")).toBe(false);
-      expect(component.isAccountGroupExpanded("investment")).toBe(true);
+    it("clears any pending category changes when new filters are applied", () => {
+      const freshResult$ = new Subject<Transactions>();
+      transactionServiceStub.fetchAllTransactions.and.returnValue(freshResult$);
+      component.catInsertMap.set("t1", []);
+      component.hasCategoryChanges = true;
+
+      component.applyFilters({
+        selectedAccountIds: [1],
+        startDate: "2026-04-01",
+        endDate: "2027-03-31",
+        selectedCategoryIds: [],
+        debitCreditIndicator: null,
+      });
+
+      expect(component.hasCategoryChanges).toBe(false);
+      expect(component.catInsertMap.size).toBe(0);
     });
   });
 
