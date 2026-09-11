@@ -1,8 +1,8 @@
 # JIRA_12: `ux-explore` and `ux-apply` skills for a finance-manager-ui UX overhaul
 
-**Status**: In Refinement <!-- Draft -> In Refinement -> Ready for Dev -> In Progress -> Done -->
+**Status**: In Progress <!-- Draft -> In Refinement -> Ready for Dev -> In Progress -> Done -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (round 2)
+**Last updated**: 2026-09-11 (round 3)
 
 ## One-liner
 Create skills for a UX overhaul: `ux-explore` to generate comparable UX mockup options for existing finance-manager-ui pages so the user can decide on a direction, and `ux-apply` to implement the approved direction into the real UI.
@@ -35,8 +35,8 @@ finance-manager-ui's existing pages (account-list, transaction-list, category-li
 - Capacitor/iOS-specific UI concerns beyond what Ionic's web components already handle.
 
 ## Affected modules
-- [ ] finance-manager-ui
-- [ ] root / docs / CI
+- [x] finance-manager-ui <!-- not yet edited by this ticket - ux-apply will touch it once run against an approved page spec, per Scope's "actually running the exploration/decision process" being out of scope here -->
+- [x] root / docs / CI
 
 ## Requirements
 1. `ux-explore` skill file at `.claude/skills/ux-explore/SKILL.md`, following this repo's skill conventions (see `docs/SKILLS.md` and existing skills like `jira-create`, `statement-onboard`).
@@ -54,19 +54,27 @@ finance-manager-ui's existing pages (account-list, transaction-list, category-li
 None outstanding - resolved during refinement (see Changelog).
 
 ## Acceptance criteria
-- [ ] `.claude/skills/ux-explore/SKILL.md` and `.claude/skills/ux-apply/SKILL.md` exist and follow this repo's skill conventions.
-- [ ] `ux/TEMPLATE.md` and `ux/README.md` exist with a Draft -> Options Presented -> Selected -> Ready for Dev status lifecycle.
-- [ ] Running `ux-explore` for the app-wide round produces 3 published mockup artifacts covering distinct style directions and a way to record the chosen one in `ux/UX_DIRECTION.md`.
-- [ ] Running `ux-explore` for a single page (after a direction is approved) produces 2-3 mockup artifacts - each covering happy/empty/error/loading states, populated with real data pulled via `db-run` - and a `ux/UX_<page>.md` file that reaches Ready for Dev only on explicit user confirmation.
-- [ ] Running `ux-apply` against a Ready for Dev `ux/UX_<page>.md` updates that page's real Angular/Ionic component(s) and templates (including its empty/error/loading states) in `finance-manager-ui`, without touching `src/service/*.service.ts` files, and without creating branches/commits itself.
-- [ ] `docs/SKILLS.md` lists both new skills.
+- [x] `.claude/skills/ux-explore/SKILL.md` and `.claude/skills/ux-apply/SKILL.md` exist and follow this repo's skill conventions.
+- [x] `ux/TEMPLATE.md` and `ux/README.md` exist with a Draft -> Options Presented -> Selected -> Ready for Dev status lifecycle.
+- [ ] Running `ux-explore` for the app-wide round produces 3 published mockup artifacts covering distinct style directions and a way to record the chosen one in `ux/UX_DIRECTION.md`. **Deferred**: this requires live user direction-picking (Scope explicitly puts "actually running the exploration/decision process" out of this ticket) - first real invocation is the next step after this ticket.
+- [ ] Running `ux-explore` for a single page (after a direction is approved) produces 2-3 mockup artifacts - each covering happy/empty/error/loading states, populated with real data pulled via `db-run` - and a `ux/UX_<page>.md` file that reaches Ready for Dev only on explicit user confirmation. **Deferred**, same reason - depends on a direction existing first.
+- [ ] Running `ux-apply` against a Ready for Dev `ux/UX_<page>.md` updates that page's real Angular/Ionic component(s) and templates (including its empty/error/loading states) in `finance-manager-ui`, without touching `src/service/*.service.ts` files, and without creating branches/commits itself. **Deferred**, same reason - depends on an approved page spec existing first.
+- [x] `docs/SKILLS.md` lists both new skills.
 
 ## Implementation notes
 - `ux-proof-capture` skill and its sample statements (`scripts/statements/synthetic/`) were built ahead of the rest of this ticket reaching Ready for Dev, at the user's explicit direction, specifically so a "before" baseline recording could be captured before `ux-explore`/`ux-apply` exist.
 - "Before" baseline captured: `ux/proof/ux-proof-before-20260911.gif` (login as Rishi Ghai -> account list -> upload `hdfc.xls` to HDFC RISHI -> view/categorize its transactions -> upload `axis.csv` to AXIS RISHI -> view its transactions). Run against the local stack as it existed pre-overhaul (Angular/Ionic default styling, no `ux-explore`/`ux-apply` yet). The "after" GIF (same script, same accounts, same files) should be captured once a page reaches `ux-apply`'d state, and its path added here alongside this one.
+- Built `ux-explore` (`.claude/skills/ux-explore/SKILL.md`) and `ux-apply` (`.claude/skills/ux-apply/SKILL.md`), plus the `ux/` tracker (`ux/TEMPLATE.md`, `ux/README.md`) they read/write - a parallel spec-driven flow to `jira/`'s, documented in `docs/SKILLS.md`'s Conventions section.
+- Design decisions made while building these:
+  - `ux/` mirrors `jira/`'s Draft-refine-Ready-for-Dev discipline but with its own 4-state lifecycle (`Draft -> Options Presented -> Selected -> Ready for Dev`) rather than reusing `jira/TEMPLATE.md` directly - a UX option-comparison spec doesn't fit a requirements/acceptance-criteria shape.
+  - `ux-apply` maps `UX_DIRECTION.md`'s color tokens onto Ionic's existing `--ion-color-*` custom properties in `finance-manager-ui/src/theme/variables.scss` rather than inventing new ones, and applies the shared direction tokens globally only on its first run per direction version (checked against `variables.scss`'s current values, not re-applied blindly every page).
+  - `ux-apply` explicitly excludes `finance-manager-ui/src/app/{tab2,tab3,explore-container,logout}` - unrelated Ionic-starter-template leftovers not in JIRA_12's six-page scope.
+- **Deferred to a follow-up invocation** (per Scope's "actually running the exploration/decision process... happens after this ticket"): the first real `ux-explore` Round 1 (app-wide direction), any page's Round 2, any `ux-apply` run, and the "after" proof GIF. This requires live user UX decisions this ticket doesn't make unilaterally - see the three unchecked Acceptance criteria above.
 
 ## Changelog
 - 2026-09-11: created from one-liner (Draft)
 - 2026-09-11: refinement round 2 - resolved all three open questions: `ux-apply` edits directly on the current branch (no auto branch/PR-per-page), `ux-explore`'s per-page mockups use real data via `db-run` instead of synthetic fake data, and scope explicitly includes empty/error/loading states for each of the six pages (In Refinement)
 - 2026-09-11: added `ux-proof-capture` skill (scoped to this ticket only) for before/after UX proof recordings; generated sample statements for all 9 available formats into `scripts/statements/synthetic/` via an `--out-dir` extension to `scripts/generate_dummy_statement_fixtures.py` (In Refinement)
 - 2026-09-11: captured the "before" baseline walkthrough GIF (`ux/proof/ux-proof-before-20260911.gif`) via `ux-proof-capture`, run against the local stack prior to any UX changes (In Refinement)
+- 2026-09-11: user confirmed the spec - marked Ready for Dev, then immediately moved to In Progress to begin implementation (Ready for Dev -> In Progress)
+- 2026-09-11: implemented `ux-explore`, `ux-apply`, and the `ux/` tracker (`TEMPLATE.md`, `README.md`); updated `docs/SKILLS.md`. Live exploration/apply runs deferred to a follow-up per Scope (In Progress)
