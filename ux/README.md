@@ -18,6 +18,7 @@ Spec-driven UX-direction tracker for finance-manager, parallel to `jira/`'s requ
 | statement-uploader | [UX_statement-uploader.md](UX_statement-uploader.md) | Implemented |
 | auth | [UX_auth.md](UX_auth.md) | Implemented |
 | tabs | [UX_tabs.md](UX_tabs.md) | Implemented |
+| transaction-search | [UX_transaction-search.md](UX_transaction-search.md) | Implemented |
 
 ## Proof captures
 

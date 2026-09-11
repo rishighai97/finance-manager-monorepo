@@ -63,12 +63,56 @@ ion-content {
   padding: 10px 20px 0;
   border-bottom: 1px solid var(--app-divider);
 
-  ion-searchbar {
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  // Flat underline field instead of the default grey pill - idle border is
+  // subtle, brightens to the primary color while focused.
+  .cl-searchbar {
+    flex: 1 1 auto;
     padding: 0;
-    --border-radius: 4px;
+    --border-radius: 0;
     --background: transparent;
     --box-shadow: none;
-    margin-bottom: 8px;
+    --placeholder-color: var(--app-color-muted);
+    --icon-color: var(--app-color-muted);
+    --color: var(--ion-text-color);
+    border-bottom: 1px solid var(--app-divider-subtle);
+    transition: border-color 0.15s ease;
+
+    &:focus-within {
+      border-bottom-color: var(--ion-color-primary);
+    }
+  }
+
+  // Labeled toggle switch, replacing the bare ion-checkbox. ion-toggle's
+  // internal shadow track always renders at its own fixed default size
+  // (~51x31) no matter what width/height/--handle-* is set on the host -
+  // those only resize the host's own layout box, not the shadow content,
+  // so shrinking the host that way makes the (unshrunk) track visually
+  // overflow past it and overlap whatever comes next (here, "Regex").
+  // transform: scale() instead shrinks the actual painted track, and
+  // because a transform doesn't change the element's layout box, the
+  // gap/label after it is sized against the toggle's *original* (larger)
+  // footprint, so there's always real room and no overlap.
+  .regex-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+
+    ion-toggle {
+      transform: scale(0.65);
+      transform-origin: left center;
+      --track-background: var(--app-divider);
+      --track-background-checked: var(--ion-color-primary);
+      --handle-background: #fff;
+      --handle-background-checked: #fff;
+    }
   }
 
   .regex-label {

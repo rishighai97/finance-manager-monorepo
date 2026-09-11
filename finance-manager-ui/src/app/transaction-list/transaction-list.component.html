@@ -3,9 +3,6 @@
     <ion-title class="cl-headline">Transactions</ion-title>
     <ion-buttons slot="end">
       <span class="cl-mono meta-count">{{ getTransactions().length }} rows</span>
-      <ion-button (click)="navigateToSearch()" color="medium">
-        <ion-icon name="filter-outline"></ion-icon>
-      </ion-button>
       <ion-button (click)="refreshWithAnimation($event)" color="medium">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>
@@ -14,13 +11,21 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-no-padding">
+  <!-- transaction-search is projected here (see TransactionsPageComponent) -
+       matching ux/UX_transaction-search.md's Option 4 layout, while
+       staying a genuinely separate component from this one. Placed inside
+       ion-content (not as a sibling between it and ion-header) because
+       ion-content[fullscreen] positions itself absolutely to slide under
+       a translucent header - a sibling between header and content isn't
+       accounted for in that offset and visually overlaps the content. -->
+  <ng-content></ng-content>
+
   <!-- No accounts selected - distinct from "no transactions match" (see
        ux/UX_transaction-list.md point 8: two distinct empty conditions) -->
   <div *ngIf="noAccountsSelected" class="no-accounts-warning">
     <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
     <h3>No accounts selected</h3>
-    <p>Select at least one account to view transactions.</p>
-    <a class="text-link" (click)="navigateToSearch()">Select accounts</a>
+    <p>Select at least one account above to view transactions.</p>
   </div>
 
   <!-- Only show Summary and Transactions when accounts are selected -->
@@ -59,9 +64,11 @@
       </div>
     </div>
 
-    <!-- Search Bar -->
+    <!-- Search Bar (Calm Ledger - flat underline field, labeled toggle
+         switch instead of the default grey pill + bare checkbox; see
+         ux/UX_transaction-search.md point 5) -->
     <div class="search-container">
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="search-row">
         <ion-searchbar
           placeholder="Search transactions"
           [(ngModel)]="searchTerm"
@@ -70,14 +77,15 @@
           debounce="300"
           showCancelButton="focus"
           cancelButtonText="Clear"
-          style="flex: 1 1 auto;"
+          class="cl-searchbar"
         ></ion-searchbar>
-        <ion-checkbox
-          [(ngModel)]="regexSearch"
-          style="margin-left: 8px;"
-          aria-label="Enable regex search"
-        ></ion-checkbox>
-        <span class="regex-label">Regex</span>
+        <div class="regex-toggle">
+          <ion-toggle
+            [(ngModel)]="regexSearch"
+            aria-label="Enable regex search"
+          ></ion-toggle>
+          <span class="regex-label">Regex</span>
+        </div>
       </div>
 
       <!-- Batch Categorize Input and Buttons - stays here (not in

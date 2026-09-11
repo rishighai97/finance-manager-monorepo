@@ -19,26 +19,10 @@ export const routes: Routes = [
       {
         path: 'transactions',
         loadComponent: () =>
-          import('../transactions-shell/transactions-shell.component').then(
-            (m) => m.TransactionsShellComponent
+          import('../transactions-page/transactions-page.component').then(
+            (m) => m.TransactionsPageComponent
           ),
-        canActivate: [AuthGuard],
-        children: [
-          {
-            path: '',
-            loadComponent: () =>
-              import('../transaction-list/transaction-list.component').then(
-                (m) => m.TransactionListComponent
-              ),
-          },
-          {
-            path: 'search',
-            loadComponent: () =>
-              import('../transaction-search/transaction-search.component').then(
-                (m) => m.TransactionSearchComponent
-              ),
-          },
-        ],
+        canActivate: [AuthGuard]
       },
       {
         path: 'statement-uploader',

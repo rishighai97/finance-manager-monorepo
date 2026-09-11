@@ -135,7 +135,7 @@ describe("TransactionListComponent", () => {
     });
   });
 
-  describe("applyFilters (JIRA_14 - receives the query-defining filters from transaction-search via TransactionsShellComponent, since the two are now on separate routes rather than template siblings)", () => {
+  describe("applyFilters (JIRA_14 - receives the query-defining filters from transaction-search, called directly by TransactionsPageComponent's template)", () => {
     it("adopts the given filters and triggers a reload", () => {
       const freshResult$ = new Subject<Transactions>();
       transactionServiceStub.fetchAllTransactions.and.returnValue(freshResult$);

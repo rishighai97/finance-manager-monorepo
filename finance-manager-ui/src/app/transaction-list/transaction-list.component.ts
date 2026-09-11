@@ -17,6 +17,7 @@ import {
   IonSelectOption,
   IonModal,
   IonCheckbox,
+  IonToggle,
   IonRow,
   IonCol,
   IonBadge,
@@ -34,7 +35,6 @@ import {
   arrowBackOutline,
   walletOutline,
   pricetagsOutline,
-  filterOutline,
   checkmarkOutline,
   closeOutline,
   closeCircleOutline,
@@ -81,6 +81,7 @@ import { TransactionFilters } from "../transaction-search/transaction-search.com
     IonSelectOption,
     IonModal,
     IonCheckbox,
+    IonToggle,
     IonRow,
     IonCol,
     IonBadge,
@@ -297,7 +298,6 @@ export class TransactionListComponent implements OnInit {
       arrowBackOutline,
       walletOutline,
       pricetagsOutline,
-      filterOutline,
       checkmarkOutline,
       closeOutline,
       closeCircleOutline,
@@ -362,10 +362,11 @@ export class TransactionListComponent implements OnInit {
     });
   }
 
-  // Called by TransactionsShellComponent (via the router-outlet's
-  // (activate) event) when transaction-search's Apply emits new filters -
-  // see JIRA_14's Implementation notes for why this isn't a template
-  // @Input given the two components are now on separate routes.
+  // Called directly by TransactionsPageComponent's template (via a #list
+  // reference) whenever transaction-search emits a filter change - see
+  // jira/JIRA_14.md's addendum for why this replaced the router-outlet/
+  // (activate) wiring the two components originally needed when they lived
+  // on separate routes.
   applyFilters(filters: TransactionFilters) {
     this.selectedAccountIds = [...filters.selectedAccountIds];
     this.startDate = filters.startDate;
@@ -373,10 +374,6 @@ export class TransactionListComponent implements OnInit {
     this.selectedCategoryIds = [...filters.selectedCategoryIds];
     this.debitCreditIndicator = filters.debitCreditIndicator;
     this.resetCategoryChanges();
-  }
-
-  navigateToSearch() {
-    this.router.navigate(["/tabs/transactions/search"]);
   }
 
   // Search transactions

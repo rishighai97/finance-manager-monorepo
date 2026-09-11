@@ -67,65 +67,103 @@ describe("TransactionSearchComponent", () => {
     });
   });
 
-  describe("seedFilters (called by TransactionsShellComponent on activation, so the form reflects transaction-list's current filters)", () => {
-    it("does nothing when given null (first-ever open, nothing applied yet)", () => {
+  // seedFilters became @Input() initialFilters as part of jira/JIRA_14.md's
+  // addendum (wrapper composition instead of the router-outlet/(activate)
+  // coordinator) - seeding now happens in ngOnInit, since Angular sets a
+  // statically-bound @Input before ngOnInit runs.
+  describe("initialFilters (seeds the form when the wrapper provides prior filter state)", () => {
+    it("keeps the financial-year default when no initialFilters are given", () => {
       const originalStart = component.startDate;
-
-      component.seedFilters(null);
 
       expect(component.startDate).toBe(originalStart);
       expect(component.selectedAccountIds).toEqual([]);
     });
 
-    it("populates the form from a given filter set", () => {
-      component.seedFilters({
+    it("populates the form from initialFilters set before ngOnInit runs", () => {
+      const seededFixture = TestBed.createComponent(TransactionSearchComponent);
+      const seededComponent = seededFixture.componentInstance;
+      seededComponent.initialFilters = {
         selectedAccountIds: [4, 5],
         startDate: "2026-04-01",
         endDate: "2027-03-31",
         selectedCategoryIds: [9],
         debitCreditIndicator: "CR",
-      });
+      };
 
-      expect(component.selectedAccountIds).toEqual([4, 5]);
-      expect(component.startDate).toBe("2026-04-01");
-      expect(component.startDateInput).toBe("2026-04-01");
-      expect(component.endDate).toBe("2027-03-31");
-      expect(component.selectedCategoryIds).toEqual([9]);
-      expect(component.debitCreditIndicator).toBe("CR");
+      seededFixture.detectChanges();
+
+      expect(seededComponent.selectedAccountIds).toEqual([4, 5]);
+      expect(seededComponent.startDate).toBe("2026-04-01");
+      expect(seededComponent.endDate).toBe("2027-03-31");
+      expect(seededComponent.selectedCategoryIds).toEqual([9]);
+      expect(seededComponent.debitCreditIndicator).toBe("CR");
     });
   });
 
-  describe("apply (emits the current form state as TransactionFilters)", () => {
-    it("emits the current selections, syncing startDate/endDate from the input fields", () => {
+  // Replaces the old explicit Apply button - see jira/JIRA_14.md's
+  // addendum for why there's no "screen" to apply-and-leave any more.
+  describe("emitting filtersApplied on a filter change (no Apply button)", () => {
+    it("emits on a date change", () => {
       let emitted: any = null;
       component.filtersApplied.subscribe((filters) => (emitted = filters));
 
-      component.startDateInput = "2026-04-01";
-      component.endDateInput = "2027-03-31";
-      component.selectedAccountIds = [1];
-      component.selectedCategoryIds = [2];
-      component.debitCreditIndicator = "DR";
-
-      component.apply();
+      component.startDate = "2026-04-01";
+      component.onStartDateChange();
 
       expect(emitted).toEqual({
-        selectedAccountIds: [1],
+        selectedAccountIds: [],
         startDate: "2026-04-01",
-        endDate: "2027-03-31",
-        selectedCategoryIds: [2],
-        debitCreditIndicator: "DR",
+        endDate: component.endDate,
+        selectedCategoryIds: [],
+        debitCreditIndicator: null,
       });
     });
-  });
 
-  describe("cancel (navigates back without applying anything)", () => {
-    it("emits cancelled", () => {
-      let cancelledFired = false;
-      component.cancelled.subscribe(() => (cancelledFired = true));
+    it("emits on a debit/credit indicator change", () => {
+      let emitted: any = null;
+      component.filtersApplied.subscribe((filters) => (emitted = filters));
 
-      component.cancel();
+      component.onDebitCreditIndicatorChange("DR");
 
-      expect(cancelledFired).toBe(true);
+      expect(component.debitCreditIndicator).toBe("DR");
+      expect(emitted?.debitCreditIndicator).toBe("DR");
+    });
+
+    it("emits once when the account modal closes after a selection change, not per checkbox", () => {
+      let emitCount = 0;
+      component.filtersApplied.subscribe(() => emitCount++);
+
+      component.openAccountSelector();
+      component.toggleAccountSelection(1);
+      component.toggleAccountSelection(2);
+      expect(emitCount).toBe(0);
+
+      component.closeAccountSelector();
+
+      expect(emitCount).toBe(1);
+      expect(component.selectedAccountIds).toEqual([1, 2]);
+    });
+
+    it("does not emit when the account modal closes with no selection change", () => {
+      let emitCount = 0;
+      component.filtersApplied.subscribe(() => emitCount++);
+
+      component.openAccountSelector();
+      component.closeAccountSelector();
+
+      expect(emitCount).toBe(0);
+    });
+
+    it("emits once when the category modal closes after a selection change", () => {
+      let emitCount = 0;
+      component.filtersApplied.subscribe(() => emitCount++);
+
+      component.openCategorySelector();
+      component.toggleCategorySelection(9);
+      component.closeCategorySelector();
+
+      expect(emitCount).toBe(1);
+      expect(component.selectedCategoryIds).toEqual([9]);
     });
   });
 });

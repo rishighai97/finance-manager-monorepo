@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import {
   IonHeader,
   IonToolbar,
@@ -21,9 +21,7 @@ import {
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
-  arrowBackOutline,
   closeOutline,
-  checkmarkOutline,
   chevronDownOutline,
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
@@ -74,8 +72,14 @@ export interface TransactionFilters {
   ],
 })
 export class TransactionSearchComponent implements OnInit {
+  // Seeds the form from transaction-list's currently-applied filters, if
+  // any, when the wrapper mounts this component. There's usually nothing
+  // to seed - this page has no prior "applied" state to inherit the way
+  // navigating back from a separate route used to provide one (see
+  // jira/JIRA_14.md's addendum) - so it's fine for the wrapper to leave
+  // this unbound and let ngOnInit's own financial-year default stand.
+  @Input() initialFilters: TransactionFilters | null = null;
   @Output() filtersApplied = new EventEmitter<TransactionFilters>();
-  @Output() cancelled = new EventEmitter<void>();
 
   groupedAccounts: GroupedUserAccount[] = [];
   accountMap: Map<number, UserAccount> = new Map();
@@ -90,8 +94,6 @@ export class TransactionSearchComponent implements OnInit {
 
   startDate = "";
   endDate = "";
-  startDateInput = "";
-  endDateInput = "";
 
   userCategories: UserCategory[] = [];
   categoryMap: Map<number, UserCategory> = new Map();
@@ -107,11 +109,15 @@ export class TransactionSearchComponent implements OnInit {
     private userAccountService: UserAccountService,
     private categoryService: CategoryService
   ) {
-    addIcons({ arrowBackOutline, closeOutline, checkmarkOutline, chevronDownOutline });
+    addIcons({ closeOutline, chevronDownOutline });
   }
 
   ngOnInit() {
     this.setFinancialYearDates();
+
+    if (this.initialFilters) {
+      this.seedFrom(this.initialFilters);
+    }
 
     this.userAccountService.groupedUserAccounts$.subscribe((accounts) => {
       this.groupedAccounts = accounts;
@@ -125,25 +131,21 @@ export class TransactionSearchComponent implements OnInit {
     });
   }
 
-  // Called by TransactionsShellComponent right after this component
-  // activates, so the form reflects whatever's currently applied on
-  // transaction-list rather than opening blank every time.
-  seedFilters(filters: TransactionFilters | null) {
-    if (!filters) {
-      return;
-    }
+  private seedFrom(filters: TransactionFilters) {
     this.selectedAccountIds = [...filters.selectedAccountIds];
     this.startDate = filters.startDate;
     this.endDate = filters.endDate;
-    this.startDateInput = filters.startDate;
-    this.endDateInput = filters.endDate;
     this.selectedCategoryIds = [...filters.selectedCategoryIds];
     this.debitCreditIndicator = filters.debitCreditIndicator;
   }
 
-  apply() {
-    this.startDate = this.startDateInput;
-    this.endDate = this.endDateInput;
+  // Replaces the old Apply button - there's no "screen" to apply-and-leave
+  // any more (see jira/JIRA_14.md's addendum), so every meaningful filter
+  // change emits immediately. Account/category selection change while their
+  // modal is open, but only emit once on close (closeAccountSelector/
+  // closeCategorySelector below) rather than per-checkbox, so toggling
+  // several accounts doesn't fire a transaction refetch per click.
+  private emitFilters() {
     this.filtersApplied.emit({
       selectedAccountIds: [...this.selectedAccountIds],
       startDate: this.startDate,
@@ -153,15 +155,17 @@ export class TransactionSearchComponent implements OnInit {
     });
   }
 
-  cancel() {
-    this.cancelled.emit();
+  onStartDateChange() {
+    this.emitFilters();
   }
 
-  onStartDateChange() {}
-  onEndDateChange() {}
+  onEndDateChange() {
+    this.emitFilters();
+  }
 
   onDebitCreditIndicatorChange(value: "DR" | "CR" | null) {
     this.debitCreditIndicator = value;
+    this.emitFilters();
   }
 
   openAccountSelector() {
@@ -170,6 +174,9 @@ export class TransactionSearchComponent implements OnInit {
 
   closeAccountSelector() {
     this.isAccountModalOpen = false;
+    if (this.accountSelectionChanged) {
+      this.emitFilters();
+    }
     this.accountSelectionChanged = false;
   }
 
@@ -214,6 +221,9 @@ export class TransactionSearchComponent implements OnInit {
 
   closeCategorySelector() {
     this.isCategoryModalOpen = false;
+    if (this.categorySelectionChanged) {
+      this.emitFilters();
+    }
     this.categorySelectionChanged = false;
   }
 
@@ -242,6 +252,7 @@ export class TransactionSearchComponent implements OnInit {
 
   clearAllCategories() {
     this.selectedCategoryIds = [];
+    this.categorySelectionChanged = true;
   }
 
   selectAllCategories() {
@@ -252,6 +263,7 @@ export class TransactionSearchComponent implements OnInit {
     } else {
       this.selectedCategoryIds = allIds;
     }
+    this.categorySelectionChanged = true;
   }
 
   filterCategories() {
@@ -287,7 +299,5 @@ export class TransactionSearchComponent implements OnInit {
 
     this.startDate = `${fyStartYear}-04-01`;
     this.endDate = `${fyStartYear + 1}-03-31`;
-    this.startDateInput = this.startDate;
-    this.endDateInput = this.endDate;
   }
 }

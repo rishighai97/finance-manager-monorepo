@@ -1,21 +1,9 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>Search Transactions</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
-  <div class="date-filter-container">
+<div class="date-filter-container">
     <ion-item lines="none" class="date-picker-item">
       <ion-label position="stacked">From</ion-label>
       <ion-input
         type="date"
-        [(ngModel)]="startDateInput"
+        [(ngModel)]="startDate"
         (ionChange)="onStartDateChange()"
       ></ion-input>
     </ion-item>
@@ -24,7 +12,7 @@
       <ion-label position="stacked">To</ion-label>
       <ion-input
         type="date"
-        [(ngModel)]="endDateInput"
+        [(ngModel)]="endDate"
         (ionChange)="onEndDateChange()"
       ></ion-input>
     </ion-item>
@@ -111,14 +99,6 @@
       </ion-select>
     </ion-item>
   </div>
-
-  <div class="apply-container">
-    <ion-button expand="block" color="primary" (click)="apply()">
-      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-      Apply
-    </ion-button>
-  </div>
-</ion-content>
 
 <!-- Account Selector Modal -->
 <ion-modal

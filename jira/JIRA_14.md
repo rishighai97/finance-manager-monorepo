@@ -2,7 +2,7 @@
 
 **Status**: Done <!-- Draft -> In Refinement -> Ready for Dev -> In Progress -> Done -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (Done)
+**Last updated**: 2026-09-11 (addendum - Done)
 
 ## One-liner
 Separate components to have transaction search and transaction list as separate components in transaction component.
@@ -59,8 +59,30 @@ Grounded fully against the real `transaction-list.component.{html,ts,scss}` befo
 5. **Testing note**: `TransactionsShellComponent`'s spec initially substituted a fake `Router` object via `{provide: Router, useValue: spy}`, which broke because `IonRouterOutlet` and Angular's own root `ActivatedRoute` factory both depend on a real, internally-consistent `Router` instance. Fixed by using the real `Router` from `provideRouter([])` and `spyOn(router, 'navigate')` instead of substituting the whole object - the correct pattern whenever a component under test uses `<router-outlet>`/`<ion-router-outlet>` itself.
 6. **Verification**: `ng build --configuration development` clean (only pre-existing unused-import warnings, same as before this ticket). Full suite `ng test --browsers=ChromeHeadless --watch=false` - 123/123 passing (30 new/updated across `transaction-list`, the new `transaction-search`, and the new `transactions-shell` specs; the "Collapsible groups in the Select Accounts modal" tests moved from `transaction-list.component.spec.ts` to `transaction-search.component.spec.ts` along with the modal itself). Live-verified via `claude-in-chrome` against the running `local-run` stack end-to-end: clicked the header's filter icon on `/tabs/transactions` -> navigated to `/tabs/transactions/search` (seeded with the current FY dates) -> selected the `hdfc` account and widened the date range -> tapped Apply -> navigated back to `/tabs/transactions` -> skeleton rows appeared -> 123 real rows loaded. Also confirmed the live text-search box on `transaction-list` still narrows results instantly (typed "Grocery", got 1 row), and confirmed `account-list`'s "view this account's transactions" row-click still navigates correctly via the query-param path (`?userAccountId=57`) now that the dead embedded-component branch is gone.
 
+## Addendum - wrapper composition (2026-09-11)
+
+`ux/UX_transaction-search.md`'s Option 4 (filters and transactions on the same page, requested after this ticket's original implementation) refines this ticket's own communication mechanism rather than raising a new concern, so it's tracked here as an addendum instead of a new ticket - see that spec's Implementation detail for the full design.
+
+**What changes**: `TransactionsShellComponent` - the `<ion-router-outlet>`/`(activate)` coordinator this ticket built specifically because `transaction-search` and `transaction-list` lived on separate routes - is deleted, along with the `/tabs/transactions/search` child route. `transactions` goes back to being a single leaf route. A new wrapper component (`TransactionsPageComponent`) composes the two as template children on one page, using the plain `@Input`/`@Output` mechanism this ticket originally chose before "separate route" forced the router-outlet detour.
+
+**What doesn't change**: the split itself. `transaction-search` and `transaction-list` remain two separate, independently-testable components - only how they're wired together changes, not whether they exist separately. `TransactionSearchComponent.seedFilters()` becomes `@Input() initialFilters`; its `cancelled` output and back-arrow header go away (no more "screen" to cancel out of).
+
+Real implementation findings for this addendum go here, not in a new ticket's Implementation notes, once built.
+
+### Addendum implementation notes
+
+See `ux/UX_transaction-search.md`'s own Implementation notes for the full write-up (content-projection composition instead of flat siblings, a live-testing-only `ion-content[fullscreen]` overlap bug, the no-Apply-button emit design, and the deliberately-left query-param-seeding gap). Summary of what changed in this codebase:
+- Deleted `finance-manager-ui/src/app/transactions-shell/` and its spec.
+- Added `finance-manager-ui/src/app/transactions-page/` (`TransactionsPageComponent` + spec) - a thin wrapper that projects `<app-transaction-search>` into `<app-transaction-list>`'s new `<ng-content>` slot and wires `filtersApplied` to `applyFilters()` via a template reference.
+- `tabs.routes.ts`'s `transactions` entry is a single leaf route again, loading `TransactionsPageComponent`.
+- `TransactionSearchComponent`: `seedFilters()` → `@Input() initialFilters`; `cancelled` output and page chrome (header, back arrow, Apply button) removed; emits `filtersApplied` on every date/DR-CR change and once per account/category modal close (if changed).
+- `TransactionListComponent`: `navigateToSearch()` removed (no route to navigate to); header's filter icon removed; "No accounts selected" state's dead link removed; search bar restyled (flat underline `ion-searchbar`, `ion-toggle` replacing the bare `ion-checkbox` regex control).
+- Verified: `ng build --configuration development` clean, `ng test` 124/124 passing, live `claude-in-chrome` check against the running local stack (including confirming a real HTTP request fires on a filter change via network inspection).
+
 ## Changelog
 - 2026-09-11: created from one-liner (Draft)
 - 2026-09-11: refinement round 1 - resolved communication mechanism (parent container + @Input/@Output), confirmed `transaction-search` gets its own route rather than staying inline (a bigger navigation change than initially scoped - Summary/Requirements updated accordingly), and confirmed this ticket lands before JIRA_13 so that ticket's `ux-apply` targets an already-separated component (In Refinement)
 - 2026-09-11: refinement round 2 - resolved the remaining open questions (filter icon as nav trigger, auto-navigate-back-on-apply, and a parent-shell-with-`(activate)` routing design to make `@Input`/`@Output` communication work between routed siblings); user confirmed - marked Ready for Dev, then immediately moved to In Progress to begin implementation (Ready for Dev -> In Progress)
 - 2026-09-11: implemented the split - new `transaction-search`/`transactions-shell` components, trimmed `transaction-list`, updated `tabs.routes.ts`. Found and removed genuinely dead code in `account-list` (the embedded `<app-transaction-list>` branch could never activate), fixed two live-testing-only bugs (plain `RouterOutlet` instead of `IonRouterOutlet` breaking page layout; relative navigation failing, switched to absolute paths), and deliberately kept text search/regex on `transaction-list` rather than moving it with the other filters. Verified build/tests (123/123)/live app end-to-end. Marked Done (In Progress -> Done)
+- 2026-09-11: reopened as an addendum - `ux/UX_transaction-search.md`'s Option 4 refines this ticket's routed-shell communication mechanism into a wrapper-composed one, rather than raising a new concern; tracking here rather than as a new ticket, per this repo's convention of keeping a mechanism's evolution with the ticket that introduced it (Done -> In Progress)
+- 2026-09-11: addendum implemented - new `TransactionsPageComponent` wrapper replacing `TransactionsShellComponent`, using content projection rather than flat template siblings (a real deviation found while implementing, see Addendum implementation notes). Verified build/tests (124/124) and live end-to-end. Marked Done (In Progress -> Done)
