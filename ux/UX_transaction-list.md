@@ -9,9 +9,9 @@ exists as a parallel spec-driven flow rather than folding into jira/.
 
 # UX_transaction-list: Transaction list
 
-**Status**: Ready for Dev <!-- Draft -> Options Presented -> Selected -> Ready for Dev -->
+**Status**: Implemented <!-- Draft -> Options Presented -> Selected -> Ready for Dev -> Implemented -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (round 2)
+**Last updated**: 2026-09-11 (ux-apply)
 **Direction**: [ux/UX_DIRECTION.md](UX_DIRECTION.md) - "Calm Ledger", Ready for Dev
 
 ## Page
@@ -60,6 +60,16 @@ Layout, by template region (beyond what's covered above):
 - **Loading**: replace `<ion-item><ion-label>Loading transactions...</ion-label><ion-spinner></ion-spinner></ion-item>` with the mockup's flat skeleton bars, same pattern as `account-list`.
 - **Tab bar**: same `UX_DIRECTION.md` tokens as every other page - recolor only.
 
+## Implementation notes
+
+Built via `ux-apply`, grounded against the real `transaction-list.component.{html,ts,scss}` (532/1115/~unstyled lines before this change). All 9 points from Implementation detail were implemented, plus one thing the spec got wrong and one thing it missed entirely:
+
+1. **Spec inaccuracy - there is no date-grouping in the real code.** Point 58 ("Layout, by template region") described "Date-group headers: plain small-caps label, no total" as if transactions were grouped under per-date section headers the way `account-list` groups accounts under type headers. They aren't - the real template (`@for (transaction of getTransactions(); ...)`) is a flat list; each row shows its own date inline above its title. Implemented what the real code actually does (a per-row date line, `IBM Plex Mono` 11px muted, matching the mockup's visual rhythm even though the grouping mechanism it implied doesn't exist) rather than building a date-grouping feature that was never there and wasn't asked for.
+2. **The batch-categorize toolbar was missing from the spec entirely.** Neither Option A/B's mockup nor the Implementation detail list mentions the real "Select category to apply / Categorize / Delete Category / Revert Categorize" row (`batch-categorize-row`) that sits above the transaction list and lets a user bulk-tag the currently-filtered rows. This is real, reachable, current functionality - dropping its styling would have visually orphaned it against the rest of the Calm Ledger restyle. Restyled it in place (muted terracotta `Categorize`/`Delete Category` chips, outlined `Revert Categorize`) without changing its behavior, and am flagging the gap here so a future `ux-explore` round knows to cover it explicitly next time rather than relying on `ux-apply` to improvise.
+3. **The new error state is genuinely reachable here**, unlike `account-list`'s (see that page's Implementation notes) - `TransactionService.fetchAllTransactions()` returns the raw `HttpClient` observable with no internal error-swallowing, so a real fetch failure reaches `loadTransactions()`'s error callback and now sets `hasError = true` / renders the error branch with a working `retryLoadTransactions()` link, instead of silently falling through to the "no transactions" empty state as it did before (which would have been actively misleading on a real failure).
+4. **Verification**: `ng build --configuration development` clean; full suite `ng test --browsers=ChromeHeadless --watch=false` - 94/94 passing (8 new/updated in this component's spec: error sets `hasError`/clears `isLoading`, retry clears `hasError` on a fresh successful load, `isAccountGroupExpanded`/`toggleAccountGroup` default-expanded/toggle/independence, `getTransactionAccountName` known/unknown account id). Live-checked via `claude-in-chrome` against the running `local-run` stack at `/tabs/transactions`: confirmed the Calm Ledger color tokens are still correctly wired (no regression of the account-list fix), widened the date filter and loaded 119 real HDFC transactions to see the happy path (initial-circle avatars, muted account tag under each title, plain-text category pills with `×`/`+` links, restyled batch-categorize row, mono right-aligned signed amounts), and opened the "Select Accounts" modal to confirm the collapsible group chevron actually collapses/expands the account rows. Did not get a real network failure to trigger the error state live (would require killing `transaction-service` mid-session) - that path is covered by the new characterization tests instead.
+
 ## Changelog
 - 2026-09-11: created, 2 options presented (Draft -> Options Presented)
 - 2026-09-11: user confirmed Option A; filled in Selected option and Implementation detail (grounded against the real `transaction-list.component.*` - flagged 9 deliberate deviations/extensions: avatar, per-row account tag, interactive category pills, the missing summary row, native filter controls, the account-selector modal's scaling (now matching account-list's collapsible-section mechanism), the category modal's existing search, two distinct empty conditions, and a new error state); marked Ready for Dev (Options Presented -> Ready for Dev)
+- 2026-09-11: implemented via `ux-apply` (Ready for Dev -> Implemented) - all 9 spec points built, plus 2 real findings (no date-grouping actually exists in the real code despite the spec implying it; the batch-categorize toolbar was missing from the spec and restyled in place). Added characterization tests, verified build/tests/live app, updated `ux/README.md`.

@@ -1,15 +1,16 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Transactions</ion-title>
+    <ion-title class="cl-headline">Transactions</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="refreshWithAnimation($event)">
+      <span class="cl-mono meta-count">{{ getTransactions().length }} rows</span>
+      <ion-button (click)="refreshWithAnimation($event)" color="medium">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" color="light" class="ion-no-padding">
+<ion-content [fullscreen]="true" class="ion-no-padding">
   <!-- Date Filter Row -->
   <div class="date-filter-container">
     <ion-item lines="none" class="date-picker-item">
@@ -117,14 +118,13 @@
     </ion-button>
   </div>
 
-  <!-- No accounts selected warning -->
+  <!-- No accounts selected - distinct from "no transactions match" (see
+       ux/UX_transaction-list.md point 8: two distinct empty conditions) -->
   <div *ngIf="noAccountsSelected" class="no-accounts-warning">
-    <ion-icon name="alert-circle-outline"></ion-icon>
-    <h3>No Accounts Selected</h3>
-    <p>Please select at least one account to view transactions</p>
-    <ion-button expand="block" (click)="openAccountSelector()">
-      Select Accounts
-    </ion-button>
+    <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+    <h3>No accounts selected</h3>
+    <p>Select at least one account to view transactions.</p>
+    <a class="text-link" (click)="openAccountSelector()">Select accounts</a>
   </div>
 
   <!-- Only show Summary and Transactions when accounts are selected -->
@@ -133,30 +133,29 @@
     <div class="summary-container">
       <div class="summary-item">
         <div class="summary-label">Opening</div>
-        <div class="summary-amount neutral">
+        <div class="cl-mono summary-amount">
           {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
         </div>
       </div>
       <div class="summary-item">
         <div class="summary-label">Debit</div>
-        <div class="summary-amount danger">
+        <div class="cl-mono summary-amount danger">
           {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
         </div>
       </div>
       <div class="summary-item">
         <div class="summary-label">Credit</div>
-        <div class="summary-amount success">
+        <div class="cl-mono summary-amount success">
           {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
         </div>
       </div>
       <div class="summary-item">
         <div class="summary-label">Closing</div>
         <div
-          class="summary-amount"
+          class="cl-mono summary-amount"
           [ngClass]="{
             success: closingBalance && closingBalance > 0,
-            danger: closingBalance && closingBalance < 0,
-            neutral: !closingBalance || closingBalance === 0
+            danger: closingBalance && closingBalance < 0
           }"
         >
           {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
@@ -182,22 +181,7 @@
           style="margin-left: 8px;"
           aria-label="Enable regex search"
         ></ion-checkbox>
-        <span style="font-size: 0.9em;">Regex</span>
-      </div>
-
-      <div class="search-actions">
-        <ion-button
-          *ngIf="hasCategoryChanges"
-          fill="solid"
-          color="warning"
-          size="small"
-          (click)="saveAllCategoryChanges()"
-          [disabled]="isSaving"
-          class="save-cat-btn"
-        >
-          <ion-icon name="save-outline" slot="start"></ion-icon>
-          Update Categories
-        </ion-button>
+        <span class="regex-label">Regex</span>
       </div>
 
       <!-- New: Batch Categorize Input and Buttons -->
@@ -237,6 +221,18 @@
         >
           Revert Categorize
         </ion-button>
+        <ion-button
+          *ngIf="hasCategoryChanges"
+          fill="solid"
+          color="primary"
+          size="small"
+          (click)="saveAllCategoryChanges()"
+          [disabled]="isSaving"
+          class="save-cat-btn"
+        >
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Update Categories
+        </ion-button>
       </div>
     </div>
 
@@ -254,110 +250,95 @@
     </div> -->
   </ng-container>
 
-  <ion-list [inset]="true" lines="none">
-    @if (getTransactions().length > 0) { @for (transaction of getTransactions();
+  <ion-list lines="none" class="calm-ledger-list">
+    @if (hasError) {
+    <!-- Error: new state - unlike account-list, this one is genuinely
+         reachable (fetchAllTransactions has no internal error-swallowing) -->
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>Couldn&rsquo;t load transactions</h2>
+      <p>There was a problem reaching the server. Check your connection and try again.</p>
+      <a class="retry-link" (click)="retryLoadTransactions()">Retry</a>
+    </div>
+    } @else if (isLoading) {
+    <!-- Loading: flat skeleton rows, no spinner+text -->
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+    <div class="skeleton-row">
+      <div class="sk sk-avatar"></div>
+      <div class="sk-lines">
+        <div class="sk sk-line-1"></div>
+        <div class="sk sk-line-2"></div>
+      </div>
+      <div class="sk sk-amount"></div>
+    </div>
+    }
+    } @else if (getTransactions().length > 0) { @for (transaction of getTransactions();
     track transaction.transaction_id) {
     <ion-item
       class="transaction-item"
       [ngClass]="{ 'edited-item': hasTransactionCategoryChanges(transaction) }"
+      lines="none"
     >
-      <div class="category-container">
-        <ion-avatar slot="start">
-          <img [src]="accountMap.get(transaction.user_account_id)?.icon" />
-        </ion-avatar>
-      </div>
+      <div class="account-avatar" slot="start">{{ getTransactionAccountName(transaction).charAt(0) }}</div>
 
       <ion-label>
-        <p class="transaction-date">
+        <p class="transaction-date cl-mono">
           {{ transaction.date | date : "mediumDate" }}
         </p>
-        <h4>
-          ({{ accountMap.get(transaction.user_account_id)?.user_account_name }})
-          {{ transaction.title }}
-        </h4>
+        <h4>{{ transaction.title }}</h4>
+        <p class="transaction-account">{{ getTransactionAccountName(transaction) }}</p>
 
         <!-- Display user categories as pills -->
         @if (getUserCategoryTitles(transaction).length > 0) {
         <div class="category-pills">
           @for (categoryTitle of getUserCategoryTitles(transaction); track
           categoryTitle) {
-          <div class="category-pill">
+          <span class="category-pill">
             {{ categoryTitle }}
-            <ion-button
-              fill="clear"
-              class="remove-category-btn"
-              (click)="removeCategory(transaction, categoryTitle, $event)"
-            >
-              <ion-icon name="close-circle-outline"></ion-icon>
-            </ion-button>
-          </div>
+            <a class="remove-category-link" (click)="removeCategory(transaction, categoryTitle, $event)">&times;</a>
+          </span>
           }
-          <ion-button
-            fill="clear"
-            size="small"
-            class="add-category-btn-small"
+          <a
+            class="add-category-link"
             (click)="addCategory(transaction, $event)"
             *ngIf="getUserCategoryTitles(transaction).length < 5"
-          >
-            <ion-icon name="add-circle-outline"></ion-icon>
-          </ion-button>
+          >+</a>
         </div>
         } @else {
-        <ion-button
-          fill="clear"
-          size="small"
-          class="add-category-btn"
-          (click)="addCategory(transaction, $event)"
-        >
-          <ion-icon name="add-circle-outline"></ion-icon>
-          <span>Add Category</span>
-        </ion-button>
+        <a class="add-category-link add-category-link-text" (click)="addCategory(transaction, $event)">+ Add category</a>
         }
 
         <!-- Display category -->
         @if (transaction.category_id) {
         <p class="transaction-category">
-          <ion-icon name="pricetags-outline"></ion-icon>
           {{ getCategoryTitle(transaction) }}
         </p>
         }
       </ion-label>
 
       <div slot="end" class="amount-container">
-        <ion-chip
-          [ngClass]="{
-            danger: isDebit(transaction),
-            success: !isDebit(transaction)
-          }"
+        <span
+          class="cl-mono transaction-amount"
+          [ngClass]="{ danger: isDebit(transaction), success: !isDebit(transaction) }"
+          >{{ transaction.debit_or_credit_amount | currency : "INR" }}</span
         >
-          <ion-label>{{
-            transaction.debit_or_credit_amount | currency : "INR"
-          }}</ion-label>
-        </ion-chip>
       </div>
     </ion-item>
     }
     <div class="bottom-spacer"></div>
-    } @else if (isLoading) {
-    <ion-item>
-      <ion-label>Loading transactions...</ion-label>
-      <ion-spinner></ion-spinner>
-    </ion-item>
     } @else if (noAccountsSelected) {
     <!-- This is handled by the dedicated warning above -->
     } @else {
+    <!-- No transactions match - distinct from "no accounts selected" -->
     <div class="empty-state">
       <ion-icon
         name="cash-outline"
         class="empty-icon"
         (click)="navigateToStatementUploader()"
       ></ion-icon>
-      <h2>No transactions exist</h2>
-      <p>Go to Statement Uploader to upload some transactions</p>
-      <ion-button expand="block" (click)="navigateToStatementUploader()">
-        <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
-        Upload Statements
-      </ion-button>
+      <h2>No transactions yet</h2>
+      <p>Upload a bank or broker statement to see transactions here.</p>
+      <a class="text-link" (click)="navigateToStatementUploader()">Go to Upload statements</a>
     </div>
     }
   </ion-list>
@@ -382,24 +363,30 @@
     </ion-header>
 
     <ion-content>
-      <ion-list>
+      <ion-list class="calm-ledger-list account-modal-list">
         @for (group of groupedAccounts; track group) {
-        <ion-item-divider>
-          {{ group.level_1_title }}
-        </ion-item-divider>
+        <div class="level1-item" (click)="toggleAccountGroup(group.level_1_title)">
+          <ion-icon
+            name="chevron-down-outline"
+            class="level1-chevron"
+            [class.collapsed]="!isAccountGroupExpanded(group.level_1_title)"
+          ></ion-icon>
+          <span class="level1-label">{{ group.level_1_title }}</span>
+        </div>
 
+        @if (isAccountGroupExpanded(group.level_1_title)) {
         @for (account of group.user_accounts; track account) {
-        <ion-item (click)="toggleAccountSelection(account.user_account_id)">
-          <ion-avatar slot="start">
-            <img [src]="account.icon" [alt]="account.user_account_name" />
-          </ion-avatar>
+        <ion-item (click)="toggleAccountSelection(account.user_account_id)" lines="none" class="account-item">
+          <div class="account-avatar" slot="start">{{ account.user_account_name.charAt(0) }}</div>
           <ion-label>{{ account.user_account_name }}</ion-label>
           <ion-checkbox
             slot="end"
             [checked]="isAccountSelected(account.user_account_id)"
           ></ion-checkbox>
         </ion-item>
-        } }
+        }
+        }
+        }
       </ion-list>
     </ion-content>
   </ng-template>

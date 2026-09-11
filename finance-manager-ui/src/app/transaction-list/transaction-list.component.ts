@@ -20,15 +20,11 @@ import {
   IonLabel,
   IonList,
   IonIcon,
-  IonChip,
-  IonSpinner,
   IonButtons,
   IonButton,
   IonInput,
   IonSelect,
   IonSelectOption,
-  IonAvatar,
-  IonItemDivider,
   IonModal,
   IonCheckbox,
   IonRow,
@@ -57,6 +53,7 @@ import {
   addOutline,
   ellipsisVerticalOutline,
   alertCircleOutline,
+  chevronDownOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
@@ -88,15 +85,11 @@ import { ToastService } from "src/service/toast.service";
     IonLabel,
     IonList,
     IonIcon,
-    IonChip,
-    IonSpinner,
     IonButtons,
     IonButton,
     IonInput,
     IonSelect,
     IonSelectOption,
-    IonAvatar,
-    IonItemDivider,
     IonModal,
     IonCheckbox,
     IonRow,
@@ -324,6 +317,13 @@ export class TransactionListComponent implements OnInit, OnChanges {
   private transactions: Transaction[] = [];
   isLoading: boolean = false;
   isSaving: boolean = false;
+  hasError: boolean = false;
+
+  // Collapsible groups in the "Select Accounts" modal (Calm Ledger - same
+  // mechanism as account-list's Level 1 groups, reused here per
+  // ux/UX_transaction-list.md point 6). Default expanded; a title not yet
+  // in the set is treated as expanded too.
+  private collapsedAccountGroups: Set<string> = new Set();
 
   openingBalance?: number;
   totalDebit?: number;
@@ -359,6 +359,7 @@ export class TransactionListComponent implements OnInit, OnChanges {
       addOutline,
       ellipsisVerticalOutline,
       alertCircleOutline,
+      chevronDownOutline,
     });
   }
 
@@ -992,10 +993,12 @@ refreshTransactions() {
             this.transactions = transactions.transactions;
             this.filteredTransactions = [...this.transactions]; // Initialize filtered transactions
             this.isLoading = false;
+            this.hasError = false;
           },
           (error) => {
             console.error("Error fetching transactions:", error);
             this.isLoading = false;
+            this.hasError = true;
           }
         );
     } else if (this.selectedAccountIds.length === 0) {
@@ -1003,6 +1006,35 @@ refreshTransactions() {
       this.noAccountsSelected = true;
       this.clearTransactions();
     }
+  }
+
+  // Retry after a failed load (Calm Ledger error state) - unlike
+  // account-list's UserAccountService, TransactionService.fetchAllTransactions
+  // returns the raw HTTP observable with no internal error-swallowing, so
+  // this error path is genuinely reachable, not just defensive.
+  retryLoadTransactions() {
+    this.hasError = false;
+    this.loadTransactions();
+  }
+
+  // Collapsible "Select Accounts" modal groups (Calm Ledger scaling
+  // mechanism, reused from account-list - see ux/UX_transaction-list.md).
+  isAccountGroupExpanded(level1Title: string): boolean {
+    return !this.collapsedAccountGroups.has(level1Title);
+  }
+
+  toggleAccountGroup(level1Title: string) {
+    if (this.collapsedAccountGroups.has(level1Title)) {
+      this.collapsedAccountGroups.delete(level1Title);
+    } else {
+      this.collapsedAccountGroups.add(level1Title);
+    }
+  }
+
+  // Account name for a transaction row (Calm Ledger - shown as a muted tag
+  // under the title instead of a "(Account)" prefix on the title itself).
+  getTransactionAccountName(transaction: Transaction): string {
+    return this.accountMap.get(transaction.user_account_id)?.user_account_name || "";
   }
 
   // Check if a transaction is a debit (expense)
