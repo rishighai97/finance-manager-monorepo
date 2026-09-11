@@ -139,10 +139,11 @@
         <ion-button
           *ngIf="hasCategoryChanges"
           fill="outline"
-          color="medium"
+          color="primary"
           (click)="resetCategoryChanges()"
           class="batch-clear-btn"
         >
+          <ion-icon name="arrow-undo-outline" slot="start"></ion-icon>
           Revert Categorize
         </ion-button>
         <ion-button

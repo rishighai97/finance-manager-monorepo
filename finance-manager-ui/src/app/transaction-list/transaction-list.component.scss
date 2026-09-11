@@ -180,12 +180,14 @@ ion-content {
     margin: 0;
   }
 
+  // Matches the app's primary accent color (used elsewhere for
+  // Categorize/Update Categories) instead of the previous muted gray -
+  // color="primary" on the ion-button already sets this; no --border-
+  // color/--color override needed here any more.
   .batch-clear-btn {
     font-size: 12px;
     height: 32px;
     --border-radius: 4px;
-    --border-color: var(--app-divider);
-    --color: var(--ion-color-medium);
     margin: 0;
   }
 
