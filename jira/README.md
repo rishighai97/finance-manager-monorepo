@@ -17,3 +17,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_9](JIRA_9.md) | `diagram-maintain` skill for architecture diagrams in a new `architecture-docs` module | Done |
 | [JIRA_10](JIRA_10.md) | Observability module - single-page HTML healthcheck dashboard | Done |
 | [JIRA_11](JIRA_11.md) | `statement-onboard` skill - onboard any new statement format/bank end-to-end | Done |
+| [JIRA_12](JIRA_12.md) | `ux-explore` and `ux-apply` skills for a finance-manager-ui UX overhaul | In Refinement |

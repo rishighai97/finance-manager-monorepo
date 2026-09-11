@@ -16,10 +16,18 @@ each fixture is valid, not just "looks right" by eye.
 Run from the repo root:
     .venv/bin/python scripts/generate_dummy_statement_fixtures.py
 
+Pass --out-dir to write the same verified fixtures somewhere other than
+test-automation's resource tree (e.g. for the ux-proof-capture skill's
+manual UI walkthroughs, which upload real files through the browser rather
+than exercising a reader directly) without touching the committed JIRA_8
+fixtures:
+    .venv/bin/python scripts/generate_dummy_statement_fixtures.py --out-dir scripts/statements/synthetic
+
 Requires xlwt/openpyxl (test-fixture-generation-only deps, see
 statement-loader/requirements.txt) in addition to statement-loader's own
 requirements.
 """
+import argparse
 import random
 import sys
 from datetime import date
@@ -433,20 +441,30 @@ def verify(spec, file_bytes, intended_transactions):
 
 
 def main():
-    FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--out-dir", type=Path, default=FIXTURES_DIR,
+        help="Directory to write the verified fixtures to (default: test-automation's fixture tree)",
+    )
+    args = parser.parse_args()
+    out_dir = args.out_dir
+    if not out_dir.is_absolute():
+        out_dir = REPO_ROOT / out_dir
+
+    out_dir.mkdir(parents=True, exist_ok=True)
     for spec in FIXTURES:
         rng = random.Random(spec["seed"])
         month = FIXTURE_MONTHS[spec["seed"]]
         transactions = spec["generator"](rng, spec["count"], month)
         file_bytes = spec["build"](transactions)
         parsed = verify(spec, file_bytes, transactions)
-        out_path = FIXTURES_DIR / spec["filename"]
+        out_path = out_dir / spec["filename"]
         out_path.write_bytes(file_bytes)
         dates = sorted(t["date"] for t in transactions)
         print(f"OK  {spec['filename']:14s} {len(file_bytes):6d} bytes  "
               f"{len(parsed)} transactions verified via {spec['reader'].__class__.__name__}  "
               f"date range {dates[0]} .. {dates[-1]}")
-    print(f"\nAll {len(FIXTURES)} fixtures written to {FIXTURES_DIR}")
+    print(f"\nAll {len(FIXTURES)} fixtures written to {out_dir}")
 
 
 if __name__ == "__main__":
