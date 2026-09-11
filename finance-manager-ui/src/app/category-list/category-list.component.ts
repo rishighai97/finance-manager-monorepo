@@ -14,7 +14,6 @@ import {
   IonButton,
   IonIcon,
   IonChip,
-  IonSpinner,
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
@@ -25,7 +24,6 @@ import {
   IonCardContent,
   IonToggle,
   IonInput,
-  IonText,
   AlertController,
   ToastController,
   IonFab,
@@ -34,19 +32,13 @@ import {
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
-  createOutline,
-  trashOutline,
-  saveOutline,
   refreshOutline,
-  closeCircleOutline,
-  checkmarkCircleOutline,
-  informationCircleOutline,
   arrowForwardOutline,
   pricetagsOutline,
-  listOutline,
   addOutline,
   arrowBackOutline,
-  alertCircle
+  alertCircle,
+  alertCircleOutline
 } from "ionicons/icons";
 import { CategoryService } from "src/service/category.service";
 import { UserCategory } from "src/model/user-category";
@@ -72,7 +64,6 @@ import { UserService } from "src/service/user.service";
     IonButton,
     IonIcon,
     IonChip,
-    IonSpinner,
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
@@ -83,7 +74,6 @@ import { UserService } from "src/service/user.service";
     IonCardContent,
     IonToggle,
     IonInput,
-    IonText,
     IonFab,
     IonFabButton,
     IonModal
@@ -94,9 +84,9 @@ export class CategoryListComponent implements OnInit {
   filteredCategories: UserCategory[] = [];
   searchTerm: string = "";
   isLoading: boolean = true;
+  hasError: boolean = false;
   hasPendingChanges: boolean = false;
   isSaving: boolean = false;
-  statusActive: boolean = false;
   
   // Properties for Add Category Modal
   isAddCategoryModalOpen: boolean = false;
@@ -109,34 +99,48 @@ export class CategoryListComponent implements OnInit {
     private userService: UserService
   ) {
     addIcons({
-      createOutline,
-      trashOutline,
-      saveOutline,
       refreshOutline,
-      closeCircleOutline,
-      checkmarkCircleOutline,
-      informationCircleOutline,
       arrowForwardOutline,
       pricetagsOutline,
-      listOutline,
       addOutline,
       arrowBackOutline,
-      alertCircle
+      alertCircle,
+      alertCircleOutline
     });
   }
 
   ngOnInit() {
-    // Subscribe to category updates
-    this.categoryService.userCategories$.subscribe((categories) => {
-      this.categories = [...categories];
-      this.applyFilter();
-      this.sortCategories();
-      this.isLoading = false;
-      this.checkPendingChanges();
+    // Subscribe to category updates. Error callback added for the Calm
+    // Ledger error state - currently unreachable in practice, since
+    // CategoryService.loadUserCategories()/refreshCategories() swallow
+    // their own HTTP errors (console.error only) before they ever reach
+    // this BehaviorSubject; see ux/UX_category-list.md's Implementation
+    // notes (same gap as account-list's UserAccountService).
+    this.categoryService.userCategories$.subscribe({
+      next: (categories) => {
+        this.categories = [...categories];
+        this.applyFilter();
+        this.sortCategories();
+        this.isLoading = false;
+        this.hasError = false;
+        this.checkPendingChanges();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.hasError = true;
+      },
     });
 
     // Load categories on init
     this.categoryService.loadUserCategories();
+  }
+
+  /**
+   * Retry after a failed load (Calm Ledger error state)
+   */
+  retryLoadCategories() {
+    this.hasError = false;
+    this.refreshCategories();
   }
 
   /**
@@ -290,14 +294,7 @@ export class CategoryListComponent implements OnInit {
     this.isLoading = true;
     this.categoryService.refreshCategories();
   }
-  
-  /**
-   * Toggle active status for styling
-   */
-  toggleStatusActive() {
-    this.statusActive = !this.statusActive;
-  }
-  
+
   /**
    * Open the modal to add a new category
    */

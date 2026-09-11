@@ -1,70 +1,121 @@
+// Calm Ledger (ux/UX_DIRECTION.md, ux/UX_category-list.md) - flat,
+// hairline-divided rows, no cards/shadows. Font-family is inherited from
+// --ion-font-family (src/theme/variables.scss) - no local font import.
 
-// Import font
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
-
-// Set font family for all elements
-* {
-  font-family: 'Nunito', sans-serif;
+.meta-count {
+  font-size: 11px;
+  color: var(--app-color-muted);
+  margin-right: 4px;
 }
 
-// Loading container
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
+ion-content {
+  --background: var(--ion-background-color);
+}
 
-  ion-spinner {
-    margin-bottom: 16px;
+// Search bar - plain underline control, same convention as every other
+// page's filter row.
+.search-container {
+  padding: 10px 20px 0;
+  border-bottom: 1px solid var(--app-divider);
+
+  ion-searchbar {
+    padding: 0;
+    --border-radius: 4px;
+    --background: transparent;
+    --box-shadow: none;
+    margin-bottom: 8px;
+  }
+}
+
+// Text-link buttons, shared by the batch action bar and each row's
+// Rename/Delete/Undo actions - no ion-button pills anywhere on this page.
+.text-link {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.accent {
+    color: var(--ion-color-primary);
   }
 
-  p {
-    font-size: 16px;
+  &.danger {
+    color: var(--ion-color-danger);
+  }
+
+  &.muted {
     color: var(--ion-color-medium);
   }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
-// Category item styling
+// Batch action bar - thin tinted strip, only shown when there are
+// pending renames/deletes to save or discard.
+.action-buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--app-divider-subtle);
+  border-bottom: 1px solid var(--app-divider);
+}
+
+ion-list.calm-ledger-list {
+  background: transparent;
+  padding: 0 20px;
+}
+
+// Category row
 .category-item {
-  margin: 4px auto;
-  --background: #ffffff;
-  --border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--app-divider-subtle);
 
   &.delete-item {
-    --background: rgba(var(--ion-color-danger-rgb), 0.05);
-    border-left: 4px solid var(--ion-color-danger);
+    border-left: 2px solid var(--ion-color-danger);
+    padding-left: 10px;
   }
 
   &.edit-item {
-    --background: rgba(var(--ion-color-primary-rgb), 0.05);
-    border-left: 4px solid var(--ion-color-primary);
+    border-left: 2px solid var(--ion-color-primary);
+    padding-left: 10px;
   }
 
   .category-info {
-    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
 
-    ion-label {
-      h2 {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 4px;
-      }
+  .category-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ion-text-color);
 
-      .new-title {
-        color: var(--ion-color-primary);
-        font-weight: 500;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        
-        ion-icon {
-          margin: 0 4px;
-        }
-      }
+    &.strikethrough {
+      text-decoration: line-through;
+      color: var(--app-color-muted);
+    }
+  }
+
+  .new-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ion-color-primary);
+
+    ion-icon {
+      font-size: 12px;
     }
   }
 
@@ -72,27 +123,94 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+  }
 
-    .action-button {
-      --padding-start: 10px;
-      --padding-end: 10px;
-      height: 32px;
-      font-size: 12px;
-      text-transform: none;
+  .status-text {
+    font-size: 12px;
+    font-weight: 600;
+
+    &.danger {
+      color: var(--ion-color-danger);
     }
 
-    ion-text {
-      font-size: 12px;
-      font-weight: 600;
+    &.accent {
+      color: var(--ion-color-primary);
     }
+  }
+
+  .dot-separator {
+    color: var(--app-divider);
   }
 }
 
-// Reset button container
-.reset-container {
+// Loading - flat skeleton rows, no spinner
+.skeleton-row {
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--app-divider-subtle);
+
+  .sk-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .sk-line-1,
+  .sk-line-2 {
+    background: var(--app-divider-subtle);
+    border-radius: 3px;
+  }
+
+  .sk-line-1 {
+    width: 30%;
+    height: 11px;
+  }
+
+  .sk-line-2 {
+    width: 18%;
+    height: 8px;
+  }
+}
+
+// Error state - new (the real fetch had no error branch before)
+.error-state {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  margin: 16px 0;
+  height: calc(100% - 100px);
+  text-align: center;
+  padding: 20px;
+  gap: 6px;
+
+  .error-icon {
+    font-size: 28px;
+    color: var(--ion-color-danger);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ion-text-color);
+    margin: 0;
+  }
+
+  p {
+    font-size: 12.5px;
+    color: var(--app-color-muted);
+    max-width: 230px;
+    margin: 0;
+  }
+}
+
+.retry-link {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  border-bottom: 1px solid var(--ion-color-primary);
+  cursor: pointer;
 }
 
 // Empty state
@@ -101,144 +219,68 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 0;
+  height: calc(100% - 100px);
   text-align: center;
+  padding: 20px;
+  margin-top: 30px;
 
   .empty-icon {
-    font-size: 80px;
-    color: var(--ion-color-medium);
-    margin-bottom: 16px;
+    font-size: 30px;
+    color: #d8d5cc;
+    margin-bottom: 14px;
   }
 
   h2 {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ion-text-color);
     margin-bottom: 8px;
   }
 
   p {
-    color: var(--ion-color-medium);
+    color: var(--app-color-muted);
+    font-size: 12.5px;
     margin-bottom: 16px;
   }
 }
 
-// Content styles
-ion-content {
-  --background: #f5f7fa;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
-}
-
-// Ion-list styles
-ion-list {
-  background: transparent;
-  padding: 0 16px;
-}
-
-// Search bar styling
-ion-searchbar {
-  padding: 0 16px;
-  --border-radius: 12px;
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --placeholder-color: var(--ion-color-medium);
-  --placeholder-opacity: 0.7;
-  margin-bottom: 16px;
-}
-
-// Action buttons container
-.action-buttons-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin: 0 16px 16px;
-}
-
-// Status container for actions
-.status-container {
-  display: flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 16px;
-  margin-left: 8px;
-  
-  &.status-danger {
-    background-color: white;
-    border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
-    
-    &.active {
-      background-color: rgba(var(--ion-color-danger-rgb), 0.1);
-    }
-  }
-  
-  &.status-primary {
-    background-color: white;
-    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
-    
-    &.active {
-      background-color: rgba(var(--ion-color-primary-rgb), 0.1);
-    }
-  }
-  
-  .compact-button {
-    --padding-start: 0;
-    --padding-end: 4px;
-    margin: 0;
-    height: 24px;
-    
-    ion-icon {
-      font-size: 18px;
-    }
-  }
-  
-  ion-text {
-    font-size: 11px;
-    font-weight: 600;
-    margin-left: 0;
-    white-space: nowrap;
-  }
-}
-
-// Floating Action Button styling
+// Floating Action Button
 ion-fab {
   margin-bottom: 16px;
   margin-right: 16px;
-  
-  ion-fab-button {
-    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
 }
 
-// Modal styling
+// Add Category modal - structure unchanged, direction tokens only
 ion-modal {
   --border-radius: 16px 16px 0 0;
-  
+
   ion-header {
     --background: var(--ion-background-color);
   }
-  
+
   ion-content {
     --padding-top: 16px;
     --padding-bottom: 16px;
   }
-  
+
   .form-group {
     margin: 16px;
-    
+
     .name-input-item {
-      --background: #f8f9fa;
-      --border-radius: 8px;
-      --padding-start: 12px;
-      --padding-end: 12px;
+      --background: transparent;
+      --border-radius: 0;
+      --padding-start: 0;
+      --padding-end: 0;
+      border-bottom: 1px solid var(--app-divider-subtle);
       margin-bottom: 8px;
-      
+
       ion-label {
         color: var(--ion-color-medium);
         font-weight: 500;
         font-size: 14px;
         margin-bottom: 4px;
       }
-      
+
       ion-input {
         --padding-top: 10px;
         --padding-bottom: 10px;
@@ -247,17 +289,17 @@ ion-modal {
       }
     }
   }
-  
+
   .error-message-item {
     margin-top: 4px;
     --background: rgba(var(--ion-color-danger-rgb), 0.05);
     --border-radius: 8px;
-    
+
     ion-icon {
       font-size: 20px;
       margin-right: 8px;
     }
-    
+
     ion-label {
       font-size: 12px;
       font-weight: 500;

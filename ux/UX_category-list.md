@@ -9,9 +9,9 @@ exists as a parallel spec-driven flow rather than folding into jira/.
 
 # UX_category-list: Category list
 
-**Status**: Ready for Dev <!-- Draft -> Options Presented -> Selected -> Ready for Dev -->
+**Status**: Implemented <!-- Draft -> Options Presented -> Selected -> Ready for Dev -> Implemented -->
 **Created**: 2026-09-11
-**Last updated**: 2026-09-11 (round 2)
+**Last updated**: 2026-09-11 (ux-apply)
 **Direction**: [ux/UX_DIRECTION.md](UX_DIRECTION.md) - "Calm Ledger", Ready for Dev
 
 ## Page
@@ -52,6 +52,16 @@ Grounded against the real `finance-manager-ui/src/app/category-list/category-lis
 
 Layout, by region: header (flat toolbar, `Source Serif 4` title, muted refresh icon, `IBM Plex Mono` count - same as every other page), list (`ion-list` without `[inset]`, hairline row dividers, no elevation), row (name `IBM Plex Sans` 14px/500 + usage-count meta 10.5px muted, per point 1, trailing "Rename"/"Delete" text links separated by a muted middle dot), loading (flat skeleton bars replacing the spinner+text row), tab bar (`UX_DIRECTION.md` tokens, recolor only).
 
+## Implementation notes
+
+Built via `ux-apply`, grounded against the real `category-list.component.{html,ts,scss}`. All 9 points from Implementation detail were implemented, with one dropped and one extra nuance worth recording:
+
+1. **Usage count (point 1) was dropped, not implemented** - checked `CategoryService.fetchAllCategories()` (`GET /category/v1/fetch_all`) and the `UserCategory` model: neither returns or has a field for a per-category transaction count. Adding it would mean either a new API call per row (explicitly ruled out by the spec itself) or a backend change to `transaction-service`'s category endpoint, which is out of `ux-apply`'s UI-only scope (`src/service/*.service.ts` and backend code are both off-limits). Per the spec's own fallback instruction ("don't block the rest of the redesign on this... drop this line entirely rather than adding a new per-category API call"), the row shows just the category name - no usage-count line. Flagging this as a real follow-up: a future ticket could add the count to the `fetch_all` response server-side, at which point this line can be added back into the row.
+2. **The error state is unreachable, same root cause as `account-list` - with an added wrinkle.** `CategoryService.loadUserCategories()`/`refreshCategories()` both swallow their own HTTP errors (`console.error` only) before they reach `userCategoriesSubject`, so `hasError` can't currently be triggered from the real app - added anyway per the spec, with the same rationale as `account-list`'s `UserAccountService` finding. The wrinkle: `ngOnInit` subscribes to `userCategories$` (a `BehaviorSubject`) exactly once with `next`/`error` callbacks - RxJS's `Subject` semantics mean that if it ever *did* error, that subscription is permanently dead afterward (`isStopped` short-circuits all further `next()` calls, including ones `refreshCategories()` would make after a successful retry). So even if this error path became reachable, tapping "Retry" wouldn't actually recover the list without a full page reload - `retryLoadCategories()` clears the local `hasError` flag correctly, but the underlying subscription would never receive new data again. Not fixed (touching `CategoryService` is out of scope), but worth knowing before anyone is tempted to "just fix the error swallowing" as a quick patch - the subscription model needs a second look too.
+3. **Removed `statusActive`/`toggleStatusActive()`** (dead code once `status-container`'s click-to-highlight wrapper was replaced by plain text + a separate "Undo" link - the tap-to-highlight interaction it drove no longer has a UI element to attach to).
+4. **Verification**: `ng build --configuration development` clean; full suite `ng test --browsers=ChromeHeadless --watch=false` - 97/97 passing (3 new: smoke test, error sets `hasError`/clears `isLoading`, retry clears `hasError` and calls through to `refreshCategories()` - this component had zero existing tests before this change). Live-checked via `claude-in-chrome` against the running `local-run` stack at `/tabs/categories`: confirmed Rename (staged "Will be renamed" row, accent left border, working "Undo"), Delete (strikethrough + "Will be deleted", danger left border, working "Undo"), the batch action bar (Reset All / Save Changes as plain text links in a tinted strip, appearing only when there's a pending change), the search-miss empty state, and the Add Category modal all render correctly in Calm Ledger's tokens. Did not get a real network failure to trigger the error state live (same limitation as every other page, and doubly moot here given finding 2 above).
+
 ## Changelog
 - 2026-09-11: created, 2 options presented (Draft -> Options Presented)
 - 2026-09-11: user confirmed Option A; filled in Selected option and Implementation detail (grounded against the real `category-list.component.*` - flagged the staged-change model to preserve exactly, the native rename prompt, a new usage-count addition that needs an API check, and a new error state); marked Ready for Dev (Options Presented -> Ready for Dev)
+- 2026-09-11: implemented via `ux-apply` (Ready for Dev -> Implemented) - 8 of 9 spec points built as specified; usage count (point 1) dropped per the spec's own fallback since the API doesn't return it; found the error state is doubly unreachable (service swallows errors, and the BehaviorSubject subscription can't recover after an error even if it did fire). Added characterization tests (component had none before), verified build/tests/live app, updated `ux/README.md`.

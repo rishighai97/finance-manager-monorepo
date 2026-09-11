@@ -1,119 +1,115 @@
 
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Categories</ion-title>
+    <ion-title class="cl-headline">Categories</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="refreshWithAnimation($event)">
+      <span class="cl-mono meta-count">{{ filteredCategories.length }}</span>
+      <ion-button (click)="refreshWithAnimation($event)" color="medium">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" color="light">
-  <!-- Search bar with typeahead -->
-  <ion-searchbar
-    placeholder="Search categories"
-    [(ngModel)]="searchTerm"
-    (ionInput)="onSearchChange($event)"
-    animated
-    debounce="300"
-    showCancelButton="focus"
-    cancelButtonText="Clear"
-  ></ion-searchbar>
-  
-  <!-- Action buttons container -->
-  <div class="action-buttons-container" *ngIf="hasPendingChanges">
-    <ion-button fill="outline" color="medium" size="small" (click)="resetChanges()">
-      <ion-icon name="refresh-outline" slot="start"></ion-icon>
-      Reset All
-    </ion-button>
-    
-    <ion-button fill="outline" color="primary" size="small" (click)="saveChanges()" [disabled]="isSaving">
-      <ion-icon name="save-outline" slot="start"></ion-icon>
-      Save Changes
-    </ion-button>
+<ion-content [fullscreen]="true">
+  <!-- Search bar with typeahead - plain underline control, same as
+       every other page's filter row -->
+  <div class="search-container">
+    <ion-searchbar
+      placeholder="Search categories"
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange($event)"
+      animated
+      debounce="300"
+      showCancelButton="focus"
+      cancelButtonText="Clear"
+    ></ion-searchbar>
   </div>
 
-  <!-- Loading indicator -->
-  <div class="loading-container" *ngIf="isLoading">
-    <ion-spinner name="circular"></ion-spinner>
-    <p>Loading categories...</p>
+  <!-- Action buttons - plain text links in a thin tinted bar, not
+       ion-button pills; same *ngIf/handlers as before -->
+  @if (hasPendingChanges) {
+  <div class="action-buttons-container">
+    <a class="text-link muted" (click)="resetChanges()">Reset All</a>
+    <a
+      class="text-link accent"
+      [class.disabled]="isSaving"
+      (click)="!isSaving && saveChanges()"
+      >Save Changes</a
+    >
   </div>
+  }
 
-  <!-- Categories list -->
-  <ion-list [inset]="true" lines="none" *ngIf="!isLoading">
-    <ng-container *ngIf="filteredCategories.length > 0; else noCategories">
-      <ion-item 
-        class="category-item" 
-        *ngFor="let category of filteredCategories"
-        [class.delete-item]="category.delete"
-        [class.edit-item]="category.new_title && !category.delete">
-        
-        <!-- Category Info -->
-        <div class="category-info">
-          <ion-label>
-            <h2>{{ category.category_title }}</h2>
-            <p *ngIf="category.new_title && !category.delete" class="new-title">
-              <ion-icon name="arrow-forward-outline"></ion-icon>
-              {{ category.new_title }}
-            </p>
-          </ion-label>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div slot="end" class="action-buttons">
-          <!-- For items marked for deletion -->
-          <ng-container *ngIf="category.delete">
-            <div class="status-container status-danger" [class.active]="statusActive" (click)="toggleStatusActive()">
-              <ion-button fill="clear" color="danger" class="compact-button" (click)="toggleDelete(category); $event.stopPropagation()">
-                <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
-              </ion-button>
-              <ion-text color="danger">Will be deleted</ion-text>
-            </div>
-          </ng-container>
-          
-          <!-- For items being renamed -->
-          <ng-container *ngIf="category.new_title && !category.delete">
-            <div class="status-container status-primary" [class.active]="statusActive" (click)="toggleStatusActive()">
-              <ion-button fill="clear" color="primary" class="compact-button" (click)="cancelRename(category); $event.stopPropagation()">
-                <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
-              </ion-button>
-              <ion-text color="primary">Will be renamed</ion-text>
-            </div>
-          </ng-container>
-          
-          <!-- For items with no pending changes -->
-          <ng-container *ngIf="!category.delete && !category.new_title">
-            <ion-button fill="outline" color="primary" size="small" class="action-button" (click)="renameCategory(category)">
-              <ion-icon name="create-outline" slot="start"></ion-icon>
-              Rename
-            </ion-button>
-            
-            <ion-button fill="outline" color="danger" size="small" class="action-button" (click)="toggleDelete(category)">
-              <ion-icon name="trash-outline" slot="start"></ion-icon>
-              Delete
-            </ion-button>
-          </ng-container>
-        </div>
-      </ion-item>
-    </ng-container>
-    
-    <!-- Empty state -->
-    <ng-template #noCategories>
-      <div class="empty-state">
-        <ion-icon name="information-circle-outline" class="empty-icon"></ion-icon>
-        <h2>No Categories Found</h2>
-        <p *ngIf="searchTerm">No categories match your search criteria</p>
-        <p *ngIf="!searchTerm">You don't have any categories yet</p>
-        <ion-button (click)="refreshCategories()" fill="outline">
-          <ion-icon name="refresh-outline" slot="start"></ion-icon>
-          Refresh
-        </ion-button>
+  <ion-list lines="none" class="calm-ledger-list">
+    @if (isLoading) {
+    <!-- Loading: flat skeleton rows, no spinner+text -->
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+    <div class="skeleton-row">
+      <div class="sk-lines">
+        <div class="sk sk-line-1"></div>
+        <div class="sk sk-line-2"></div>
       </div>
-    </ng-template>
+    </div>
+    }
+    } @else if (hasError) {
+    <!-- Error: new state - see ux/UX_category-list.md's Implementation
+         notes for why this is currently unreachable in the live app -->
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>Couldn&rsquo;t load categories</h2>
+      <p>There was a problem reaching the server. Check your connection and try again.</p>
+      <a class="retry-link" (click)="retryLoadCategories()">Retry</a>
+    </div>
+    } @else if (filteredCategories.length > 0) {
+    @for (category of filteredCategories; track category.id) {
+    <div
+      class="category-item"
+      [class.delete-item]="category.delete"
+      [class.edit-item]="category.new_title && !category.delete"
+    >
+      <div class="category-info">
+        <span class="category-title" [class.strikethrough]="category.delete">{{
+          category.category_title
+        }}</span>
+        @if (category.new_title && !category.delete) {
+        <span class="new-title">
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+          {{ category.new_title }}
+        </span>
+        }
+      </div>
+
+      <div class="action-buttons">
+        @if (category.delete) {
+        <span class="status-text danger">Will be deleted</span>
+        <a class="text-link danger" (click)="toggleDelete(category)">Undo</a>
+        } @else if (category.new_title) {
+        <span class="status-text accent">Will be renamed</span>
+        <a class="text-link accent" (click)="cancelRename(category)">Undo</a>
+        } @else {
+        <a class="text-link accent" (click)="renameCategory(category)">Rename</a>
+        <span class="dot-separator">&middot;</span>
+        <a class="text-link danger" (click)="toggleDelete(category)">Delete</a>
+        }
+      </div>
+    </div>
+    }
+    } @else {
+    <!-- Empty - two distinct conditions: search-miss vs genuinely zero
+         categories (kept as separate copy, not collapsed into one) -->
+    <div class="empty-state">
+      <ion-icon name="pricetags-outline" class="empty-icon"></ion-icon>
+      <h2>No Categories Found</h2>
+      @if (searchTerm) {
+      <p>No categories match your search criteria</p>
+      } @else {
+      <p>You don&rsquo;t have any categories yet</p>
+      }
+      <a class="retry-link" (click)="refreshCategories()">Refresh</a>
+    </div>
+    }
   </ion-list>
-  
+
   <!-- Add New Category Modal -->
   <ion-modal [isOpen]="isAddCategoryModalOpen" (didDismiss)="closeAddCategoryModal()">
     <ng-template>
