@@ -12,12 +12,12 @@ Spec-driven UX-direction tracker for finance-manager, parallel to `jira/`'s requ
 
 | Page | File | Status |
 |---|---|---|
-| account-list | - | Not started |
-| transaction-list | - | Not started |
-| category-list | - | Not started |
-| statement-uploader | - | Not started |
-| auth | - | Not started |
-| tabs | - | Not started |
+| account-list | [UX_account-list.md](UX_account-list.md) | Ready for Dev |
+| transaction-list | [UX_transaction-list.md](UX_transaction-list.md) | Ready for Dev |
+| category-list | [UX_category-list.md](UX_category-list.md) | Ready for Dev |
+| statement-uploader | [UX_statement-uploader.md](UX_statement-uploader.md) | Ready for Dev |
+| auth | [UX_auth.md](UX_auth.md) | Ready for Dev |
+| tabs | [UX_tabs.md](UX_tabs.md) | Ready for Dev |
 
 ## Proof captures
 
