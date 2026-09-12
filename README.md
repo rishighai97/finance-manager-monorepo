@@ -7,6 +7,17 @@ Finance Manager is a personal finance tracker. Users can:
 - **Categorize transactions** - tag imported transactions with user-defined categories.
 - **Filter transactions** - slice transactions by category or debit/credit to understand spending and holdings.
 
+See it in action - each row links to a GIF walkthrough in [`docs/FEATURE_GIFS.md`](docs/FEATURE_GIFS.md):
+
+| Feature | |
+|---|---|
+| Login | [GIF](docs/FEATURE_GIFS.md#login) |
+| Accounts | [GIF](docs/FEATURE_GIFS.md#accounts) |
+| Upload a statement | [GIF](docs/FEATURE_GIFS.md#upload-a-statement) |
+| Transactions | [GIF](docs/FEATURE_GIFS.md#transactions) |
+| Search & filter transactions | [GIF](docs/FEATURE_GIFS.md#search--filter-transactions) |
+| Categories | [GIF](docs/FEATURE_GIFS.md#categories) |
+
 It's a multi-module workspace - four backend services plus an Angular/Ionic client, all backed by a shared Postgres database. Each module below keeps its own README with module-specific setup/usage details; this file just gives the map. See [`architecture-docs`](architecture-docs/README.md) for diagrams of how the pieces fit together (high-level design, key user-flow sequence diagrams, and the database schema).
 
 | Module | Stack | Port (local) | Description |

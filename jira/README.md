@@ -26,3 +26,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_18](JIRA_18.md) | Onboard American Express Excel statement format | Done |
 | [JIRA_19](JIRA_19.md) | Fix Axis CSV reader's date format + make every reader tolerate date-format drift | Done |
 | [JIRA_20](JIRA_20.md) | Fix missing debit/credit color distinction on transaction rows | Done |
+| [JIRA_21](JIRA_21.md) | `feature-gif-capture` skill + a GIFs README linked from the root README | Done |
