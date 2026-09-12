@@ -294,6 +294,14 @@ ion-content {
   white-space: nowrap;
   padding-left: 10px;
   border-left: 1px solid var(--app-divider-subtle);
+
+  &.danger {
+    color: var(--ion-color-danger);
+  }
+
+  &.success {
+    color: var(--ion-color-success);
+  }
 }
 
 // Category pills - plain text, not filled chips (no colored badges, per

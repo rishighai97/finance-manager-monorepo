@@ -352,13 +352,16 @@ def build_axis_xls(transactions) -> bytes:
 # ---- Axis csv ----
 
 def build_axis_csv(transactions) -> bytes:
+    # Real Axis csv exports use "%d-%m-%Y" (dash, 4-digit year), not the
+    # "%d/%m/%y" this fixture used to assume - see jira/JIRA_19.md, found
+    # when a real export failed to parse under the old assumption.
     balances = running_balances(transactions)
     lines = ["Tran Date,Value Date,Particulars,Debit,Credit,Balance"]
     for t, bal in zip(transactions, balances):
         d = t["date"]
         debit = "" if t["is_credit"] else str(t["amount"])
         credit = str(t["amount"]) if t["is_credit"] else ""
-        lines.append(f"{d.strftime('%d/%m/%y')},{d.strftime('%d/%m/%y')},{t['title']},{debit},{credit},{bal}")
+        lines.append(f"{d.strftime('%d-%m-%Y')},{d.strftime('%d-%m-%Y')},{t['title']},{debit},{credit},{bal}")
     lines.append("")  # terminator (blank line)
     return "\n".join(lines).encode()
 

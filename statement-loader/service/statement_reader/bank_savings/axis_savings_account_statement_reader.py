@@ -1,4 +1,3 @@
-from datetime import datetime
 import re
 
 import pandas as pd
@@ -13,6 +12,15 @@ from typing import List, override
 from io import StringIO, BytesIO
 
 from utils.data_type_utils import is_null
+from utils.datetime_utils import parse_flexible_date
+
+# Day-first (Indian convention) formats - see
+# utils/datetime_utils.py's parse_flexible_date docstring for why these
+# must never mix with a month-first format. The old "%d/%m/%y" is kept as
+# a fallback (not removed) in case an older real export really did use it
+# - see jira/JIRA_19.md, where the real export turned out to use
+# "%d-%m-%Y" instead of this reader's original "%d/%m/%y" assumption.
+_DATE_FORMATS = ["%d-%m-%Y", "%d/%m/%Y", "%d/%m/%y", "%d-%m-%y"]
 
 
 class AxisXlsSavingsAccountStatementReader(StatementReader):
@@ -32,7 +40,7 @@ class AxisXlsSavingsAccountStatementReader(StatementReader):
                 transactions.append(
                     Transaction(
                         # transaction_id=str(account_id) + "|" + str(row.iloc[0]) + "|" + row.iloc[1],
-                        date=datetime.strptime(row.iloc[1], "%d-%m-%Y"),
+                        date=parse_flexible_date(row.iloc[1], _DATE_FORMATS),
                         user_account_id=request.user_account_id,
                         title=row.iloc[3],
                         debit_or_credit_amount=debit_or_credit_amount,
@@ -70,7 +78,7 @@ class AxisCsvSavingsAccountStatementReader(StatementReader):
                 break
             elif start:
                 date_string = str(words[0]) if type(words[0]) == str else None
-                date = datetime.strptime(date_string, "%d/%m/%y")
+                date = parse_flexible_date(date_string, _DATE_FORMATS)
                 title = words[2]
                 debit_amount = float(words[3].strip()) if type(words[3]) == str and words[3].strip() != '' and len(
                     words[3]) > 0 else float(0)

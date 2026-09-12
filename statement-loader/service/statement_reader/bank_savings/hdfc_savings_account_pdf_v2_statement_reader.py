@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from io import BytesIO
 from typing import List
 
@@ -10,6 +9,12 @@ from model.account_statement import AccountStatementExtension
 from model.account_statement_upload_request import AccountStatementUploadRequest
 from model.transaction import Transaction
 from service.statement_reader.statement_reader import StatementReader
+from utils.datetime_utils import parse_flexible_date
+
+# Day-first (Indian convention) formats - see
+# utils/datetime_utils.py's parse_flexible_date docstring for why these
+# must never mix with a month-first format.
+_DATE_FORMATS = ["%d/%m/%y", "%d/%m/%Y", "%d-%m-%Y", "%d-%m-%y"]
 
 # Demonstrates format drift for jira/JIRA_11.md's statement-onboard skill:
 # a hypothetical v2 of HDFC's PDF export that drops the Chq./Ref.No. and
@@ -25,7 +30,7 @@ from service.statement_reader.statement_reader import StatementReader
 # position - see hdfc_savings_account_pdf_statement_reader.py's v1 comment
 # for the fuller rationale.
 _TRANSACTION_LINE = re.compile(
-    r"^(?P<date>\d{2}/\d{2}/\d{2})\s+(?P<narration>.+?)\s+"
+    r"^(?P<date>\d{2}[/-]\d{2}[/-]\d{2,4})\s+(?P<narration>.+?)\s+"
     r"(?P<amount>[\d,]+\.\d{2})\s+(?P<balance>[\d,]+\.\d{2})$"
 )
 
@@ -45,7 +50,7 @@ class HdfcSavingsAccountPdfV2StatementReader(StatementReader):
             is_credit = previous_balance is not None and row["balance"] > previous_balance
             transactions.append(
                 Transaction(
-                    date=datetime.strptime(row["date"], "%d/%m/%y"),
+                    date=parse_flexible_date(row["date"], _DATE_FORMATS),
                     user_account_id=request.user_account_id,
                     title=row["narration"],
                     debit_or_credit_amount=row["amount"],

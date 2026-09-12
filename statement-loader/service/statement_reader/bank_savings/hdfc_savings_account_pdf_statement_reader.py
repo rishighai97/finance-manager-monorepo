@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from io import BytesIO
 from typing import List
 
@@ -10,6 +9,12 @@ from model.account_statement import AccountStatementExtension
 from model.account_statement_upload_request import AccountStatementUploadRequest
 from model.transaction import Transaction
 from service.statement_reader.statement_reader import StatementReader
+from utils.datetime_utils import parse_flexible_date
+
+# Day-first (Indian convention) formats seen/plausible for HDFC's real pdf
+# export - see utils/datetime_utils.py's parse_flexible_date docstring for
+# why these must never mix with a month-first format.
+_DATE_FORMATS = ["%d/%m/%y", "%d/%m/%Y", "%d-%m-%Y", "%d-%m-%y"]
 
 # HDFC's PDF export has no per-row table grid (pdfplumber's extract_table()
 # collapses whole columns into one multi-line cell each, misaligning rows
@@ -29,7 +34,7 @@ from service.statement_reader.statement_reader import StatementReader
 # is reset at the top of each page's own loop rather than assumed to carry
 # a fixed shape from page to page.
 _TRANSACTION_LINE = re.compile(
-    r"^(?P<date>\d{2}/\d{2}/\d{2})\s+(?P<narration>.+?)\s+(?P<ref>\S+)\s+(?P<value_date>\d{2}/\d{2}/\d{2})\s+"
+    r"^(?P<date>\d{2}[/-]\d{2}[/-]\d{2,4})\s+(?P<narration>.+?)\s+(?P<ref>\S+)\s+(?P<value_date>\d{2}[/-]\d{2}[/-]\d{2,4})\s+"
     r"(?P<amount>[\d,]+\.\d{2})\s+(?P<balance>[\d,]+\.\d{2})$"
 )
 
@@ -72,7 +77,7 @@ class HdfcSavingsAccountPdfStatementReader(StatementReader):
             is_credit = previous_balance is not None and row["balance"] > previous_balance
             transactions.append(
                 Transaction(
-                    date=datetime.strptime(row["date"], "%d/%m/%y"),
+                    date=parse_flexible_date(row["date"], _DATE_FORMATS),
                     user_account_id=request.user_account_id,
                     title=row["narration"],
                     debit_or_credit_amount=row["amount"],

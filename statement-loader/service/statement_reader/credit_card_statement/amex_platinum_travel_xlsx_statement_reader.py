@@ -1,4 +1,3 @@
-from datetime import datetime
 from io import BytesIO
 
 import pandas as pd
@@ -8,6 +7,13 @@ from model.account_statement_upload_request import AccountStatementUploadRequest
 from model.transaction import Transaction
 from service.statement_reader.statement_reader import StatementReader
 from typing import List, override
+from utils.datetime_utils import parse_flexible_date
+
+# Month-first (US convention) formats - Amex is a US card issuer, unlike
+# every other reader here (Indian banks, day-first). See
+# utils/datetime_utils.py's parse_flexible_date docstring for why these
+# must never mix with a day-first format.
+_DATE_FORMATS = ["%m/%d/%Y", "%m-%d-%Y", "%m/%d/%y"]
 
 
 class AmexPlatinumTravelXlsxStatementReader(StatementReader):
@@ -22,7 +28,7 @@ class AmexPlatinumTravelXlsxStatementReader(StatementReader):
             amount = float(row["Amount"])
             transactions.append(
                 Transaction(
-                    date=datetime.strptime(str(row["Date"]).strip(), "%m/%d/%Y"),
+                    date=parse_flexible_date(str(row["Date"]), _DATE_FORMATS),
                     user_account_id=request.user_account_id,
                     title=str(row["Description"]).strip(),
                     debit_or_credit_amount=abs(amount),

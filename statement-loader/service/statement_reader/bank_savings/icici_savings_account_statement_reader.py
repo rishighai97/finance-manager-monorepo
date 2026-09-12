@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import xlrd
 from werkzeug.datastructures import FileStorage
 
@@ -9,6 +7,12 @@ from model.transaction import Transaction
 from service.statement_reader.statement_reader import StatementReader
 import pandas as pd
 from typing import List, override
+from utils.datetime_utils import parse_flexible_date
+
+# Day-first (Indian convention) formats - see
+# utils/datetime_utils.py's parse_flexible_date docstring for why these
+# must never mix with a month-first format.
+_DATE_FORMATS = ["%d/%m/%Y", "%d/%m/%y", "%d-%m-%Y", "%d-%m-%y"]
 
 
 class IciciXlsSavingsAccountStatementReader(StatementReader):
@@ -23,7 +27,7 @@ class IciciXlsSavingsAccountStatementReader(StatementReader):
                 break
             if start is True:
                 date_string = str(row.iloc[3]) if type(row.iloc[3]) == str else None
-                date = datetime.strptime(date_string, "%d/%m/%Y")
+                date = parse_flexible_date(date_string, _DATE_FORMATS)
                 title = row.iloc[5]
                 debit_amount = float(row.iloc[6]) if row.iloc[6] != None else float(0)
                 credit_amount = float(row.iloc[7]) if row.iloc[7] != None else float(0)
