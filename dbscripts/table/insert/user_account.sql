@@ -5,6 +5,8 @@ INSERT INTO user_account (id, account_id, user_id, user_account_name) VALUES
 (3, 3, 1, 'SARASWAT RISHI'),
 (4, 4, 1, 'CANARA RISHI'),
 (5, 5, 1, 'AXIS RISHI'),
-(6, 7, 1, 'GROWW, GROW RISHI');
+(6, 7, 1, 'GROWW, GROW RISHI'),
+-- JIRA_18: American Express credit card (account id 8).
+(7, 8, 1, 'AMEX RISHI');
 
 SELECT setval('user_account_sequence', (SELECT MAX(id) FROM user_account));

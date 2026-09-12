@@ -14,6 +14,7 @@ class AccountDetailsFactory:
     ICICI_FD = AccountDetails(bank_name="ICICI_FD")
     AXIS_FD = AccountDetails(bank_name="AXIS_FD")
     CANARA_PPF = AccountDetails(bank_name="CANARA_PPF")
+    AMEX = AccountDetails(bank_name="AMEX")
 
     def __str__(self):
         return self.__dict__.__str__()

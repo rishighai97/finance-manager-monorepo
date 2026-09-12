@@ -71,6 +71,9 @@ from service.statement_reader.bank_savings.axis_savings_account_statement_reader
 from service.statement_reader.mutual_fund_statement.groww_mutual_fund_statement_reader import (
     GrowwStatementReader,
 )
+from service.statement_reader.credit_card_statement.amex_platinum_travel_xlsx_statement_reader import (
+    AmexPlatinumTravelXlsxStatementReader,
+)
 
 BANK_TITLE_POOL = [
     "Grocery Store", "Salary Credit", "Electricity Bill", "ATM Withdrawal",
@@ -79,6 +82,10 @@ BANK_TITLE_POOL = [
 MF_TITLE_POOL = [
     "Axis Bluechip Fund", "SBI Small Cap Fund", "HDFC Index Fund",
     "Parag Parikh Flexi Cap Fund", "ICICI Prudential Value Discovery Fund",
+]
+CC_TITLE_POOL = [
+    "Grocery Store", "Online Purchase", "Restaurant Payment", "Travel Booking",
+    "Payment Received. Thank You", "Mobile Recharge",
 ]
 
 FIXED_YEAR = 2026  # baked-in, not "today" - see JIRA_8's fixture-dates decision
@@ -92,6 +99,7 @@ FIXED_YEAR = 2026  # baked-in, not "today" - see JIRA_8's fixture-dates decision
 FIXTURE_MONTHS = {
     "hdfc": 1, "icici": 2, "saraswat": 3, "canara": 4,
     "axis_xls": 5, "axis_csv": 6, "groww": 7, "hdfc_pdf": 8, "hdfc_pdf_v2": 9,
+    "amex": 10,
 }
 
 
@@ -121,6 +129,21 @@ def make_mf_transactions(rng, count, month):
             "price_per_unit": price,
             "amount": round(units * price, 2),
             "is_purchase": rng.random() < 0.7,
+            "date": date(FIXED_YEAR, month, i + 1),
+        })
+    return result
+
+
+def make_cc_transactions(rng, count, month):
+    """Amex-style: positive Amount = a charge (DR), negative Amount = a
+    payment/credit received (CR) - see amex_platinum_travel_xlsx_statement_reader.py."""
+    titles = rng.sample(CC_TITLE_POOL, count)
+    result = []
+    for i, title in enumerate(titles):
+        result.append({
+            "title": title,
+            "amount": round(rng.uniform(100, 20000), 2),
+            "is_credit": title == "Payment Received. Thank You" or rng.random() < 0.2,
             "date": date(FIXED_YEAR, month, i + 1),
         })
     return result
@@ -363,6 +386,49 @@ def build_groww_xlsx(transactions) -> bytes:
     return buf.getvalue()
 
 
+# ---- Amex xlsx (JIRA_18) ----
+
+def build_amex_xlsx(transactions) -> bytes:
+    """Mimics the real Amex "Transaction Details" sheet export: 6 letterhead
+    rows (title, "Prepared for", "Account Number", then blanks) before the
+    real header row at physical row 7 - pandas.read_excel(..., skiprows=6)
+    consumes exactly those 6 rows. Amount sign carries the DR/CR direction
+    (see amex_platinum_travel_xlsx_statement_reader.py)."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Transaction Details"
+    ws.append(["Card Member Statement (dummy fixture - see JIRA_18)"])
+    ws.append(["Prepared for", "JOHN DOE"])
+    ws.append(["Account Number", "XXXX-XXXXXX-X1234"])
+    ws.append([])
+    ws.append([])
+    ws.append([])
+    ws.append([
+        "Date", "Description", "Amount", "Extended Details",
+        "Appears On Your Statement As", "Address", "City/State", "Zip Code",
+        "Country", "Reference", "Category",
+    ])
+    for i, t in enumerate(transactions):
+        d = t["date"]
+        signed_amount = -t["amount"] if t["is_credit"] else t["amount"]
+        ws.append([
+            d.strftime("%m/%d/%Y"),
+            t["title"],
+            signed_amount,
+            None,
+            t["title"],
+            "123 MAIN ST",
+            "SOME CITY",
+            "000000",
+            "IN",
+            f"REF{i + 1:06d}",
+            None if t["is_credit"] else "Miscellaneous-Other",
+        ])
+    buf = BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
 FIXTURES = [
     {
         "filename": "hdfc.xls", "seed": "hdfc", "count": 4,
@@ -408,6 +474,11 @@ FIXTURES = [
         "filename": "groww.xlsx", "seed": "groww", "count": 3,
         "build": build_groww_xlsx, "reader": GrowwStatementReader(),
         "generator": make_mf_transactions,
+    },
+    {
+        "filename": "amex.xlsx", "seed": "amex", "count": 4,
+        "build": build_amex_xlsx, "reader": AmexPlatinumTravelXlsxStatementReader(),
+        "generator": make_cc_transactions,
     },
 ]
 

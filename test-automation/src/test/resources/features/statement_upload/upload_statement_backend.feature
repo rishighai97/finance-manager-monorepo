@@ -19,3 +19,4 @@ Feature: Upload each supported bank/broker statement format via the API
       | axis      | 1       | csv       | axis.csv      | 5          | 5               |
       | groww     | 1       | xlsx      | groww.xlsx    | 7          | 6               |
       | hdfc      | 1       | pdf       | hdfc.pdf      | 1          | 1               |
+      | amex      | 1       | xlsx      | amex.xlsx     | 8          | 7               |

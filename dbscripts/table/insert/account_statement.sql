@@ -21,6 +21,8 @@ INSERT INTO account_statement (extension, version, account_id, start_time, end_t
 ('pdf', 1 , 6, timezone('utc', now()), '9999-01-01 01:00:00.000'),
 ('xlsx', 1 , 7, timezone('utc', now()), '9999-01-01 01:00:00.000'),
 ('xls', 1 , 7, '2025-03-01 05:29:56.830', '9999-01-01 05:29:56.830'),
-('pdf', 1 , 7, timezone('utc', now()), '9999-01-01 01:00:00.000');
+('pdf', 1 , 7, timezone('utc', now()), '9999-01-01 01:00:00.000'),
+-- JIRA_18: American Express credit card statement (new account id 8).
+('xlsx', 1 , 8, timezone('utc', now()), '9999-01-01 01:00:00.000');
 
 SELECT setval('account_statement_sequence', (SELECT MAX(id) FROM account_statement));

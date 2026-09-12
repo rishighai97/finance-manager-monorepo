@@ -23,3 +23,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_15](JIRA_15.md) | Gate "Revert Categorize" on pending changes, label the bulk-actions row | Done |
 | [JIRA_16](JIRA_16.md) | Search bar sizing, balance summary row, and compact bulk-action buttons | Done |
 | [JIRA_17](JIRA_17.md) | Amazon-style search + filter button, filters in a modal | Done |
+| [JIRA_18](JIRA_18.md) | Onboard American Express Excel statement format | Done |

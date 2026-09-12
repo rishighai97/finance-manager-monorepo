@@ -49,6 +49,9 @@ One row per `(bank, account_id, version, extension)` combination with an actual 
 | Axis | 5 | cash/bank/savings | 1 | xls | `AxisXlsSavingsAccountStatementReader` |
 | Axis | 5 | cash/bank/savings | 1 | csv | `AxisCsvSavingsAccountStatementReader` |
 | Groww | 7 | investment/mutual_fund | 1 | xlsx | `GrowwStatementReader` |
+| Amex | 8 | credit/card | 1 | xlsx | `AmexPlatinumTravelXlsxStatementReader` |
+
+Amex (JIRA_18) is the first credit-card-type statement onboarded - a new `account_type` (`credit`/`card`, no `type_3`) since no existing cash/bank or investment category fit. Its `Amount` column carries the DR/CR direction by sign (positive = a charge/DR, negative = a payment/credit received/CR) rather than separate debit/credit columns - see `AmexPlatinumTravelXlsxStatementReader`.
 
 The HDFC `pdf` v1 -> v2 transition (`account_statement.sql`) is a synthetic format-drift demonstration built for JIRA_11, not a real HDFC change - `HdfcSavingsAccountPdfV2StatementReader` only becomes reachable by a live upload once the wall clock actually passes 2027-01-01 (see that reader's module docstring and `jira/JIRA_11.md`'s Implementation notes for why).
 

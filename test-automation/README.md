@@ -73,6 +73,7 @@ Open it directly in a browser after any run. Gradle's own generic test report (`
 | backend | Uploading a v1 axis csv statement succeeds | statement_upload | Implemented |
 | backend | Uploading a v1 groww xlsx statement succeeds | statement_upload | Implemented |
 | backend | Uploading a v1 hdfc pdf statement succeeds | statement_upload | Implemented |
+| backend | Uploading a v1 amex xlsx statement succeeds | statement_upload | Implemented |
 | backend | Upload v1 hdfc xls, categorize, and filter its transactions | e2e_flow | Implemented |
 | backend | Upload v1 icici xls, categorize, and filter its transactions | e2e_flow | Implemented |
 | backend | Upload v1 saraswat xls, categorize, and filter its transactions | e2e_flow | Implemented |
@@ -81,9 +82,10 @@ Open it directly in a browser after any run. Gradle's own generic test report (`
 | backend | Upload v1 axis csv, categorize, and filter its transactions | e2e_flow | Implemented |
 | backend | Upload v1 groww xlsx, categorize, and filter its transactions | e2e_flow | Implemented |
 | backend | Upload v1 hdfc pdf, categorize, and filter its transactions | e2e_flow | Implemented |
+| backend | Upload v1 amex xlsx, categorize, and filter its transactions | e2e_flow | Implemented |
 | backend | Sign up, link an account, and see it in the user's account list | e2e_flow | Implemented |
 
-All 35 scenarios are implemented and passing (`./gradlew test`, verified against a local stack on 2026-09-10). The single-fixture HDFC `statement_upload`/`e2e_flow` scenarios from JIRA_6 were replaced under JIRA_8 by a `Scenario Outline` per feature - one row per (bank, version, extension) combination, covering all 7 statement-loader readers (HDFC/ICICI/Saraswat/Canara/Axis xls/Axis csv/Groww) instead of just HDFC, and each `e2e_flow` row now also categorizes and filters the uploaded transactions, not just confirms they're fetchable. The `hdfc pdf` row was added under JIRA_11 (the `statement-onboard` skill's first real onboarding), closing a gap where `account_statement` sample data had `pdf` rows for every account but no reader ever implemented one.
+All 37 scenarios are implemented and passing (`./gradlew test`, verified against a local stack on 2026-09-12). The single-fixture HDFC `statement_upload`/`e2e_flow` scenarios from JIRA_6 were replaced under JIRA_8 by a `Scenario Outline` per feature - one row per (bank, version, extension) combination, covering all 7 statement-loader readers (HDFC/ICICI/Saraswat/Canara/Axis xls/Axis csv/Groww) instead of just HDFC, and each `e2e_flow` row now also categorizes and filters the uploaded transactions, not just confirms they're fetchable. The `hdfc pdf` row was added under JIRA_11 (the `statement-onboard` skill's first real onboarding), closing a gap where `account_statement` sample data had `pdf` rows for every account but no reader ever implemented one. The `amex xlsx` row was added under JIRA_18, the first credit-card-type statement onboarded (new `account_type` of `credit`/`card`).
 
 ## Testing
 This project *is* the test suite - "testing it" means running it (see above) against a healthy local stack and checking the HTML report.
