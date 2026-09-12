@@ -1,83 +1,82 @@
-<!-- Condensed single-row filter bar (ux/UX_transaction-search.md's Option 4
-     mockup) - plain text + caret chips, not a stacked-label form. The
-     active accent color + underline marks a chip that currently has a
-     real selection, matching the mockup's "3 accounts" treatment. -->
-<div class="filter-bar">
-  <button type="button" class="filter-chip" (click)="openDateRangeSelector()">
-    <span>{{ getDateRangeText() }}</span>
-    <ion-icon name="chevron-down-outline" class="chip-caret"></ion-icon>
-  </button>
-
-  <button
-    type="button"
-    class="filter-chip"
-    [class.active]="selectedAccountIds.length > 0"
-    (click)="openAccountSelector()"
-  >
-    <span>{{ getSelectedAccountsText() }}</span>
-    <ion-icon name="chevron-down-outline" class="chip-caret"></ion-icon>
-  </button>
-
-  <button
-    type="button"
-    class="filter-chip"
-    [class.active]="selectedCategoryIds.length > 0"
-    (click)="openCategorySelector()"
-  >
-    <span>{{ getSelectedCategoriesText() }}</span>
-    <ion-icon name="chevron-down-outline" class="chip-caret"></ion-icon>
-  </button>
-
-  <ion-select
-    class="filter-chip filter-select"
-    [class.active]="debitCreditIndicator !== null"
-    [(ngModel)]="debitCreditIndicator"
-    (ionChange)="onDebitCreditIndicatorChange($event.detail.value)"
-    interface="popover"
-  >
-    <ion-select-option [value]="null">All</ion-select-option>
-    <ion-select-option value="DR">Debit</ion-select-option>
-    <ion-select-option value="CR">Credit</ion-select-option>
-  </ion-select>
-</div>
-
-<!-- Date Range Modal -->
+<!-- Filters modal (JIRA_17/ux/UX_transaction-search.md's Round 2 addendum) -
+     replaces the always-visible chip row; opened via the filter button in
+     transaction-list's search row (TransactionsPageComponent forwards that
+     click to openFilterModal() here). The account/category selector modals
+     below now open as *nested* modals from rows inside this sheet, instead
+     of from top-level chips - same modals, same handlers, unchanged. -->
 <ion-modal
-  #dateRangeModal
-  [isOpen]="isDateRangeModalOpen"
-  [initialBreakpoint]="0.4"
-  [breakpoints]="[0, 0.4, 0.6]"
-  (didDismiss)="closeDateRangeSelector()"
-  class="force-center-modal"
+  #filtersModal
+  [isOpen]="isFilterModalOpen"
+  [initialBreakpoint]="0.6"
+  [breakpoints]="[0, 0.6, 0.9]"
+  (didDismiss)="closeFilterModal()"
+  class="filters-modal"
 >
   <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-title>Date Range</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="closeDateRangeSelector()">Done</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <ion-item lines="none" class="date-picker-item">
-        <ion-label position="stacked">From</ion-label>
-        <ion-input
-          type="date"
-          [(ngModel)]="startDate"
-          (ionChange)="onStartDateChange()"
-        ></ion-input>
-      </ion-item>
+    <div class="filters-sheet">
+      <div class="filters-header">
+        <span class="filters-title">Filters</span>
+        <span class="filters-clear-all" (click)="clearAllFilters()">Clear all</span>
+      </div>
 
-      <ion-item lines="none" class="date-picker-item">
-        <ion-label position="stacked">To</ion-label>
-        <ion-input
-          type="date"
-          [(ngModel)]="endDate"
-          (ionChange)="onEndDateChange()"
-        ></ion-input>
-      </ion-item>
-    </ion-content>
+      <div class="filters-section">
+        <div class="filters-section-label">Date range</div>
+        <div class="filters-date-row">
+          <ion-item lines="none" class="date-picker-item">
+            <ion-label position="stacked">From</ion-label>
+            <ion-input type="date" [(ngModel)]="startDate"></ion-input>
+          </ion-item>
+          <ion-item lines="none" class="date-picker-item">
+            <ion-label position="stacked">To</ion-label>
+            <ion-input type="date" [(ngModel)]="endDate"></ion-input>
+          </ion-item>
+        </div>
+      </div>
+
+      <div class="filters-row" (click)="openAccountSelector()">
+        <div>
+          <div class="filters-section-label">Accounts</div>
+          <div class="filters-row-value" [class.active]="selectedAccountIds.length > 0">{{ getSelectedAccountsText() }}</div>
+        </div>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </div>
+
+      <div class="filters-row" (click)="openCategorySelector()">
+        <div>
+          <div class="filters-section-label">Category</div>
+          <div class="filters-row-value" [class.active]="selectedCategoryIds.length > 0">{{ getSelectedCategoriesText() }}</div>
+        </div>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </div>
+
+      <div class="filters-section">
+        <div class="filters-section-label">Type</div>
+        <div class="filters-segmented">
+          <button
+            type="button"
+            class="filters-segment"
+            [class.active]="debitCreditIndicator === null"
+            (click)="onDebitCreditIndicatorChange(null)"
+          >All</button>
+          <button
+            type="button"
+            class="filters-segment"
+            [class.active]="debitCreditIndicator === 'DR'"
+            (click)="onDebitCreditIndicatorChange('DR')"
+          >Debit</button>
+          <button
+            type="button"
+            class="filters-segment"
+            [class.active]="debitCreditIndicator === 'CR'"
+            (click)="onDebitCreditIndicatorChange('CR')"
+          >Credit</button>
+        </div>
+      </div>
+
+      <ion-button expand="block" color="primary" class="filters-apply-btn" (click)="applyFiltersFromModal()">
+        Apply filters
+      </ion-button>
+    </div>
   </ng-template>
 </ion-modal>
 

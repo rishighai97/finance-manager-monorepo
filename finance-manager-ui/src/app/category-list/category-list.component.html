@@ -13,7 +13,10 @@
 
 <ion-content [fullscreen]="true">
   <!-- Search bar with typeahead - plain underline control, same as
-       every other page's filter row -->
+       every other page's filter row. No showCancelButton (JIRA_16/
+       ux/UX_density-pass.md) - see transaction-list.component.html's
+       identical change for why the built-in cancel button was dropped
+       for a plain-text "Clear" trigger instead. -->
   <div class="search-container">
     <ion-searchbar
       placeholder="Search categories"
@@ -21,9 +24,9 @@
       (ionInput)="onSearchChange($event)"
       animated
       debounce="300"
-      showCancelButton="focus"
-      cancelButtonText="Clear"
+      class="cl-searchbar"
     ></ion-searchbar>
+    <span class="cl-clear-link" *ngIf="searchTerm" (click)="clearSearch()">Clear</span>
   </div>
 
   <!-- Action buttons - plain text links in a thin tinted bar, not

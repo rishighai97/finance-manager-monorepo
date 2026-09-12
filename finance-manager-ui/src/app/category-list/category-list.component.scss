@@ -15,15 +15,33 @@ ion-content {
 // Search bar - plain underline control, same convention as every other
 // page's filter row.
 .search-container {
-  padding: 10px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--app-divider);
 
-  ion-searchbar {
+  // Height fix (JIRA_16/ux/UX_density-pass.md) - see transaction-list's
+  // identical .cl-searchbar rule for why !important is needed here.
+  .cl-searchbar {
+    flex: 1 1 auto;
     padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 32px !important;
     --border-radius: 4px;
     --background: transparent;
     --box-shadow: none;
-    margin-bottom: 8px;
+  }
+
+  // Plain-text replacement for ion-searchbar's built-in cancel button.
+  .cl-clear-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 

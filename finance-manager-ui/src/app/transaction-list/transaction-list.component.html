@@ -28,78 +28,55 @@
        staying a genuinely separate component from this one. -->
   <ng-content></ng-content>
 
-  <!-- No accounts selected - distinct from "no transactions match" (see
-       ux/UX_transaction-list.md point 8: two distinct empty conditions) -->
-  <div *ngIf="noAccountsSelected" class="no-accounts-warning">
-    <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
-    <h3>No accounts selected</h3>
-    <p>Select at least one account above to view transactions.</p>
-  </div>
-
-  <!-- Only show Summary and Transactions when accounts are selected -->
-  <ng-container *ngIf="!noAccountsSelected">
-    <!-- Summary Row -->
-    <div class="summary-container">
-      <div class="summary-item">
-        <div class="summary-label">Opening</div>
-        <div class="cl-mono summary-amount">
-          {{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}
-        </div>
+  <!-- Search bar + filter button (Calm Ledger - flat underline field,
+       labeled toggle switch instead of the default grey pill + bare
+       checkbox; see ux/UX_transaction-search.md point 5) - always visible,
+       not nested inside the noAccountsSelected check (JIRA_17 finding: the
+       filter button is now the *only* way to open the account/category/
+       date/DR-CR filters, since the old always-visible chip row is gone -
+       hiding it whenever no account is selected would be a dead end with
+       no way back in). The search bar/regex toggle have nothing to search
+       yet in that state, but showing them anyway (rather than splitting
+       this row's markup across two places) is the simpler, harmless choice. -->
+  <div class="search-container">
+    <div class="search-row">
+      <!-- No showCancelButton (JIRA_16/ux/UX_density-pass.md) - Ionic's
+           built-in cancel button is a shadow-internal element with no
+           exposed CSS part or sizing custom property, so its font-size/
+           padding can't be shrunk to match the rest of the row from
+           outside. Replaced with a plain-text "Clear" trigger, styled
+           like every other text action in this app. -->
+      <ion-searchbar
+        placeholder="Search transactions"
+        [(ngModel)]="searchTerm"
+        (ionInput)="onSearchChange($event)"
+        animated
+        debounce="300"
+        class="cl-searchbar"
+      ></ion-searchbar>
+      <span class="cl-clear-link" *ngIf="searchTerm" (click)="clearSearch()">Clear</span>
+      <div class="regex-toggle">
+        <ion-toggle
+          [(ngModel)]="regexSearch"
+          aria-label="Enable regex search"
+        ></ion-toggle>
+        <span class="regex-label">Regex</span>
       </div>
-      <div class="summary-item">
-        <div class="summary-label">Debit</div>
-        <div class="cl-mono summary-amount danger">
-          {{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}
-        </div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-label">Credit</div>
-        <div class="cl-mono summary-amount success">
-          {{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}
-        </div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-label">Closing</div>
-        <div
-          class="cl-mono summary-amount"
-          [ngClass]="{
-            success: closingBalance && closingBalance > 0,
-            danger: closingBalance && closingBalance < 0
-          }"
-        >
-          {{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}
-        </div>
-      </div>
+      <!-- Filter button (JIRA_17) - Amazon-style, sits right after Regex;
+           opens transaction-search's Filters modal (see openFilters
+           output and TransactionsPageComponent's wiring). The dot
+           indicates at least one filter is active - see hasActiveFilters. -->
+      <button type="button" class="filter-btn" (click)="onFilterButtonClick()" aria-label="Filters">
+        <ion-icon name="options-outline"></ion-icon>
+        <span class="filter-btn-dot" *ngIf="hasActiveFilters"></span>
+      </button>
     </div>
 
-    <!-- Search Bar (Calm Ledger - flat underline field, labeled toggle
-         switch instead of the default grey pill + bare checkbox; see
-         ux/UX_transaction-search.md point 5) -->
-    <div class="search-container">
-      <div class="search-row">
-        <ion-searchbar
-          placeholder="Search transactions"
-          [(ngModel)]="searchTerm"
-          (ionInput)="onSearchChange($event)"
-          animated
-          debounce="300"
-          showCancelButton="focus"
-          cancelButtonText="Clear"
-          class="cl-searchbar"
-        ></ion-searchbar>
-        <div class="regex-toggle">
-          <ion-toggle
-            [(ngModel)]="regexSearch"
-            aria-label="Enable regex search"
-          ></ion-toggle>
-          <span class="regex-label">Regex</span>
-        </div>
-      </div>
-
-      <!-- Batch Categorize Input and Buttons - stays here (not in
-           transaction-search), since it acts on the rows currently
-           visible on this list; see JIRA_14's Implementation notes. -->
-      <div class="batch-categorize-row">
+    <!-- Batch Categorize Input and Buttons - stays here (not in
+         transaction-search), since it acts on the rows currently
+         visible on this list; see JIRA_14's Implementation notes. Only
+         makes sense once accounts are selected, unlike the search row above. -->
+    <div class="batch-categorize-row" *ngIf="!noAccountsSelected">
         <!-- Inline bulk-actions label (JIRA_15) - these buttons act on
              every currently visible/filtered transaction, not one row;
              wording/placement picked via a quick ux-explore round, see
@@ -123,14 +100,20 @@
         >
           Categorize
         </ion-button>
+        <!-- Compact chip buttons (JIRA_16/ux/UX_density-pass.md Option B) -
+             shortened visible labels with the full action name kept as
+             aria-label/title so it's still discoverable (screen readers,
+             hover tooltip) even though the on-screen text is abbreviated. -->
         <ion-button
           fill="solid"
           color="danger"
           (click)="deleteCategoryAllSearched()"
           [disabled]="!batchCategoryInput || getTransactions().length === 0"
           class="batch-categorize-btn"
+          aria-label="Delete Category"
+          title="Delete Category"
         >
-          Delete Category
+          Delete
         </ion-button>
         <!-- Revert Categorize now shares Update Categories' visibility
              condition (JIRA_15) - both appear together once there's
@@ -142,9 +125,11 @@
           color="primary"
           (click)="resetCategoryChanges()"
           class="batch-clear-btn"
+          aria-label="Revert Categorize"
+          title="Revert Categorize"
         >
           <ion-icon name="arrow-undo-outline" slot="start"></ion-icon>
-          Revert Categorize
+          Revert
         </ion-button>
         <ion-button
           *ngIf="hasCategoryChanges"
@@ -154,13 +139,62 @@
           (click)="saveAllCategoryChanges()"
           [disabled]="isSaving"
           class="save-cat-btn"
+          aria-label="Update Categories"
+          title="Update Categories"
         >
           <ion-icon name="save-outline" slot="start"></ion-icon>
-          Update Categories
+          Update
         </ion-button>
       </div>
     </div>
-  </ng-container>
+
+  <!-- No accounts selected - distinct from "no transactions match" (see
+       ux/UX_transaction-list.md point 8: two distinct empty conditions).
+       Actionable again (JIRA_17) now that the filter button above is
+       always visible - it's the way to select an account, replacing the
+       old dead-end copy from when the chip row itself vanished here. -->
+  <div *ngIf="noAccountsSelected" class="no-accounts-warning">
+    <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+    <h3>No accounts selected</h3>
+    <p>Select at least one account to view transactions.</p>
+    <a class="text-link" (click)="onFilterButtonClick()">Select accounts</a>
+  </div>
+
+  <!-- Summary row (Calm Ledger density pass, JIRA_16/ux/UX_density-pass.md
+       Option A) - a single inline byline instead of a bordered 4-column
+       strip; reads like a caption under the header rather than a boxed
+       stat block. Same bindings/color classes as before, just re-templated.
+       Each label+amount is wrapped in one .summary-stat span so the pair
+       wraps as a unit on narrow screens - without this, the flex row's
+       individual label/amount spans could wrap independently, splitting
+       e.g. "Credit" onto its own line above the figure it labels. -->
+  <div class="summary-container" *ngIf="!noAccountsSelected">
+    <span class="summary-stat">
+      <span class="summary-label">Opening</span>
+      <span class="cl-mono summary-amount">{{ openingBalance | currency : "INR" : "symbol" : "1.0-0" }}</span>
+    </span>
+    <span class="summary-sep">&middot;</span>
+    <span class="summary-stat">
+      <span class="summary-label">Debit</span>
+      <span class="cl-mono summary-amount danger">{{ totalDebit | currency : "INR" : "symbol" : "1.0-0" }}</span>
+    </span>
+    <span class="summary-sep">&middot;</span>
+    <span class="summary-stat">
+      <span class="summary-label">Credit</span>
+      <span class="cl-mono summary-amount success">{{ totalCredit | currency : "INR" : "symbol" : "1.0-0" }}</span>
+    </span>
+    <span class="summary-sep">&middot;</span>
+    <span class="summary-stat">
+      <span class="summary-label">Closing</span>
+      <span
+        class="cl-mono summary-amount"
+        [ngClass]="{
+          success: closingBalance && closingBalance > 0,
+          danger: closingBalance && closingBalance < 0
+        }"
+      >{{ closingBalance | currency : "INR" : "symbol" : "1.0-0" }}</span>
+    </span>
+  </div>
 
   <ion-list lines="none" class="calm-ledger-list">
     @if (hasError) {

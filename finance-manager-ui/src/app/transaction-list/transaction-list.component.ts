@@ -1,7 +1,7 @@
 
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { Component, OnInit } from "@angular/core";
+import { Component, EventEmitter, OnInit, Output } from "@angular/core";
 import {
   IonHeader,
   IonToolbar,
@@ -44,6 +44,7 @@ import {
   addOutline,
   ellipsisVerticalOutline,
   alertCircleOutline,
+  optionsOutline,
 } from "ionicons/icons";
 import { Transaction } from "src/model/transaction";
 import { TransactionService } from "src/service/transaction.service";
@@ -94,6 +95,27 @@ import { TransactionFilters } from "../transaction-search/transaction-search.com
   ],
 })
 export class TransactionListComponent implements OnInit {
+  // Filter button (JIRA_17) - the button lives here, in the search row,
+  // but the filter controls/modal it opens live in TransactionSearchComponent.
+  // TransactionsPageComponent forwards this to TransactionSearchComponent's
+  // openFilterModal(), the reverse-direction counterpart of that component's
+  // filtersApplied -> this.applyFilters() wiring.
+  @Output() openFilters = new EventEmitter<void>();
+
+  onFilterButtonClick() {
+    this.openFilters.emit();
+  }
+
+  // Active-filter dot on the filter button. Deliberately excludes
+  // selectedAccountIds (some account is always required just to see any
+  // transactions, so treating "an account is picked" as "filtering" would
+  // light the dot almost permanently) and the date range (no cheap way to
+  // tell "still the default FY range" from "the user picked the same dates
+  // on purpose") - see ux/UX_transaction-search.md's Round 2 addendum.
+  get hasActiveFilters(): boolean {
+    return this.selectedCategoryIds.length > 0 || this.debitCreditIndicator !== null;
+  }
+
   // For Add Category modal search and select/clear all
   addCategorySearchTerm: string = '';
   filteredAddUserCategories: UserCategory[] = [];
@@ -308,6 +330,7 @@ export class TransactionListComponent implements OnInit {
       addOutline,
       ellipsisVerticalOutline,
       alertCircleOutline,
+      optionsOutline,
     });
   }
 
@@ -381,6 +404,13 @@ export class TransactionListComponent implements OnInit {
   // Search transactions
   onSearchChange(event: any) {
     this.searchTerm = event.detail.value || "";
+    this.applyFilter();
+  }
+
+  // Replaces ion-searchbar's built-in cancel button (JIRA_16 - see
+  // transaction-list.component.html's search-row comment for why).
+  clearSearch() {
+    this.searchTerm = "";
     this.applyFilter();
   }
 

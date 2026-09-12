@@ -185,6 +185,15 @@ export class CategoryListComponent implements OnInit {
   }
 
   /**
+   * Replaces ion-searchbar's built-in cancel button (JIRA_16 - see
+   * category-list.component.html's search-container comment for why).
+   */
+  clearSearch() {
+    this.searchTerm = '';
+    this.applyFilter();
+  }
+
+  /**
    * Mark a category for renaming
    */
   renameCategory(category: UserCategory) {

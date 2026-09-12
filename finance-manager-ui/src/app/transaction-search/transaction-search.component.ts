@@ -13,8 +13,6 @@ import {
   IonButtons,
   IonButton,
   IonInput,
-  IonSelect,
-  IonSelectOption,
   IonModal,
   IonCheckbox,
   IonSearchbar,
@@ -23,6 +21,7 @@ import { addIcons } from "ionicons";
 import {
   closeOutline,
   chevronDownOutline,
+  chevronForwardOutline,
 } from "ionicons/icons";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 import { UserAccount } from "src/model/user-account";
@@ -64,8 +63,6 @@ export interface TransactionFilters {
     IonButtons,
     IonButton,
     IonInput,
-    IonSelect,
-    IonSelectOption,
     IonModal,
     IonCheckbox,
     IonSearchbar,
@@ -81,11 +78,16 @@ export class TransactionSearchComponent implements OnInit {
   @Input() initialFilters: TransactionFilters | null = null;
   @Output() filtersApplied = new EventEmitter<TransactionFilters>();
 
+  // Filters modal (JIRA_17) - opened by TransactionsPageComponent forwarding
+  // TransactionListComponent's filter-button click (see that component's
+  // openFilters output); this component still owns all the filter state
+  // and the nested account/category modals, only the trigger moved.
+  isFilterModalOpen = false;
+
   groupedAccounts: GroupedUserAccount[] = [];
   accountMap: Map<number, UserAccount> = new Map();
   selectedAccountIds: number[] = [];
   isAccountModalOpen = false;
-  private accountSelectionChanged = false;
 
   // Collapsible groups in the "Select Accounts" modal - same mechanism as
   // account-list's/transaction-list's Level 1 sections, moved here with
@@ -94,7 +96,6 @@ export class TransactionSearchComponent implements OnInit {
 
   startDate = "";
   endDate = "";
-  isDateRangeModalOpen = false;
 
   userCategories: UserCategory[] = [];
   categoryMap: Map<number, UserCategory> = new Map();
@@ -102,7 +103,6 @@ export class TransactionSearchComponent implements OnInit {
   categorySearchTerm = "";
   filteredUserCategories: UserCategory[] = [];
   isCategoryModalOpen = false;
-  private categorySelectionChanged = false;
 
   debitCreditIndicator: "DR" | "CR" | null = null;
 
@@ -110,7 +110,7 @@ export class TransactionSearchComponent implements OnInit {
     private userAccountService: UserAccountService,
     private categoryService: CategoryService
   ) {
-    addIcons({ closeOutline, chevronDownOutline });
+    addIcons({ closeOutline, chevronDownOutline, chevronForwardOutline });
   }
 
   ngOnInit() {
@@ -140,13 +140,20 @@ export class TransactionSearchComponent implements OnInit {
     this.debitCreditIndicator = filters.debitCreditIndicator;
   }
 
-  // Replaces the old Apply button - there's no "screen" to apply-and-leave
-  // any more (see jira/JIRA_14.md's addendum), so every meaningful filter
-  // change emits immediately. Account/category selection change while their
-  // modal is open, but only emit once on close (closeAccountSelector/
-  // closeCategorySelector below) rather than per-checkbox, so toggling
-  // several accounts doesn't fire a transaction refetch per click.
-  private emitFilters() {
+  openFilterModal() {
+    this.isFilterModalOpen = true;
+  }
+
+  closeFilterModal() {
+    this.isFilterModalOpen = false;
+  }
+
+  // Explicit "Apply filters" (JIRA_17) - replaces the old emit-on-every-
+  // change behavior (see jira/JIRA_14.md's addendum for why that existed
+  // in the first place): now that every control lives inside one sheet you
+  // open, changes several things in, then confirm, a single emit-and-close
+  // on Apply fits better than firing a refetch per checkbox/date edit.
+  applyFiltersFromModal() {
     this.filtersApplied.emit({
       selectedAccountIds: [...this.selectedAccountIds],
       startDate: this.startDate,
@@ -154,43 +161,18 @@ export class TransactionSearchComponent implements OnInit {
       selectedCategoryIds: [...this.selectedCategoryIds],
       debitCreditIndicator: this.debitCreditIndicator,
     });
+    this.closeFilterModal();
   }
 
-  onStartDateChange() {
-    this.emitFilters();
-  }
-
-  onEndDateChange() {
-    this.emitFilters();
+  clearAllFilters() {
+    this.selectedAccountIds = [];
+    this.selectedCategoryIds = [];
+    this.debitCreditIndicator = null;
+    this.setFinancialYearDates();
   }
 
   onDebitCreditIndicatorChange(value: "DR" | "CR" | null) {
     this.debitCreditIndicator = value;
-    this.emitFilters();
-  }
-
-  openDateRangeSelector() {
-    this.isDateRangeModalOpen = true;
-  }
-
-  closeDateRangeSelector() {
-    this.isDateRangeModalOpen = false;
-  }
-
-  // Compact "Apr 1–Mar 31" chip label (ux/UX_transaction-search.md's
-  // mockup) instead of two stacked From/To fields always on-screen -
-  // parsed with an explicit local-midnight time to avoid the UTC-parsing
-  // off-by-one day that plain `new Date("2026-04-01")` can produce.
-  getDateRangeText(): string {
-    if (!this.startDate || !this.endDate) {
-      return "Select dates";
-    }
-    const format = (value: string) =>
-      new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    return `${format(this.startDate)}–${format(this.endDate)}`;
   }
 
   openAccountSelector() {
@@ -199,10 +181,6 @@ export class TransactionSearchComponent implements OnInit {
 
   closeAccountSelector() {
     this.isAccountModalOpen = false;
-    if (this.accountSelectionChanged) {
-      this.emitFilters();
-    }
-    this.accountSelectionChanged = false;
   }
 
   toggleAccountSelection(accountId: number) {
@@ -212,7 +190,6 @@ export class TransactionSearchComponent implements OnInit {
     } else {
       this.selectedAccountIds.push(accountId);
     }
-    this.accountSelectionChanged = true;
   }
 
   isAccountSelected(accountId: number): boolean {
@@ -246,10 +223,6 @@ export class TransactionSearchComponent implements OnInit {
 
   closeCategorySelector() {
     this.isCategoryModalOpen = false;
-    if (this.categorySelectionChanged) {
-      this.emitFilters();
-    }
-    this.categorySelectionChanged = false;
   }
 
   toggleCategorySelection(categoryId: number) {
@@ -259,7 +232,6 @@ export class TransactionSearchComponent implements OnInit {
     } else {
       this.selectedCategoryIds.push(categoryId);
     }
-    this.categorySelectionChanged = true;
   }
 
   isCategorySelected(categoryId: number): boolean {
@@ -277,7 +249,6 @@ export class TransactionSearchComponent implements OnInit {
 
   clearAllCategories() {
     this.selectedCategoryIds = [];
-    this.categorySelectionChanged = true;
   }
 
   selectAllCategories() {
@@ -288,7 +259,6 @@ export class TransactionSearchComponent implements OnInit {
     } else {
       this.selectedCategoryIds = allIds;
     }
-    this.categorySelectionChanged = true;
   }
 
   filterCategories() {

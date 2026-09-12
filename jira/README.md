@@ -21,3 +21,5 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_13](JIRA_13.md) | Revamp transaction-list's search/filter section | Ready for Dev |
 | [JIRA_14](JIRA_14.md) | Split transaction-list into separate search and list components | Done |
 | [JIRA_15](JIRA_15.md) | Gate "Revert Categorize" on pending changes, label the bulk-actions row | Done |
+| [JIRA_16](JIRA_16.md) | Search bar sizing, balance summary row, and compact bulk-action buttons | Done |
+| [JIRA_17](JIRA_17.md) | Amazon-style search + filter button, filters in a modal | Done |

@@ -67,36 +67,20 @@ describe("TransactionSearchComponent", () => {
     });
   });
 
-  // New with the "condensed single-row filter bar" redesign
-  // (ux/UX_transaction-search.md's mockup) - the two stacked From/To date
-  // fields were replaced with a single "Apr 1–Mar 31" chip that opens a
-  // modal, so there's now a formatted-label getter and a modal-open flag
-  // to characterize.
-  describe("getDateRangeText (the compact date-range chip label)", () => {
-    it("formats a real start/end date as an en-dash range with no year", () => {
-      component.startDate = "2026-04-01";
-      component.endDate = "2027-03-31";
+  // JIRA_17 - the always-visible chip row (including its own date-range
+  // chip/modal) was replaced by one Filters modal opened via a button in
+  // transaction-list's search row; date range is now two plain fields
+  // inline in that sheet, so the old getDateRangeText()/isDateRangeModalOpen/
+  // openDateRangeSelector()/closeDateRangeSelector() are gone.
+  describe("openFilterModal / closeFilterModal", () => {
+    it("toggles isFilterModalOpen", () => {
+      expect(component.isFilterModalOpen).toBe(false);
 
-      expect(component.getDateRangeText()).toBe("Apr 1–Mar 31");
-    });
+      component.openFilterModal();
+      expect(component.isFilterModalOpen).toBe(true);
 
-    it("falls back to a placeholder when either date is missing", () => {
-      component.startDate = "";
-      component.endDate = "2027-03-31";
-
-      expect(component.getDateRangeText()).toBe("Select dates");
-    });
-  });
-
-  describe("openDateRangeSelector / closeDateRangeSelector", () => {
-    it("toggles isDateRangeModalOpen", () => {
-      expect(component.isDateRangeModalOpen).toBe(false);
-
-      component.openDateRangeSelector();
-      expect(component.isDateRangeModalOpen).toBe(true);
-
-      component.closeDateRangeSelector();
-      expect(component.isDateRangeModalOpen).toBe(false);
+      component.closeFilterModal();
+      expect(component.isFilterModalOpen).toBe(false);
     });
   });
 
@@ -133,70 +117,69 @@ describe("TransactionSearchComponent", () => {
     });
   });
 
-  // Replaces the old explicit Apply button - see jira/JIRA_14.md's
-  // addendum for why there's no "screen" to apply-and-leave any more.
-  describe("emitting filtersApplied on a filter change (no Apply button)", () => {
-    it("emits on a date change", () => {
+  // JIRA_17 - replaces the old emit-on-every-change behavior (account/
+  // category modal close, date/DR-CR edits) with one explicit "Apply
+  // filters" action inside the Filters modal, since several changes now
+  // typically happen before confirming, not one at a time on a visible page.
+  describe("applyFiltersFromModal (explicit Apply, replacing per-change emission)", () => {
+    it("emits the current filter state and closes the modal", () => {
       let emitted: any = null;
       component.filtersApplied.subscribe((filters) => (emitted = filters));
+      component.openFilterModal();
 
+      component.selectedAccountIds = [1, 2];
       component.startDate = "2026-04-01";
-      component.onStartDateChange();
+      component.endDate = "2027-03-31";
+      component.selectedCategoryIds = [9];
+      component.debitCreditIndicator = "DR";
+
+      component.applyFiltersFromModal();
 
       expect(emitted).toEqual({
-        selectedAccountIds: [],
+        selectedAccountIds: [1, 2],
         startDate: "2026-04-01",
-        endDate: component.endDate,
-        selectedCategoryIds: [],
-        debitCreditIndicator: null,
+        endDate: "2027-03-31",
+        selectedCategoryIds: [9],
+        debitCreditIndicator: "DR",
       });
+      expect(component.isFilterModalOpen).toBe(false);
     });
 
-    it("emits on a debit/credit indicator change", () => {
-      let emitted: any = null;
-      component.filtersApplied.subscribe((filters) => (emitted = filters));
-
-      component.onDebitCreditIndicatorChange("DR");
-
-      expect(component.debitCreditIndicator).toBe("DR");
-      expect(emitted?.debitCreditIndicator).toBe("DR");
-    });
-
-    it("emits once when the account modal closes after a selection change, not per checkbox", () => {
+    it("does not emit merely from opening/closing the account or category modals", () => {
       let emitCount = 0;
       component.filtersApplied.subscribe(() => emitCount++);
 
       component.openAccountSelector();
       component.toggleAccountSelection(1);
-      component.toggleAccountSelection(2);
-      expect(emitCount).toBe(0);
-
       component.closeAccountSelector();
-
-      expect(emitCount).toBe(1);
-      expect(component.selectedAccountIds).toEqual([1, 2]);
-    });
-
-    it("does not emit when the account modal closes with no selection change", () => {
-      let emitCount = 0;
-      component.filtersApplied.subscribe(() => emitCount++);
-
-      component.openAccountSelector();
-      component.closeAccountSelector();
-
-      expect(emitCount).toBe(0);
-    });
-
-    it("emits once when the category modal closes after a selection change", () => {
-      let emitCount = 0;
-      component.filtersApplied.subscribe(() => emitCount++);
 
       component.openCategorySelector();
       component.toggleCategorySelection(9);
       component.closeCategorySelector();
 
-      expect(emitCount).toBe(1);
+      expect(emitCount).toBe(0);
+      expect(component.selectedAccountIds).toEqual([1]);
       expect(component.selectedCategoryIds).toEqual([9]);
+    });
+  });
+
+  describe("clearAllFilters", () => {
+    it("resets accounts, categories, DR/CR, and the date range", () => {
+      component.selectedAccountIds = [1, 2];
+      component.selectedCategoryIds = [9];
+      component.debitCreditIndicator = "DR";
+      const defaultStart = component.startDate;
+      const defaultEnd = component.endDate;
+      component.startDate = "2020-01-01";
+      component.endDate = "2020-12-31";
+
+      component.clearAllFilters();
+
+      expect(component.selectedAccountIds).toEqual([]);
+      expect(component.selectedCategoryIds).toEqual([]);
+      expect(component.debitCreditIndicator).toBeNull();
+      expect(component.startDate).toBe(defaultStart);
+      expect(component.endDate).toBe(defaultEnd);
     });
   });
 });

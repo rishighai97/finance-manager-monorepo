@@ -65,4 +65,18 @@ describe("CategoryListComponent", () => {
       expect(categoryServiceStub.refreshCategories).toHaveBeenCalled();
     });
   });
+
+  // Replaces ion-searchbar's built-in cancel button (JIRA_16 - see
+  // category-list.component.html's search-container comment for why).
+  describe("clearSearch (JIRA_16)", () => {
+    it("clears the search term and re-applies the filter", () => {
+      component.searchTerm = "food";
+      spyOn(component, "applyFilter");
+
+      component.clearSearch();
+
+      expect(component.searchTerm).toBe("");
+      expect(component.applyFilter).toHaveBeenCalled();
+    });
+  });
 });

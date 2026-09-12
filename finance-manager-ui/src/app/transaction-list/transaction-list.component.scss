@@ -82,10 +82,18 @@ ion-content {
   }
 
   // Flat underline field instead of the default grey pill - idle border is
-  // subtle, brightens to the primary color while focused.
+  // subtle, brightens to the primary color while focused. Height fix
+  // (JIRA_16/ux/UX_density-pass.md): Ionic sets padding-top/padding-bottom/
+  // min-height directly on the host (not via a --custom-property, so
+  // there's nothing else to hook), at up to 60px depending on mode -
+  // !important is the standard, documented way to win a same-specificity
+  // tie against a web component's own internal :host rule from outside.
   .cl-searchbar {
     flex: 1 1 auto;
     padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 32px !important;
     --border-radius: 0;
     --background: transparent;
     --box-shadow: none;
@@ -98,6 +106,17 @@ ion-content {
     &:focus-within {
       border-bottom-color: var(--ion-color-primary);
     }
+  }
+
+  // Plain-text replacement for ion-searchbar's built-in cancel button -
+  // see the html comment for why the built-in one couldn't just be resized.
+  .cl-clear-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   // Labeled toggle switch, replacing the bare ion-checkbox. ion-toggle's
@@ -129,6 +148,40 @@ ion-content {
   .regex-label {
     font-size: 12px;
     color: var(--app-color-muted);
+  }
+
+  // Filter button (JIRA_17) - Amazon-style, sits after the Regex toggle;
+  // opens transaction-search's Filters modal. Outlined in the primary
+  // accent so it reads as an actionable control, not a muted icon.
+  .filter-btn {
+    position: relative;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--ion-color-primary);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+
+    ion-icon {
+      font-size: 15px;
+      color: var(--ion-color-primary);
+    }
+
+    .filter-btn-dot {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ion-color-primary);
+      border: 1.5px solid var(--ion-background-color);
+    }
   }
 
   // Batch-categorize row - not in ux/UX_transaction-list.md's spec (a real
@@ -173,10 +226,16 @@ ion-content {
     transition: flex-basis 0.25s ease;
   }
 
+  // Compact chip buttons (JIRA_16/ux/UX_density-pass.md Option B) - 26px
+  // pill height/radius instead of the previous 32px/4px squared buttons,
+  // tighter padding, shorter labels (full action name moved to
+  // aria-label/title, see the .html file).
   .batch-categorize-btn {
-    font-size: 12px;
-    height: 32px;
-    --border-radius: 4px;
+    font-size: 11px;
+    height: 26px;
+    --border-radius: 13px;
+    --padding-start: 11px;
+    --padding-end: 11px;
     margin: 0;
   }
 
@@ -185,16 +244,20 @@ ion-content {
   // color="primary" on the ion-button already sets this; no --border-
   // color/--color override needed here any more.
   .batch-clear-btn {
-    font-size: 12px;
-    height: 32px;
-    --border-radius: 4px;
+    font-size: 11px;
+    height: 26px;
+    --border-radius: 13px;
+    --padding-start: 11px;
+    --padding-end: 11px;
     margin: 0;
   }
 
   .save-cat-btn {
-    font-size: 12px;
-    height: 32px;
-    --border-radius: 4px;
+    font-size: 11px;
+    height: 26px;
+    --border-radius: 13px;
+    --padding-start: 11px;
+    --padding-end: 11px;
     margin: 0;
     animation: save-cat-btn-in 0.25s ease;
   }
@@ -360,49 +423,61 @@ ion-list.calm-ledger-list {
 }
 
 // Summary row - plain text columns, hairline separators, no colored boxes
+// Inline byline (JIRA_16/ux/UX_density-pass.md Option A) - one wrapping
+// line instead of a bordered 4-column strip; reads as a caption under the
+// header rather than a boxed stat block. Same bindings/color classes as
+// before (.summary-label/.summary-amount/.danger/.success), just
+// re-templated as inline spans instead of column divs.
 .summary-container {
   display: flex;
-  justify-content: space-between;
-  padding: 12px 20px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--app-divider);
+  font-size: 12.5px;
 
-  .summary-item {
-    flex: 1;
-    text-align: center;
-    padding: 0 4px;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  // Each label+amount is one flex item, so a narrow viewport wraps
+  // between whole stats, never between a label and its own figure.
+  .summary-stat {
+    display: inline-flex;
+    align-items: baseline;
     gap: 4px;
+  }
 
-    &:not(:last-child) {
-      border-right: 1px solid var(--app-divider-subtle);
+  .summary-label {
+    color: var(--app-color-muted);
+    white-space: nowrap;
+  }
+
+  .summary-sep {
+    color: var(--app-divider);
+    margin: 0 2px;
+  }
+
+  .summary-amount {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ion-text-color);
+    white-space: nowrap;
+
+    &.danger {
+      color: var(--ion-color-danger);
     }
 
-    .summary-label {
-      font-size: 10.5px;
-      color: var(--app-color-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      white-space: nowrap;
-    }
-
-    .summary-amount {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--ion-text-color);
-      white-space: nowrap;
-
-      &.danger {
-        color: var(--ion-color-danger);
-      }
-
-      &.success {
-        color: var(--ion-color-success);
-      }
+    &.success {
+      color: var(--ion-color-success);
     }
   }
+}
+
+// Add-category modal's search bar - same height fix as .cl-searchbar
+// (JIRA_16/ux/UX_density-pass.md), applied here too since it's a separate
+// ion-searchbar instance with its own host box.
+.modal-searchbar {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 32px !important;
 }
 
 .bottom-spacer {

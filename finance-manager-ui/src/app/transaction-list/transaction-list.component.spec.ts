@@ -185,9 +185,13 @@ describe("TransactionListComponent", () => {
   // nothing pending to revert; it now shares "Update Categories"'
   // existing hasCategoryChanges condition so both appear/disappear together.
   describe("Revert Categorize / Update Categories visibility (JIRA_15)", () => {
-    function findButtonByText(text: string) {
+    // Matched by aria-label (the full action name), not visible text -
+    // JIRA_16's density pass shortened the on-screen labels to
+    // "Revert"/"Update" while keeping the full name discoverable via
+    // aria-label/title, so the test shouldn't depend on which one is showing.
+    function findButtonByAriaLabel(label: string) {
       return fixture.debugElement.query(
-        (el) => el.nativeElement.tagName === "ION-BUTTON" && el.nativeElement.textContent.includes(text)
+        (el) => el.nativeElement.tagName === "ION-BUTTON" && el.nativeElement.getAttribute("aria-label") === label
       );
     }
 
@@ -199,16 +203,30 @@ describe("TransactionListComponent", () => {
       component.hasCategoryChanges = false;
       fixture.detectChanges();
 
-      expect(findButtonByText("Revert Categorize")).toBeNull();
-      expect(findButtonByText("Update Categories")).toBeNull();
+      expect(findButtonByAriaLabel("Revert Categorize")).toBeNull();
+      expect(findButtonByAriaLabel("Update Categories")).toBeNull();
     });
 
     it("shows both buttons together once a category change is pending", () => {
       component.hasCategoryChanges = true;
       fixture.detectChanges();
 
-      expect(findButtonByText("Revert Categorize")).not.toBeNull();
-      expect(findButtonByText("Update Categories")).not.toBeNull();
+      expect(findButtonByAriaLabel("Revert Categorize")).not.toBeNull();
+      expect(findButtonByAriaLabel("Update Categories")).not.toBeNull();
+    });
+  });
+
+  // Replaces ion-searchbar's built-in cancel button (JIRA_16 - see
+  // transaction-list.component.html/scss for why it couldn't just be resized).
+  describe("clearSearch (JIRA_16)", () => {
+    it("clears the search term and re-applies the filter", () => {
+      component.searchTerm = "grocery";
+      spyOn(component, "applyFilter");
+
+      component.clearSearch();
+
+      expect(component.searchTerm).toBe("");
+      expect(component.applyFilter).toHaveBeenCalled();
     });
   });
 
