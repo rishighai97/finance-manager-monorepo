@@ -17,6 +17,7 @@ See it in action - each row links to a GIF walkthrough in [`docs/FEATURE_GIFS.md
 | Transactions | [GIF](docs/FEATURE_GIFS.md#transactions) |
 | Search & filter transactions | [GIF](docs/FEATURE_GIFS.md#search--filter-transactions) |
 | Categories | [GIF](docs/FEATURE_GIFS.md#categories) |
+| Graphs | [GIF](docs/FEATURE_GIFS.md#graphs) |
 
 It's a multi-module workspace - four backend services plus an Angular/Ionic client, all backed by a shared Postgres database. Each module below keeps its own README with module-specific setup/usage details; this file just gives the map. See [`architecture-docs`](architecture-docs/README.md) for diagrams of how the pieces fit together (high-level design, key user-flow sequence diagrams, and the database schema).
 

@@ -25,6 +25,7 @@ This skill is **incremental** - pass the specific feature name(s) to capture (e.
 | `transactions` | Transactions | `tabs/transactions` (transaction-list) | The transaction list for an account, including categorizing one transaction. |
 | `transaction-search` | Search & filter transactions | `tabs/transactions/search` (transaction-search) | Opening the filter modal, applying a filter (e.g. an account or category), seeing the list narrow. |
 | `categories` | Categories | `category-list` | The category list/management screen. |
+| `graphs` | Graphs | `tabs/graphs` (graphs) | Switching the graph-type dropdown between spending-by-category/income-vs-expense/balance-trend/monthly-spend, and opening the filter sheet. |
 
 ## Step 2 - Ensure a synthetic sample statement exists (only needed for `upload-statement`)
 

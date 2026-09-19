@@ -37,3 +37,9 @@ Opening the filter modal (date range, accounts, category, debit/credit type) and
 ![Categories](gifs/categories.gif)
 
 Adding a new category and finding it via search.
+
+## Graphs
+
+![Graphs](gifs/graphs.gif)
+
+Widening the date filter via the Filters sheet, then switching the graph-type dropdown between spending by category, income vs. expense over time, monthly spending trend, and balance trend over time - including a hover tooltip on the category donut.
