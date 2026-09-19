@@ -42,4 +42,4 @@ Adding a new category and finding it via search.
 
 ![Graphs](gifs/graphs.gif)
 
-Widening the date filter via the Filters sheet, then switching the graph-type dropdown between spending by category, income vs. expense over time, monthly spending trend, and balance trend over time - including a hover tooltip on the category donut.
+Switching the graph-type dropdown between spending by category (with a hover tooltip), income vs. expense over time, and monthly spending trend, then using the Filters sheet to narrow to a single account for the balance trend view (its own hover tooltip included).
