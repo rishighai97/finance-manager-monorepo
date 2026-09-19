@@ -1,6 +1,6 @@
 ---
 name: local-run
-description: Bring up the entire finance-manager local stack - Postgres, account-service, api-gateway, transaction-service, statement-loader, finance-manager-ui - in one go, auto-running local-setup for missing prerequisites and db-setup on a first-time empty database, so the app is reachable on localhost. Use whenever the user asks to run/start/spin up finance-manager locally, "start everything", or view the app on localhost. Root-level orchestrator skill - see also local-setup (prerequisites only) and db-setup (data reset only) for their standalone uses.
+description: Bring up the entire finance-manager local stack - Postgres, account-service, api-gateway, transaction-service, statement-loader, finance-manager-ui - in one go, auto-running local-setup for missing prerequisites, so the app is reachable on localhost. On a schema-less database it stops and asks for explicit confirmation before bootstrapping sample data via db-setup - it never resets data unconfirmed. Use whenever the user asks to run/start/spin up finance-manager locally, "start everything", or view the app on localhost. Root-level orchestrator skill - see also local-setup (prerequisites only) and db-setup (data reset only) for their standalone uses.
 ---
 
 # local-run
@@ -15,11 +15,13 @@ Root-level orchestrator: gets a fresh checkout of this monorepo to a working app
    ```
    If it exits non-zero, read its `[FAIL]` lines and resolve them (these are things it can't safely auto-fix, like installing Node.js or Docker) before continuing. `[WARN]`s are fine to proceed past.
 
-2. **Ensure sample data exists.** `start-all.sh` (next step) checks for a schema itself and fails fast if the `finance_manager` database has no tables yet - but the intent of this skill is to auto-bootstrap that case rather than stop and ask. So: if this is a first-time run (fresh Postgres, no tables), run db-setup's backing script now:
-   ```bash
-   bash .claude/skills/db-setup/reset-db.sh
-   ```
-   **Never** run this if tables already exist and the user has real data - it's destructive. Check first (e.g. `psql ... -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='account'"`, which `start-all.sh` also does) rather than running it unconditionally.
+2. **Check whether a schema exists - never bootstrap unconfirmed.** `start-all.sh` (next step) checks for a schema itself and fails fast if the `finance_manager` database has no tables yet. Before that, check the same thing yourself (e.g. `psql ... -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='account'"`, or via `docker exec` if `psql` isn't on PATH - same fallback `start-all.sh` uses).
+   - If tables already exist: do nothing here - existing data (including anything beyond the original sample data) is left untouched. **Never** run `db-setup`'s reset script in this case.
+   - If there is genuinely no schema yet (fresh Postgres): **stop and ask the user for explicit confirmation** before running `db-setup`'s backing script - do not run it automatically, even though the DB currently looks empty. A schema-less reading can be wrong (a transient connection hiccup, a check that ran against the wrong database) and `db-setup` is destructive, so a human must confirm before it runs. Only after the user confirms, run:
+     ```bash
+     bash .claude/skills/db-setup/reset-db.sh
+     ```
+     (this now takes its own automatic pre-reset backup - see `db-setup`'s `SKILL.md` - so even a confirmed reset is recoverable.)
 
 3. **Start everything.**
    ```bash
@@ -46,7 +48,7 @@ Kills whatever is listening on ports 5001/5002/5003/5004/8100/4200 (port-based, 
 
 ## Design notes / constraints
 
-- Never touches data in an already-populated database - `db-setup` only runs automatically against a schema-less DB (step 2), and standalone `db-setup` runs are always explicit user requests.
+- Never touches data in an already-populated database, and never runs `db-setup` without explicit user confirmation, even against a schema-less DB (step 2) - see JIRA_22. `db-setup` itself also takes an automatic pre-reset backup, so a confirmed reset is still recoverable.
 - Does not run `./gradlew clean build` before `bootRun` - faster iteration, matches each Java module's own README's documented local-run command. If a service is misbehaving after a dependency bump, a manual `./gradlew clean build` in that module is a reasonable troubleshooting step outside this skill.
 - Must not depend on any hardcoded path from the pre-monorepo layout (unlike `scripts/local_startup/*.sh`, which still hardcode `/Users/rishighai/Desktop/finance-manager-application`) - `start-all.sh` derives `REPO_ROOT` from its own location.
 

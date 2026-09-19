@@ -1,11 +1,21 @@
 ---
 name: db-setup
-description: Destructively reset the local finance_manager Postgres schema (drop all tables cascade, recreate them) and reload it with sample data - account types/icons, demo accounts, a demo user, a linked user_account, and starter categories - by running dbscripts/'s versioned SQL files via the db-run skill (psql CLI, no Python). Use when the user asks to reset local data, wants a clean known-good dataset, or as part of local-run's first-time bootstrap against an empty database. Never run this against data you want to keep.
+description: Destructively reset the local finance_manager Postgres schema (drop all tables cascade, recreate them) and reload it with sample data - account types/icons, demo accounts, a demo user, a linked user_account, and starter categories - by running dbscripts/'s versioned SQL files via the db-run skill (psql CLI, no Python). Takes an automatic pg_dump backup (last 5 retained, in .postgres-backups/) before every reset, so even a confirmed run is recoverable. Use when the user asks to reset local data, wants a clean known-good dataset, or (with the user's explicit confirmation - see local-run's SKILL.md) as part of local-run's first-time bootstrap against an empty database. Never run this against data you want to keep without confirming with the user first.
 ---
 
 # db-setup
 
-**Destructive**: this drops every table in the local `finance_manager` database and reloads a fixed sample dataset. Only run it when the user wants a reset, or when `local-run` detects a first-time empty database and needs to bootstrap one.
+**Destructive**: this drops every table in the local `finance_manager` database and reloads a fixed sample dataset. Only run it when the user explicitly wants a reset - including when `local-run` detects a first-time empty database, where the user must still explicitly confirm before this runs (see `local-run`'s `SKILL.md` step 2 and JIRA_22). It is never run unconfirmed.
+
+## Safety backup
+
+Before dropping anything, `reset-db.sh` takes a `pg_dump` of `finance_manager` (native `pg_dump` if on PATH, else `docker exec` into the `finance-manager-postgres` container - same fallback pattern as `db-run`) to `.postgres-backups/finance_manager_<timestamp>.sql`, keeping only the 5 most recent (older ones are pruned automatically). If the backup can't be taken for any reason, the script aborts **before** touching any data. To restore one:
+
+```bash
+PGPASSWORD=admin psql -h localhost -p 5432 -U postgres -d finance_manager -f .postgres-backups/finance_manager_<timestamp>.sql
+```
+
+`.postgres-backups/` is gitignored, same as `.postgres-data/` - it's local machine state, not something to commit.
 
 ## Prerequisite
 

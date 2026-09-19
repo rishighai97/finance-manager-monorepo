@@ -44,6 +44,7 @@ statement-loader/resources/onboarding_samples/*
 **/server.log
 **/server.log.pid
 .postgres-data/
+.postgres-backups/
 
 # === Secrets ===
 .env
