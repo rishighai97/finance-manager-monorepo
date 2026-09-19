@@ -1,3 +1,3 @@
-<app-transaction-list #list (openFilters)="search.openFilterModal()">
-  <app-transaction-search #search (filtersApplied)="list.applyFilters($event)"></app-transaction-search>
+<app-transaction-list #list (openFilters)="filter.openFilterModal()">
+  <app-transaction-filter #filter (filtersApplied)="list.applyFilters($event)"></app-transaction-filter>
 </app-transaction-list>

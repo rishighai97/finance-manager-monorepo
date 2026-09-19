@@ -5,14 +5,14 @@ import { provideRouter } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { Subject } from "rxjs";
 
-import { TransactionSearchComponent } from "./transaction-search.component";
+import { TransactionFilterComponent } from "./transaction-filter.component";
 import { UserAccountService } from "src/service/user.account.service";
 import { CategoryService } from "src/service/category.service";
 import { GroupedUserAccount } from "src/model/grouped-user-account";
 
-describe("TransactionSearchComponent", () => {
-  let component: TransactionSearchComponent;
-  let fixture: ComponentFixture<TransactionSearchComponent>;
+describe("TransactionFilterComponent", () => {
+  let component: TransactionFilterComponent;
+  let fixture: ComponentFixture<TransactionFilterComponent>;
 
   let groupedUserAccounts$: Subject<GroupedUserAccount[]>;
   let userCategories$: Subject<any[]>;
@@ -21,11 +21,11 @@ describe("TransactionSearchComponent", () => {
     groupedUserAccounts$ = new Subject<GroupedUserAccount[]>();
     userCategories$ = new Subject<any[]>();
 
-    // TransactionSearchComponent is standalone - matches the convention
+    // TransactionFilterComponent is standalone - matches the convention
     // established for its sibling components (see JIRA_7's Implementation
     // notes).
     TestBed.configureTestingModule({
-      imports: [TransactionSearchComponent, IonicModule.forRoot()],
+      imports: [TransactionFilterComponent, IonicModule.forRoot()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -35,7 +35,7 @@ describe("TransactionSearchComponent", () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(TransactionSearchComponent);
+    fixture = TestBed.createComponent(TransactionFilterComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));
@@ -97,7 +97,7 @@ describe("TransactionSearchComponent", () => {
     });
 
     it("populates the form from initialFilters set before ngOnInit runs", () => {
-      const seededFixture = TestBed.createComponent(TransactionSearchComponent);
+      const seededFixture = TestBed.createComponent(TransactionFilterComponent);
       const seededComponent = seededFixture.componentInstance;
       seededComponent.initialFilters = {
         selectedAccountIds: [4, 5],

@@ -1,0 +1,320 @@
+// Graphs page (JIRA_23/ux/UX_graphs.md, Option 1 - Spare). Several class
+// names/rules here are deliberately duplicated from transaction-list's
+// error-state/skeleton/empty-state/filter-btn styling rather than shared,
+// matching this repo's existing per-component-styles convention (see
+// account-list/category-list, which each duplicate the same states too -
+// there's no shared partial for them yet).
+
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.type-select {
+  flex: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--app-divider-subtle);
+  padding: 8px 22px 8px 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ion-text-color);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%236B6B6B' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+}
+
+// Filter button - identical markup/styling to transaction-list's, so both
+// pages read as the same control.
+.filter-btn {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--ion-color-primary);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+
+  ion-icon {
+    font-size: 15px;
+    color: var(--ion-color-primary);
+  }
+
+  .filter-btn-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ion-color-primary);
+    border: 1.5px solid var(--ion-background-color);
+  }
+}
+
+// Capped, not left to fill whatever height ion-content happens to have -
+// live-testing found this stretching to fill the entire (quite tall, on a
+// wide desktop browser window) content area with no upper bound otherwise.
+.chart-area {
+  padding: 18px 16px 32px;
+  min-height: 320px;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.chart-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ion-color-medium);
+  padding: 0 4px;
+}
+
+// Fixed height, not flex:1/max-height - live-testing found that a
+// percentage height on svg.chart below doesn't resolve against a flex
+// item with no *definite* height (max-height alone doesn't count), so the
+// SVG fell back to matching its (large, definite) width instead, producing
+// a 608x608 donut that blew straight past the intended cap. A definite
+// height here is what makes the child's height:100% actually mean 100%.
+.chart-svg-wrap {
+  position: relative;
+  height: 280px;
+}
+
+svg.chart {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+.axis-label {
+  font-family: monospace;
+  font-size: 9.5px;
+  fill: var(--app-color-muted);
+}
+
+.donut-total {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ion-text-color);
+}
+
+.donut-slice {
+  cursor: pointer;
+}
+
+.bar-debit {
+  fill: var(--ion-color-danger);
+  cursor: pointer;
+}
+
+.bar-credit {
+  fill: var(--ion-color-success);
+  cursor: pointer;
+}
+
+.line-balance {
+  fill: none;
+  stroke: var(--ion-color-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pt {
+  fill: var(--ion-background-color);
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.pt-balance {
+  stroke: var(--ion-color-primary);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 2px 4px 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.credit-swatch {
+  background: var(--ion-color-success);
+}
+
+.debit-swatch {
+  background: var(--ion-color-danger);
+}
+
+.chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--ion-text-color);
+  color: var(--ion-background-color);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 9px;
+  border-radius: 6px;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -100%);
+  transition: opacity 0.1s ease;
+  z-index: 5;
+
+  &.visible {
+    opacity: 1;
+  }
+}
+
+// Skeleton loading (Calm Ledger - flat bars, no spinner, matching
+// transaction-list's skeleton-row convention)
+.skeleton-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-top: 40px;
+
+  .skeleton-donut {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 22px solid var(--app-divider-subtle);
+    border-top-color: var(--app-divider);
+  }
+
+  .sk-bar {
+    height: 10px;
+    border-radius: 4px;
+    background: var(--app-divider-subtle);
+  }
+
+  .w70 {
+    width: 70%;
+  }
+
+  .w45 {
+    width: 45%;
+  }
+}
+
+// Error state - identical to transaction-list's
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 260px;
+  text-align: center;
+  padding: 20px;
+  gap: 6px;
+
+  .error-icon {
+    font-size: 28px;
+    color: var(--ion-color-danger);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ion-text-color);
+    margin: 0;
+  }
+
+  p {
+    font-size: 12.5px;
+    color: var(--app-color-muted);
+    max-width: 230px;
+    margin: 0;
+  }
+
+  .retry-link {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    border-bottom: 1px solid var(--ion-color-primary);
+    cursor: pointer;
+  }
+}
+
+// Empty state - reused for both "no transactions match" and the
+// balance-trend guidance state (same visual treatment, different copy)
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 260px;
+  text-align: center;
+  padding: 20px;
+  gap: 6px;
+
+  .empty-icon {
+    font-size: 28px;
+    color: var(--app-color-muted);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ion-text-color);
+    margin: 0;
+    max-width: 260px;
+  }
+
+  p {
+    font-size: 12.5px;
+    color: var(--app-color-muted);
+    max-width: 260px;
+    margin: 0;
+  }
+}
+
+.text-link {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 4px;
+}

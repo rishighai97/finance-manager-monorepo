@@ -1,11 +1,13 @@
 import { Component } from "@angular/core";
-import { TransactionSearchComponent } from "../transaction-search/transaction-search.component";
+import { TransactionFilterComponent } from "../shared/transaction-filter/transaction-filter.component";
 import { TransactionListComponent } from "../transaction-list/transaction-list.component";
 
 // Replaces TransactionsShellComponent (JIRA_14's router-outlet/(activate)
-// coordinator) now that transaction-search and transaction-list live on
+// coordinator) now that the filter component and transaction-list live on
 // the same page instead of separate routes - see ux/UX_transaction-search.md
-// (Option 4) and jira/JIRA_14.md's addendum for why. transaction-search is
+// (Option 4) and jira/JIRA_14.md's addendum for why. The filter component
+// (originally transaction-search, extracted into a shared, page-agnostic
+// component under JIRA_23 so the new Graphs page can reuse it too) is
 // projected into transaction-list's <ng-content> slot so it renders below
 // transaction-list's own header, matching the mockup, while the two stay
 // genuinely separate, independently-testable components wired by a plain
@@ -24,6 +26,6 @@ import { TransactionListComponent } from "../transaction-list/transaction-list.c
   // flex-layout descendant of ion-page.
   styles: [":host { display: contents; }"],
   standalone: true,
-  imports: [TransactionSearchComponent, TransactionListComponent],
+  imports: [TransactionFilterComponent, TransactionListComponent],
 })
 export class TransactionsPageComponent {}

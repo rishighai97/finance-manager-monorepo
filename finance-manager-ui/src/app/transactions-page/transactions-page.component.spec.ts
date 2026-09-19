@@ -15,7 +15,7 @@ import { GroupedUserAccount } from "src/model/grouped-user-account";
 
 // Replaces transactions-shell.component.spec.ts (jira/JIRA_14.md's
 // addendum) - there's no router-outlet/(activate) coordination to test any
-// more, just that transaction-search's filtersApplied reaches
+// more, just that the projected filter component's filtersApplied reaches
 // transaction-list's applyFilters() via the template's #list reference.
 describe("TransactionsPageComponent", () => {
   let fixture: ComponentFixture<TransactionsPageComponent>;

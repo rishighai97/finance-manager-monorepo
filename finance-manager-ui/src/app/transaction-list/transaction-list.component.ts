@@ -59,7 +59,7 @@ import {
   TransactionUserCategoryAction,
 } from "src/model/transaction-user-category";
 import { ToastService } from "src/service/toast.service";
-import { TransactionFilters } from "../transaction-search/transaction-search.component";
+import { TransactionFilters } from "../shared/transaction-filter/transaction-filter.component";
 
 @Component({
   selector: "app-transaction-list",
@@ -96,9 +96,11 @@ import { TransactionFilters } from "../transaction-search/transaction-search.com
 })
 export class TransactionListComponent implements OnInit {
   // Filter button (JIRA_17) - the button lives here, in the search row,
-  // but the filter controls/modal it opens live in TransactionSearchComponent.
-  // TransactionsPageComponent forwards this to TransactionSearchComponent's
-  // openFilterModal(), the reverse-direction counterpart of that component's
+  // but the filter controls/modal it opens live in TransactionFilterComponent
+  // (extracted from this page's original transaction-search under JIRA_23 so
+  // the Graphs page can reuse it too). TransactionsPageComponent forwards
+  // this to TransactionFilterComponent's openFilterModal(), the
+  // reverse-direction counterpart of that component's
   // filtersApplied -> this.applyFilters() wiring.
   @Output() openFilters = new EventEmitter<void>();
 

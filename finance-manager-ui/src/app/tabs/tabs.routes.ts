@@ -25,6 +25,14 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'graphs',
+        loadComponent: () =>
+          import('../graphs/graphs.component').then(
+            (m) => m.GraphsComponent
+          ),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'statement-uploader',
         loadComponent: () =>
           import('../statement-uploader/statement-uploader.component').then(

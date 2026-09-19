@@ -20,6 +20,7 @@ Spec-driven UX-direction tracker for finance-manager, parallel to `jira/`'s requ
 | tabs | [UX_tabs.md](UX_tabs.md) | Implemented |
 | transaction-search | [UX_transaction-search.md](UX_transaction-search.md) | Implemented |
 | density-pass (cross-page: transaction-list, category-list, transaction-search) | [UX_density-pass.md](UX_density-pass.md) | Implemented |
+| graphs (new page) | [UX_graphs.md](UX_graphs.md) | Implemented |
 
 ## Proof captures
 

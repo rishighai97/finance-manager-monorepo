@@ -28,3 +28,4 @@ Spec-driven development tracker for finance-manager. Each `JIRA_<ID>.md` is a li
 | [JIRA_20](JIRA_20.md) | Fix missing debit/credit color distinction on transaction rows | Done |
 | [JIRA_21](JIRA_21.md) | `feature-gif-capture` skill + a GIFs README linked from the root README | Done |
 | [JIRA_22](JIRA_22.md) | Stop local-run from auto-purging DB data on empty-schema detection | Done |
+| [JIRA_23](JIRA_23.md) | New Graphs page with graph-type dropdown + reusable filter component | Done |

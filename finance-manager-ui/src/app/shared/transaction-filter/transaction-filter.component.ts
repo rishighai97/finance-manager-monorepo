@@ -29,13 +29,16 @@ import { UserAccountService } from "src/service/user.account.service";
 import { CategoryService } from "src/service/category.service";
 import { UserCategory } from "src/model/user-category";
 
-// The query-defining filters transaction-search hands back to
-// transaction-list on Apply - everything here triggers a server-side
-// refetch (TransactionService.fetchAllTransactions), unlike the text
-// search/regex toggle, which stays on transaction-list since it's a
-// client-side narrowing of already-fetched rows requiring live visual
-// feedback against visible rows (see ux/JIRA_14.md's Implementation
-// notes for why that split, not "everything moves").
+// The query-defining filters this component hands back to whichever page
+// hosts it (transaction-list, graphs) on Apply - everything here triggers a
+// server-side refetch (TransactionService.fetchAllTransactions). Originally
+// lived on transaction-list only as transaction-search; extracted into this
+// shared, transaction-page-agnostic component under JIRA_23 so the new
+// Graphs page can reuse the same filter UI instead of duplicating it. On
+// transaction-list specifically, the text search/regex toggle stays on that
+// page rather than moving here, since it's a client-side narrowing of
+// already-fetched rows requiring live visual feedback against visible rows
+// (see jira/JIRA_14.md's Implementation notes for why that split).
 export interface TransactionFilters {
   selectedAccountIds: number[];
   startDate: string;
@@ -45,9 +48,9 @@ export interface TransactionFilters {
 }
 
 @Component({
-  selector: "app-transaction-search",
-  templateUrl: "./transaction-search.component.html",
-  styleUrls: ["./transaction-search.component.scss"],
+  selector: "app-transaction-filter",
+  templateUrl: "./transaction-filter.component.html",
+  styleUrls: ["./transaction-filter.component.scss"],
   standalone: true,
   imports: [
     CommonModule,
@@ -68,7 +71,7 @@ export interface TransactionFilters {
     IonSearchbar,
   ],
 })
-export class TransactionSearchComponent implements OnInit {
+export class TransactionFilterComponent implements OnInit {
   // Seeds the form from transaction-list's currently-applied filters, if
   // any, when the wrapper mounts this component. There's usually nothing
   // to seed - this page has no prior "applied" state to inherit the way

@@ -1,0 +1,173 @@
+<!-- No [translucent]/[fullscreen] here - live-testing found ion-content's
+     automatic header-height offset (negative inset on .inner-scroll,
+     compensated by a --padding-top Ionic is supposed to calculate) wasn't
+     applying, rendering the controls row 44px too high, hidden under the
+     header. This app's header is already fully opaque (Calm Ledger's flat,
+     no-distinct-chrome-color toolbar), so it doesn't need the offset
+     mechanism at all - same fix transaction-list applied for the same
+     symptom (see ux/UX_transaction-search.md's Implementation notes point 3/12). -->
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="cl-headline">Graphs</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-no-padding">
+  <!-- Controls row (ux/UX_graphs.md Option 1 - Spare): graph-type dropdown
+       + filter button, nothing else above the chart. The filter button
+       reuses transaction-list's exact filter-btn/filter-btn-dot markup
+       (see that component's search row) so both pages read identically -
+       #filterComp lets both this button and the "Adjust filters" links
+       further down call the shared component's openFilterModal() directly,
+       without an intermediate @Output/coordinator (this page owns both the
+       trigger and the filter component itself, unlike transaction-list
+       which forwards from a sibling). -->
+  <div class="controls-row">
+    <select class="type-select" [(ngModel)]="graphType" (change)="onGraphTypeChange()" aria-label="Graph type">
+      <option *ngFor="let t of graphTypes" [value]="t.value">{{ t.label }}</option>
+    </select>
+    <button type="button" class="filter-btn" (click)="filterComp.openFilterModal()" aria-label="Filters">
+      <ion-icon name="options-outline"></ion-icon>
+      <span class="filter-btn-dot" *ngIf="hasActiveFilters"></span>
+    </button>
+  </div>
+
+  <app-transaction-filter
+    #filterComp
+    [initialFilters]="currentFilters"
+    (filtersApplied)="applyFilters($event)"
+  ></app-transaction-filter>
+
+  <div class="chart-area">
+    @if (hasError) {
+    <!-- Error - same copy/markup convention as transaction-list's error-state -->
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>Couldn&rsquo;t load transactions</h2>
+      <p>There was a problem reaching the server. Check your connection and try again.</p>
+      <a class="retry-link" (click)="retryLoad()">Retry</a>
+    </div>
+    } @else if (isLoading) {
+    <!-- Loading - flat skeleton, matching transaction-list's skeleton-row convention -->
+    <div class="skeleton-chart">
+      <div class="skeleton-donut"></div>
+      <div class="sk sk-bar w70"></div>
+      <div class="sk sk-bar w45"></div>
+    </div>
+    } @else if (graphType === 'balance' && balanceGuidanceNeeded) {
+    <!-- Balance-trend guidance state (ux/UX_graphs.md Implementation detail
+         point 7/8) - not a generic empty state: this graph type only means
+         something for exactly one account with real balance history. -->
+    <div class="empty-state">
+      <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+      <h2>Balance trend needs exactly one account with balance history selected.</h2>
+      <p>Mutual-fund and credit-card statements don&rsquo;t carry a running balance - pick a single bank/savings account.</p>
+      <a class="text-link" (click)="filterComp.openFilterModal()">Adjust filters</a>
+    </div>
+    } @else if (chartHasNoData) {
+    <div class="empty-state">
+      <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+      <h2>No transactions match the current filters.</h2>
+      <a class="text-link" (click)="filterComp.openFilterModal()">Adjust filters</a>
+    </div>
+    } @else {
+
+      <!-- Spending by category: donut -->
+      @if (graphType === 'category') {
+      <div class="chart-title">Spending by category</div>
+      <div class="chart-svg-wrap">
+        <svg class="chart" viewBox="0 0 200 200">
+          @for (slice of categorySlices; track slice.name) {
+          <circle
+            cx="100" cy="100" r="62"
+            fill="none"
+            [attr.stroke]="slice.color"
+            stroke-width="26"
+            [attr.stroke-dasharray]="slice.dashArray"
+            [attr.stroke-dashoffset]="slice.dashOffset"
+            transform="rotate(-90 100 100)"
+            class="donut-slice"
+            (mousemove)="showTooltip($event, formatCurrency(slice.amount) + ' · ' + slice.name + ' (' + slice.pct + '%)')"
+            (mouseleave)="hideTooltip()"
+          ></circle>
+          }
+          <text x="100" y="96" text-anchor="middle" class="donut-total">{{ formatCurrency(categoryTotal) }}</text>
+          <text x="100" y="112" text-anchor="middle" class="axis-label">total spend</text>
+        </svg>
+        <div class="chart-tooltip" [class.visible]="tooltipVisible" [style.left.px]="tooltipX" [style.top.px]="tooltipY">{{ tooltipText }}</div>
+      </div>
+      <div class="legend">
+        @for (slice of categorySlices; track slice.name) {
+        <div class="legend-item"><span class="swatch" [style.background]="slice.color"></span>{{ slice.name }} &middot; {{ formatCurrency(slice.amount) }}</div>
+        }
+      </div>
+      }
+
+      <!-- Income vs. expense over time: grouped bars -->
+      @if (graphType === 'incomeExpense') {
+      <div class="chart-title">Income vs. expense &middot; by month</div>
+      <div class="chart-svg-wrap">
+        <svg class="chart" viewBox="0 0 320 190">
+          @for (bar of monthlyBars; track bar.month; let i = $index) {
+          <rect
+            [attr.x]="34 + i * (286 / monthlyBars.length) + (286 / monthlyBars.length) / 2 - 20"
+            [attr.y]="bar.creditY" width="16" [attr.height]="bar.creditHeight" rx="3" class="bar-credit"
+            (mousemove)="showTooltip($event, formatCurrency(bar.credit) + ' · Income, ' + bar.month)"
+            (mouseleave)="hideTooltip()"
+          ></rect>
+          <rect
+            [attr.x]="34 + i * (286 / monthlyBars.length) + (286 / monthlyBars.length) / 2 + 4"
+            [attr.y]="bar.debitY" width="16" [attr.height]="bar.debitHeight" rx="3" class="bar-debit"
+            (mousemove)="showTooltip($event, formatCurrency(bar.debit) + ' · Expense, ' + bar.month)"
+            (mouseleave)="hideTooltip()"
+          ></rect>
+          <text [attr.x]="34 + i * (286 / monthlyBars.length) + (286 / monthlyBars.length) / 2" y="186" text-anchor="middle" class="axis-label">{{ bar.month }}</text>
+          }
+        </svg>
+        <div class="chart-tooltip" [class.visible]="tooltipVisible" [style.left.px]="tooltipX" [style.top.px]="tooltipY">{{ tooltipText }}</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch credit-swatch"></span>Income</div>
+        <div class="legend-item"><span class="swatch debit-swatch"></span>Expense</div>
+      </div>
+      }
+
+      <!-- Monthly spending trend: single-series bars -->
+      @if (graphType === 'monthlySpend') {
+      <div class="chart-title">Monthly spending trend</div>
+      <div class="chart-svg-wrap">
+        <svg class="chart" viewBox="0 0 320 190">
+          @for (bar of monthlySpendBars; track bar.month; let i = $index) {
+          <rect
+            [attr.x]="34 + i * (286 / monthlySpendBars.length) + (286 / monthlySpendBars.length) / 2 - 13"
+            [attr.y]="bar.y" width="26" [attr.height]="bar.height" rx="4" class="bar-debit"
+            (mousemove)="showTooltip($event, formatCurrency(bar.amount) + ' · ' + bar.month)"
+            (mouseleave)="hideTooltip()"
+          ></rect>
+          <text [attr.x]="34 + i * (286 / monthlySpendBars.length) + (286 / monthlySpendBars.length) / 2" y="186" text-anchor="middle" class="axis-label">{{ bar.month }}</text>
+          }
+        </svg>
+        <div class="chart-tooltip" [class.visible]="tooltipVisible" [style.left.px]="tooltipX" [style.top.px]="tooltipY">{{ tooltipText }}</div>
+      </div>
+      }
+
+      <!-- Balance trend over time: line, single balance-bearing account -->
+      @if (graphType === 'balance') {
+      <div class="chart-title">Balance trend</div>
+      <div class="chart-svg-wrap">
+        <svg class="chart" viewBox="0 0 320 190">
+          <polyline [attr.points]="balancePolylinePoints()" class="line-balance"></polyline>
+          @for (pt of balancePoints; track pt.date) {
+          <circle
+            [attr.cx]="pt.x" [attr.cy]="pt.y" r="4" class="pt pt-balance"
+            (mousemove)="showTooltip($event, formatCurrency(pt.balance) + ' · ' + pt.date)"
+            (mouseleave)="hideTooltip()"
+          ></circle>
+          }
+        </svg>
+        <div class="chart-tooltip" [class.visible]="tooltipVisible" [style.left.px]="tooltipX" [style.top.px]="tooltipY">{{ tooltipText }}</div>
+      </div>
+      }
+    }
+  </div>
+</ion-content>
